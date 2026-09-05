@@ -1,0 +1,53 @@
+# ---- IMZALAMA: bunlar asla depoya girmemeli ----
+# Yukleme anahtarini kaybedersen uygulamayi bir daha guncelleyemezsin,
+# sizdirirsan baskasi senin adina surum yayinlayabilir.
+*.jks
+*.keystore
+key.properties
+android/key.properties
+**/key.properties
+google-services.json
+*.p12
+*.pem
+
+# ---- uretilen proje ----
+# kurulum.sh bir ust klasorde 'kerteriz' uretir; kaynak burada, urun degil.
+/kerteriz/
+../kerteriz/
+
+# ---- Flutter / Dart ----
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+pubspec.lock
+*.iml
+
+# ---- Android ----
+android/.gradle/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+*.apk
+*.aab
+
+# ---- iOS / macOS ----
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+**/DerivedData/
+
+# ---- editor ve isletim sistemi ----
+.idea/
+.vscode/*
+!.vscode/settings.json
+.DS_Store
+*.swp
+*~
+
+# ---- kisisel veri: disa aktarilan saglik JSON'lari ----
+kerteriz-*.json
+*.health.json
