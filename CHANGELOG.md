@@ -1,15 +1,15 @@
-# Degisiklik gunlugu
+# Değişiklik günlüğü
 
-## 0.1.0 — Eylul 2026
+## 0.1.0 — Eylül 2026
 
-Ilk calisir surum.
+İlk çalışır sürüm.
 
-- Health Connect'ten okuma: uyku evreleri, nabiz, HRV, dinlenme nabzi, solunum,
-  SpO2, cilt sicakligi, adim
-- Bilesik metrikler: hazirlik, uyku skoru, uyku borcu, gunluk yuk (TRIMP),
-  akut/kronik oran, gece kardiyak toparlanma, sirkadiyen duzenlilik (SRI)
-- Dort ekran (Bugun, Uyku, Yuk, Kalp) ve Health Connect tani ekrani (Veri)
-- Eksik girdide agirliklarin yeniden dagitilmasi
-- Dinlenme nabzi kaydi gelmiyorsa gece nabiz serisinden turetme
-- Iki dil: Turkce ve Ingilizce
-- 90 gunluk ham + turetilmis veriyi JSON olarak disa aktarma
+- Health Connect'ten okuma: uyku evreleri, nabız, HRV, dinlenme nabzı, solunum,
+  SpO2, cilt sıcaklığı, adım
+- Bileşik metrikler: hazırlık, uyku skoru, uyku borcu, günlük yük (TRIMP),
+  akut/kronik yük oranı, gece kardiyak toparlanma, sirkadiyen düzenlilik (SRI)
+- Dört ekran (Bugün, Uyku, Yük, Kalp) ve Health Connect tanı ekranı (Veri)
+- Eksik girdide ağırlıkların yeniden dağıtılması
+- Dinlenme nabzı kaydı gelmiyorsa gece nabız serisinden türetme
+- İki dil: Türkçe ve İngilizce
+- 90 günlük ham + türetilmiş veriyi JSON olarak dışa aktarma

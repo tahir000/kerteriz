@@ -1,31 +1,31 @@
-# Kerteriz — Play Store yayin kontrol listesi
+# Kerteriz — Play Store yayın kontrol listesi
 
-Sirayla git. Saglik verisi okuyan uygulamalarda inceleme normalden uzun surer;
-eksik bir madde reddin en sik sebebi.
+Sırayla git. Sağlık verisi okuyan uygulamalarda inceleme normalden uzun sürer;
+eksik bir madde reddin en sık sebebi.
 
 ---
 
-## 1. Imzalama (tek seferlik)
+## 1. İmzalama (tek seferlik)
 
-Su ana kadar release derlemeleri debug anahtariyla imzalaniyordu. Play Store
-gercek bir imza ister ve **bu anahtari kaybedersen uygulamayi bir daha
-guncelleyemezsin** — yedegini al.
+Şu ana kadar release derlemeleri debug anahtarıyla imzalanıyordu. Play Store
+gerçek bir imza ister ve **bu anahtarı kaybedersen uygulamayı bir daha
+güncelleyemezsin** — yedeğini al.
 
 ```bash
 keytool -genkey -v -keystore ~/kerteriz-upload.jks \
   -keyalg RSA -keysize 2048 -validity 10000 -alias upload
 ```
 
-`android/key.properties` olustur (bu dosyayi asla paylasma, git'e koyma):
+`android/key.properties` oluştur (bu dosyayı asla paylaşma, git'e koyma):
 
 ```properties
-storePassword=<sifre>
-keyPassword=<sifre>
+storePassword=<şifre>
+keyPassword=<şifre>
 keyAlias=upload
-storeFile=/Users/<kullanici>/kerteriz-upload.jks
+storeFile=/Users/<kullanıcı>/kerteriz-upload.jks
 ```
 
-`android/app/build.gradle.kts` icinde `android { }` blogundan ONCE:
+`android/app/build.gradle.kts` içinde `android { }` bloğundan ÖNCE:
 
 ```kotlin
 import java.util.Properties
@@ -38,7 +38,7 @@ if (keystorePropertiesFile.exists()) {
 }
 ```
 
-`android { }` icine:
+`android { }` içine:
 
 ```kotlin
 signingConfigs {
@@ -56,92 +56,92 @@ buildTypes {
 }
 ```
 
-Sonra Play'in istedigi paket:
+Sonra Play'in istediği paket:
 
 ```bash
 flutter build appbundle --release
-# cikti: build/app/outputs/bundle/release/app-release.aab
+# çıktı: build/app/outputs/bundle/release/app-release.aab
 ```
 
-## 2. Gizlilik politikasini yayinla
+## 2. Gizlilik politikasını yayınla
 
-`GIZLILIK.md` icerigini bir web adresine koy. En kolay yol GitHub Pages ya da
-Notion'da herkese acik bir sayfa. **URL'i not al**, Play Console iki yerde soracak.
-Icindeki e-posta yer tutucusunu doldurmayi unutma.
+`GIZLILIK.md` içeriğini bir web adresine koy. En kolay yol GitHub Pages ya da
+Notion'da herkese açık bir sayfa. **URL'i not al**, Play Console iki yerde soracak.
+İçindeki e-posta yer tutucusunu doldurmayı unutma.
 
-## 3. Play Console — uygulama olustur
+## 3. Play Console — uygulama oluştur
 
-- Uygulama adi: **Kerteriz**
-- Varsayilan dil: Turkce ya da Ingilizce (ikisi de destekleniyor)
-- Uygulama tipi: Uygulama · Ucretsiz
+- Uygulama adı: **Kerteriz**
+- Varsayılan dil: Türkçe ya da İngilizce (ikisi de destekleniyor)
+- Uygulama tipi: Uygulama · Ücretsiz
 
-## 4. Saglik uygulamalari beyani  ← en kritik adim
+## 4. Sağlık uygulamaları beyanı  ← en kritik adım
 
-**Policy → App content → Health apps** bolumunde Health Connect kullandigini
-beyan edip **her izni tek tek gerekcelendirmen** gerekiyor. Genel ifadeler
-reddediliyor; her satirda "hangi ekranda, hangi ozellik icin" yazmalisin.
+**Policy → App content → Health apps** bölümünde Health Connect kullandığını
+beyan edip **her izni tek tek gerekçelendirmen** gerekiyor. Genel ifadeler
+reddediliyor; her satırda "hangi ekranda, hangi özellik için" yazmalısın.
 
-Kullanabilecegin gerekceler:
+Kullanabileceğin gerekçeler:
 
-| Izin | Gerekce |
+| İzin | Gerekçe |
 |---|---|
-| READ_SLEEP | Uyku skoru, uyku borcu ve sirkadiyen duzenlilik hesaplanir; Uyku sekmesinde evre dagilimi ve hipnogram olarak gosterilir. |
-| READ_HEART_RATE | Gece nabiz egrisi ve kardiyak toparlanma; ayrica nabiz bolgelerinden gunluk yuk hesaplanir. |
-| READ_RESTING_HEART_RATE | Hazirlik skorunun %25'ini olusturur; Kalp sekmesinde taban cizgiye gore gosterilir. |
-| READ_HEART_RATE_VARIABILITY | Hazirlik skorunun %40'ini olusturur; Kalp sekmesinde 45 gunluk seri ve taban cizgi seridi olarak gosterilir. |
-| READ_RESPIRATORY_RATE | Hastalik erken uyari sinyalinin bileseni; Kalp sekmesinde gosterilir. |
-| READ_OXYGEN_SATURATION | Gece SpO2 takibi; Kalp sekmesinde ortalama ve en dusuk deger olarak gosterilir. |
-| READ_SKIN_TEMPERATURE | Hastalik erken uyari sinyalinin ikinci bileseni; kendi ortalamadan sapma olarak gosterilir. |
-| READ_STEPS | Gunluk yuk hesabina katkida bulunur; Yuk sekmesinde gosterilir. |
-| READ_EXERCISE | Egzersiz oturumlari gunluk yuk hesabina girer. |
-| READ_HEALTH_DATA_HISTORY | Butun metrikler 14 gunluk taban cizgiye dayanir; 30 gunden eski kayit okunamazsa skorlar hesaplanamaz. |
+| READ_SLEEP | Uyku skoru, uyku borcu ve sirkadiyen düzenlilik hesaplanır; Uyku sekmesinde evre dağılımı ve hipnogram olarak gösterilir. |
+| READ_HEART_RATE | Gece nabız eğrisi ve kardiyak toparlanma; ayrıca nabız bölgelerinden günlük yük hesaplanır. |
+| READ_RESTING_HEART_RATE | Hazırlık skorunun %25'ini oluşturur; Kalp sekmesinde taban çizgiye göre gösterilir. |
+| READ_HEART_RATE_VARIABILITY | Hazırlık skorunun %40'ını oluşturur; Kalp sekmesinde 45 günlük seri ve taban çizgi şeridi olarak gösterilir. |
+| READ_RESPIRATORY_RATE | Hastalık erken uyarı sinyalinin bileşeni; Kalp sekmesinde gösterilir. |
+| READ_OXYGEN_SATURATION | Gece SpO2 takibi; Kalp sekmesinde ortalama ve en düşük değer olarak gösterilir. |
+| READ_SKIN_TEMPERATURE | Hastalık erken uyarı sinyalinin ikinci bileşeni; kendi ortalamadan sapma olarak gösterilir. |
+| READ_STEPS | Günlük yük hesabına katkıda bulunur; Yük sekmesinde gösterilir. |
+| READ_EXERCISE | Egzersiz oturumları günlük yük hesabına girer. |
+| READ_HEALTH_DATA_HISTORY | Bütün metrikler 14 günlük taban çizgiye dayanır; 30 günden eski kayıt okunamazsa skorlar hesaplanamaz. |
 
-Ayrica sorulacaklar ve dogru cevaplar:
+Ayrıca sorulacaklar ve doğru cevaplar:
 
-- Veri ucuncu taraflarla paylasiliyor mu? **Hayir**
-- Veri reklam icin kullaniliyor mu? **Hayir**
-- Veri satiliyor mu? **Hayir**
-- Veri sunucuya gonderiliyor mu? **Hayir, tum isleme cihazda**
+- Veri üçüncü taraflarla paylaşılıyor mu? **Hayır**
+- Veri reklam için kullanılıyor mu? **Hayır**
+- Veri satılıyor mu? **Hayır**
+- Veri sunucuya gönderiliyor mu? **Hayır, tüm işleme cihazda**
 
 ## 5. Data safety formu
 
-Health apps beyaniyla tutarli doldur:
-- Toplanan veri: **yok** (cihaz disina cikmiyor)
-- Paylasilan veri: **yok**
-- Sifreleme: aktarim olmadigi icin uygulanmaz
-- Silme talebi: uygulamayi kaldirmak yeterli
+Health apps beyanıyla tutarlı doldur:
+- Toplanan veri: **yok** (cihaz dışına çıkmıyor)
+- Paylaşılan veri: **yok**
+- Şifreleme: aktarım olmadığı için uygulanmaz
+- Silme talebi: uygulamayı kaldırmak yeterli
 
-## 6. Magaza listeleme metinleri
+## 6. Mağaza listeleme metinleri
 
-**Kisa aciklama (80 karakter):**
-> Fitbit ve Pixel verini hazirlik, uyku ve yuk skorlarina ceviren sade bir analiz.
+**Kısa açıklama (80 karakter):**
+> Fitbit ve Pixel verini hazırlık, uyku ve yük skorlarına çeviren sade bir analiz.
 
 **Short description (EN):**
 > Turns your Fitbit and Pixel data into readiness, sleep and load scores.
 
-**Uzun aciklama — tasarlarken uyulacaklar:**
-- "Teshis", "tedavi", "hastalik tespiti" gibi tibbi iddia icermemeli
-- Hangi cihazlarla calistigini acikca yaz (Health Connect'e veri yazan her cihaz)
-- Verinin cihazdan cikmadigini one cikar — bu senin en guclu farkin
+**Uzun açıklama — tasarlarken uyulacaklar:**
+- "Teşhis", "tedavi", "hastalık tespiti" gibi tıbbi iddia içermemeli
+- Hangi cihazlarla çalıştığını açıkça yaz (Health Connect'e veri yazan her cihaz)
+- Verinin cihazdan çıkmadığını öne çıkar — bu senin en güçlü farkın
 
-## 7. Gorseller
+## 7. Görseller
 
 - Uygulama ikonu: `android-icons/play-store-512.png`
-- Ozellik grafigi: 1024 × 500
-- Telefon ekran goruntusu: en az 2, en fazla 8 (Bugun, Uyku, Kalp, Veri ekranlari)
-- Ekran goruntusu alirken **release derlemesi** kullan, debug bandi gorunmesin
+- Özellik grafiği: 1024 × 500
+- Telefon ekran görüntüsü: en az 2, en fazla 8 (Bugün, Uyku, Kalp, Veri ekranları)
+- Ekran görüntüsü alırken **release derlemesi** kullan, debug bandı görünmesin
 
-## 8. Once kapali test
+## 8. Önce kapalı test
 
-Dogrudan yayina cikma. **Closed testing** ile birkac kisiye ac, en az bir hafta
-kullanilsin. Sebebi: taban cizgiler 14 gun ister, uygulamanin gercek davranisini
-ancak veri birikince gorursun. Ayrica Play, yeni gelistirici hesaplari icin
-yayin oncesi test suresi sart kosuyor — guncel kurali Console'da kontrol et.
+Doğrudan yayına çıkma. **Closed testing** ile birkaç kişiye aç, en az bir hafta
+kullanılsın. Sebebi: taban çizgiler 14 gün ister, uygulamanın gerçek davranışını
+ancak veri birikince görürsün. Ayrıca Play, yeni geliştirici hesapları için
+yayın öncesi test süresi şart koşuyor — güncel kuralı Console'da kontrol et.
 
-## 9. Yayin sonrasi
+## 9. Yayın sonrası
 
-- Health Connect politikasi degisirse beyani guncelle
-- Farkli cihazlar farkli tipler yaziyor: Samsung Health, Garmin, Oura kullanicilari
-  farkli kapsam gorecek. **Veri** sekmesi bu yuzden herkese acik kalmali.
-- Para kazanma sonradan eklenecekse: mevcut kullanicilarin elindeki ozellikleri
-  odeme duvarinin arkasina alma. Yeni ozellikleri premium yap, eskiyi birak.
+- Health Connect politikası değişirse beyanı güncelle
+- Farklı cihazlar farklı tipler yazıyor: Samsung Health, Garmin, Oura kullanıcıları
+  farklı kapsam görecek. **Veri** sekmesi bu yüzden herkese açık kalmalı.
+- Para kazanma sonradan eklenecekse: mevcut kullanıcıların elindeki özellikleri
+  ödeme duvarının arkasına alma. Yeni özellikleri premium yap, eskiyi bırak.

@@ -1,87 +1,87 @@
-# Kerteriz — Gizlilik Politikasi
+# Kerteriz — Gizlilik Politikası
 
-**Yururluk tarihi:** 5 Eylul 2026
+**Yürürlük tarihi:** 5 Eylül 2026
 
-Bu belgeyi bir web adresinde yayinlamalisin (orn. GitHub Pages, Notion, kendi siten).
-Google Play, saglik verisi okuyan uygulamalarda gizlilik politikasi URL'ini zorunlu tutuyor.
-
----
-
-## Kisa hali
-
-Kerteriz verini telefonundan disari cikarmaz. Sunucumuz yok, hesabin yok,
-analiz araci yok, reklam yok.
+Bu belgeyi bir web adresinde yayınlamalısın (ör. GitHub Pages, Notion, kendi siten).
+Google Play, sağlık verisi okuyan uygulamalarda gizlilik politikası URL'ini zorunlu tutuyor.
 
 ---
 
-## 1. Hangi verilere erisiyoruz
+## Kısa hali
 
-Kerteriz, Android **Health Connect** uzerinden yalnizca **okuma** izniyle su
-tiplere erisir:
+Kerteriz verini telefonundan dışarı çıkarmaz. Sunucumuz yok, hesabın yok,
+analiz aracı yok, reklam yok.
 
-- Uyku oturumlari ve uyku evreleri (derin, hafif, REM, uyanik)
-- Nabiz, dinlenme nabzi, kalp hizi degiskenligi (HRV)
-- Solunum hizi, kandaki oksijen (SpO2), cilt sicakligi
-- Adim, egzersiz oturumlari, yakilan kalori
+---
+
+## 1. Hangi verilere erişiyoruz
+
+Kerteriz, Android **Health Connect** üzerinden yalnızca **okuma** izniyle şu
+tiplere erişir:
+
+- Uyku oturumları ve uyku evreleri (derin, hafif, REM, uyanık)
+- Nabız, dinlenme nabzı, kalp hızı değişkenliği (HRV)
+- Solunum hızı, kandaki oksijen (SpO2), cilt sıcaklığı
+- Adım, egzersiz oturumları, yakılan kalori
 - Kilo, VO2max
-- 30 gunden eski kayitlara erisim (gecmis verisi izni)
+- 30 günden eski kayıtlara erişim (geçmiş verisi izni)
 
-Uygulama Health Connect'e **hicbir sey yazmaz**. Manifestte tek bir yazma izni yoktur.
+Uygulama Health Connect'e **hiçbir şey yazmaz**. Manifestte tek bir yazma izni yoktur.
 
-## 2. Bu verilerle ne yapiyoruz
+## 2. Bu verilerle ne yapıyoruz
 
-Veriler yalnizca cihazinizda islenir. Uygulama bunlardan hazirlik skoru,
-uyku skoru, uyku borcu, gunluk yuk, akut/kronik yuk orani, sirkadiyen duzenlilik
-ve kardiyak toparlanma gibi turetilmis olculer hesaplar ve ekranda gosterir.
+Veriler yalnızca cihazınızda işlenir. Uygulama bunlardan hazırlık skoru,
+uyku skoru, uyku borcu, günlük yük, akut/kronik yük oranı, sirkadiyen düzenlilik
+ve kardiyak toparlanma gibi türetilmiş ölçüler hesaplar ve ekranda gösterir.
 
-## 3. Nereye gonderiyoruz
+## 3. Nereye gönderiyoruz
 
-**Hicbir yere.** Kerteriz'in sunucusu yoktur. Veriler internete cikmaz.
-Uygulama analiz (analytics), cokme raporlama ya da reklam kitapligi icermez.
+**Hiçbir yere.** Kerteriz'in sunucusu yoktur. Veriler internete çıkmaz.
+Uygulama analiz (analytics), çökme raporlama ya da reklam kitaplığı içermez.
 
-Tek istisna, sizin baslattiginiz **disa aktarma** islemidir: paylas dugmesine
-bastiginizda cihazinizda bir JSON dosyasi olusturulur ve Android'in paylasim
-menusu acilir. O dosyanin nereye gidecegine yalnizca siz karar verirsiniz.
-Dosya olusturulmadigi surece hicbir yere gitmez.
+Tek istisna, sizin başlattığınız **dışa aktarma** işlemidir: paylaş düğmesine
+bastığınızda cihazınızda bir JSON dosyası oluşturulur ve Android'in paylaşım
+menüsü açılır. O dosyanın nereye gideceğine yalnızca siz karar verirsiniz.
+Dosya oluşturulmadığı sürece hiçbir yere gitmez.
 
-## 4. Reklam ve satis
+## 4. Reklam ve satış
 
-Health Connect'ten gelen veriler reklam gostermek, reklam kisiselistirmek,
-ucuncu taraflara aktarmak, satmak ya da kredi degerlendirmesi gibi amaclarla
-**kullanilmaz**. Uygulamada reklam yoktur.
+Health Connect'ten gelen veriler reklam göstermek, reklam kişiselleştirmek,
+üçüncü taraflara aktarmak, satmak ya da kredi değerlendirmesi gibi amaçlarla
+**kullanılmaz**. Uygulamada reklam yoktur.
 
 ## 5. Saklama ve silme
 
-Veriler uygulamanin kendi alaninda gecici olarak islenir. Uygulamayi
-kaldirdiginizda bu alan Android tarafindan tamamen silinir.
+Veriler uygulamanın kendi alanında geçici olarak işlenir. Uygulamayı
+kaldırdığınızda bu alan Android tarafından tamamen silinir.
 
-Health Connect izinlerini istediginiz an geri alabilirsiniz:
+Health Connect izinlerini istediğiniz an geri alabilirsiniz:
 **Ayarlar → Uygulamalar → Health Connect → Uygulama izinleri → Kerteriz**.
-Izni geri aldiginizda uygulama hicbir veri okuyamaz.
+İzni geri aldığınızda uygulama hiçbir veri okuyamaz.
 
-Health Connect'teki verilerin kendisi Google'in Health Connect deposunda tutulur;
-onlari silmek icin Health Connect uygulamasini kullanin.
+Health Connect'teki verilerin kendisi Google'ın Health Connect deposunda tutulur;
+onları silmek için Health Connect uygulamasını kullanın.
 
-## 6. Guvenlik
+## 6. Güvenlik
 
-Veri cihazdan cikmadigi icin ag uzerinde aktarim yoktur. Cihaz uzerindeki
-koruma, Android'in uygulama korumali alani (sandbox) ve cihaz sifrelemesidir.
+Veri cihazdan çıkmadığı için ağ üzerinde aktarım yoktur. Cihaz üzerindeki
+koruma, Android'in uygulama korumalı alanı (sandbox) ve cihaz şifrelemesidir.
 
-## 7. Cocuklar
+## 7. Çocuklar
 
-Kerteriz 18 yas alti kullanicilar icin tasarlanmamistir.
+Kerteriz 18 yaş altı kullanıcılar için tasarlanmamıştır.
 
-## 8. Tibbi uyari
+## 8. Tıbbi uyarı
 
-Kerteriz bir tibbi cihaz degildir. Teshis koymaz, tedavi onermez, tibbi tavsiye
-vermez. Gosterdigi butun olculer bilgilendirme amaclidir. Sagliginizla ilgili
-kararlar icin bir saglik profesyoneline danisin.
+Kerteriz bir tıbbi cihaz değildir. Teşhis koymaz, tedavi önermez, tıbbi tavsiye
+vermez. Gösterdiği bütün ölçüler bilgilendirme amaçlıdır. Sağlığınızla ilgili
+kararlar için bir sağlık profesyoneline danışın.
 
-## 9. Degisiklikler
+## 9. Değişiklikler
 
-Bu politika degisirse yururluk tarihi guncellenir ve degisiklik uygulama
-magazasi aciklamasinda belirtilir.
+Bu politika değişirse yürürlük tarihi güncellenir ve değişiklik uygulama
+mağazası açıklamasında belirtilir.
 
-## 10. Iletisim
+## 10. İletişim
 
-<BURAYA E-POSTA ADRESINI YAZ>
+<BURAYA E-POSTA ADRESİNİ YAZ>

@@ -1,31 +1,32 @@
-# Kerteriz — Flutter + Health Connect iskeleti
+# Kerteriz — kurulum ve teknik notlar
 
-Fitbit Air verisini **Google Health uygulamasi → Health Connect → bu uygulama**
-zinciriyle telefonda okur, prototipteki bilesik metriklere cevirir ve gosterir.
-Veri cihazdan cikmaz; hicbir sunucuya baglanti yoktur.
+Fitbit Air verisini **Google Health uygulaması → Health Connect → bu uygulama**
+zinciriyle telefonda okur, bileşik metriklere çevirir ve gösterir.
+Veri cihazdan çıkmaz; hiçbir sunucuya bağlantı yoktur.
 
 ---
 
 ## 1. Kurulum
 
-Flutter SDK kurulu olmali (`flutter doctor` temiz olsun). Sonra:
+Flutter SDK kurulu olmalı (`flutter doctor` temiz olsun). Sonra:
 
 ```bash
 bash kurulum.sh
 ```
 
-Betik ne yapiyor: `flutter create` ile platform klasorlerini uretiyor, `lib/` ve
-`pubspec.yaml`'i kopyaliyor, **Android dosyalarini yamaliyor** (uzerine yazmiyor),
-`minSdk`'yi 28'e cekiyor ve `flutter pub get` calistiriyor.
+Betik ne yapıyor: `flutter create` ile platform klasörlerini üretiyor, `lib/` ve
+`pubspec.yaml`'ı kopyalıyor, **Android dosyalarını yamalıyor** (üzerine yazmıyor),
+uygulama ikonunu yerleştiriyor, `minSdk`'yı 28'e çekiyor ve `flutter pub get`
+çalıştırıyor.
 
-**Neden yamalama:** Elle yazilmis bir `AndroidManifest.xml`'i uzerine kopyalamak,
-o dosyayi yazildigi Flutter surumune baglar. Surum degisince
-`Build failed due to use of deleted Android v1 embedding` gibi hatalar cikar.
-Flutter'in kendi urettigi manifest, o surumun bekledigi embedding yapilandirmasini
-zaten dogru tasir; `patch_manifest.py` yalnizca Health Connect izinlerini,
-`queries` blogunu ve izin gerekcesi ekranlarini ekler. `patch_mainactivity.py` de
-`FlutterActivity`'yi `FlutterFragmentActivity`'ye cevirir. Iki betik de
-**idempotent**: ayni projede tekrar calistirmak zararsizdir.
+**Neden yamalama:** Elle yazılmış bir `AndroidManifest.xml`'i üzerine kopyalamak,
+o dosyayı yazıldığı Flutter sürümüne bağlar. Sürüm değişince
+`Build failed due to use of deleted Android v1 embedding` gibi hatalar çıkar.
+Flutter'ın kendi ürettiği manifest, o sürümün beklediği embedding yapılandırmasını
+zaten doğru taşır; `patch_manifest.py` yalnızca Health Connect izinlerini,
+`queries` bloğunu ve izin gerekçesi ekranlarını ekler. `patch_mainactivity.py` de
+`FlutterActivity`'yi `FlutterFragmentActivity`'ye çevirir. İki betik de
+**idempotent**: aynı projede tekrar çalıştırmak zararsızdır.
 
 Elle yapmak istersen:
 
@@ -35,165 +36,123 @@ cp -R lib ../kerteriz/lib
 cp pubspec.yaml analysis_options.yaml ../kerteriz/
 python3 patch_manifest.py ../kerteriz/android/app/src/main/AndroidManifest.xml
 python3 patch_mainactivity.py ../kerteriz
-# android/app/build.gradle.kts icinde  minSdk = 28
+# android/app/build.gradle.kts içinde  minSdk = 28
 cd ../kerteriz && flutter pub get
 ```
 
-`android-manifest-referans.xml` yalnizca referans icindir; kullanilmaz.
+`android-manifest-referans.xml` yalnızca referans içindir; kullanılmaz.
 
-Telefonu USB ile bagla, gelistirici modu ve USB hata ayiklama acik olsun:
+Telefonu USB ile bağla, geliştirici modu ve USB hata ayıklama açık olsun:
 
 ```bash
 flutter run
 ```
 
-## 2. Telefonda yapilacaklar
+## 2. Telefonda yapılacaklar
 
-1. **Google Health** uygulamasinda Fitbit Air'in bagli oldugundan emin ol.
+1. **Google Health** uygulamasında Fitbit Air'in bağlı olduğundan emin ol.
 2. Google Health → **Ayarlar → Health Connect** → Kerteriz'e okuma izni ver.
-   Uygulama ilk acilista bu ekrani kendisi cagirir.
-3. Google Health'in Health Connect'e **hangi tipleri yazdigini** ayni ekrandan
-   kontrol et. Resmi listede adim, nabiz, uyku evreleri, solunum hizi, cilt
-   sicakligi ve VO2max var; **HRV ve SpO2 acikca listelenmiyor.** Gorunmuyorlarsa
-   uygulama yine calisir — asagiya bak.
+   Uygulama ilk açılışta bu ekranı kendisi çağırır.
+3. Google Health'in Health Connect'e **hangi tipleri yazdığını** aynı ekrandan
+   kontrol et. Resmi listede adım, nabız, uyku evreleri, solunum hızı, cilt
+   sıcaklığı ve VO2max var; **HRV ve SpO2 açıkça listelenmiyor.** Görünmüyorlarsa
+   uygulama yine çalışır — aşağıya bak.
 
-## 3. Eksik veriyle davranis
+## 3. Eksik veriyle davranış
 
-Hazirlik skoru dort girdiyi agirliklandirir (HRV %40, dinlenme nabzi %25,
-uyku skoru %25, solunum+sicaklik %10). Bir girdi hic yoksa **agirligi otekilere
-oransal olarak dagitilir** (`MetricsEngine.run` icindeki `add()` blogu), skor
-yine 0–100 arasinda kalir. Kalp ekranindaki metin de bunu soyler.
+Hazırlık skoru dört girdiyi ağırlıklandırır (HRV %40, dinlenme nabzı %25,
+uyku skoru %25, solunum + sıcaklık %10). Bir girdi hiç yoksa **ağırlığı ötekilere
+oransal olarak dağıtılır** (`MetricsEngine.run` içindeki `add()` bloğu), skor
+yine 0–100 arasında kalır.
 
-## 4. Kisisel ayarlar
+Dinlenme nabzı kaydı gelmiyorsa gece nabız serisinden türetilir: gecenin en düşük
+30 dakikalık kararlı ortalaması. Cihazın yazdığı değerden biraz farklı çıkabilir
+ama kendi içinde tutarlı olduğu için taban çizgi ve z-skoru doğru çalışır.
+
+**Veri** sekmesi hangi tipin geldiğini ve hangi metriğin hesaplanabildiğini gösterir.
+
+## 4. Kişisel ayarlar
 
 `lib/config.dart`:
 
-- `age` — maksimum nabiz tahmini (Tanaka: 208 − 0.7 × yas). Nabiz bolgeleri buna bagli.
-- `historyDays` — kac gun geriye okunacak (varsayilan 90).
-- `baselineWindow` — taban cizgi penceresi (varsayilan 14 gun).
-- `sleepNeedBaseMinutes` — uyku ihtiyaci taban degeri; uzerine dunku yukun katkisi eklenir.
+- `age` — maksimum nabız tahmini (Tanaka: 208 − 0.7 × yaş). Nabız bölgeleri buna bağlı.
+- `historyDays` — kaç gün geriye okunacak (varsayılan 90).
+- `baselineWindow` — taban çizgi penceresi (varsayılan 14 gün).
+- `sleepNeedBaseMinutes` — uyku ihtiyacı taban değeri; üzerine dünkü yükün katkısı eklenir.
 
-## 5. Veriyi disa aktarma
+## 5. Veriyi dışa aktarma
 
-Sag alttaki paylas dugmesi, 90 gunluk **ham + turetilmis** veriyi tek bir JSON'a
-yazip paylasim menusunu acar. Dosyanin yapisi: `config`, `summary` (kapsama
-oranlari dahil) ve gun gun `days[]` — her gunun ham alanlari, uyku segmentleri,
-gece nabiz serisi ve `derived` altinda tum skorlar.
+Sağ alttaki paylaş düğmesi, 90 günlük **ham + türetilmiş** veriyi tek bir JSON'a
+yazıp paylaşım menüsünü açar. Dosyanın yapısı: `config`, `summary` (kapsama
+oranları dahil) ve gün gün `days[]` — her günün ham alanları, uyku segmentleri,
+gece nabız serisi ve `derived` altında tüm skorlar.
 
-## 6. Dosya haritasi
+## 6. Dosya haritası
 
 ```
 lib/
-  config.dart                 kisisel sabitler
+  config.dart                 kişisel sabitler
+  l10n.dart                   iki dil (tr, en), 197 anahtar
+  theme.dart                  renkler, tipografi, seviye eşikleri
   data/
-    day_record.dart           gun modeli + JSON
-    health_repository.dart    Health Connect okuma ve gunluk toplama
-    exporter.dart             JSON disa aktarim
+    day_record.dart           gün modeli + JSON
+    health_repository.dart    Health Connect okuma ve günlük toplama
+    exporter.dart             JSON dışa aktarım
   metrics/
-    engine.dart               taban cizgiler, z-skorlari, bilesik metrikler
+    engine.dart               taban çizgiler, z-skorları, bileşik metrikler
   ui/
-    shell.dart                izin akisi, yukleme, sekmeler
-    screens.dart              Bugun / Uyku / Yuk / Kalp
-    widgets/kit.dart          satir, olcek, rozet, hero
+    shell.dart                izin akışı, yükleme, sekmeler
+    screens.dart              Bugün / Uyku / Yük / Kalp
+    coverage_screen.dart      Veri — Health Connect tanı ekranı
+    widgets/kit.dart          satır, ölçek, rozet
+    widgets/gauge.dart        yay göstergesi, mini eğilim çizgisi
     widgets/charts.dart       CustomPainter grafikleri
 ```
 
-## 7. Metrik formulleri
+## 7. Metrik formülleri
 
-| Metrik | Formul |
+| Metrik | Formül |
 |---|---|
-| z-skoru | `(x − ort14) / ss14`, HRV icin `ln(x)` uzerinde |
-| Hazirlik | `0.40·nz(z_HRV) + 0.25·nz(−z_RHR) + 0.25·(uyku/100) + 0.10·nz(−(z_sol+z_sic)/2)` |
-| Uyku skoru | `.35·sure + .20·verim + .25·onarim + .10·kesintisizlik + .10·zamanlama` |
-| Uyku ihtiyaci | `438 dk + dunku_yuk × 2.2` |
-| Uyku borcu | `Σ max(0, ihtiyac−uyku) × 0.93^(gun farki)`, son 14 gun |
-| Gunluk yuk | `clamp(6.9 · ln(1 + ham/24), 0, 21)`, ham = Σ bolge_dk × [1.00, 1.85, 2.90, 4.60] + adim×0.0022 |
-| ACWR | `ort(yuk, 7 gun) / ort(yuk, 28 gun)` |
-| Kardiyak toparlanma | `0.55·clamp(dusus/0.16) + 0.45·clamp((0.72−f_dip)/0.42)` |
-| SRI | ardisik gunlerde 10 dk'lik dilimlerde uyku/uyanik durumunun ortusme yuzdesi |
+| z-skoru | `(x − ort14) / ss14`, HRV için `ln(x)` üzerinde |
+| Hazırlık | `0.40·nz(z_HRV) + 0.25·nz(−z_RHR) + 0.25·(uyku/100) + 0.10·nz(−(z_sol+z_sıc)/2)` |
+| Uyku skoru | `.35·süre + .20·verim + .25·onarım + .10·kesintisizlik + .10·zamanlama` |
+| Uyku ihtiyacı | `438 dk + dünkü_yük × 2.2` |
+| Uyku borcu | `Σ max(0, ihtiyaç−uyku) × 0.93^(gün farkı)`, son 14 gün |
+| Günlük yük | `clamp(6.9 · ln(1 + ham/24), 0, 21)`, ham = Σ bölge_dk × [1.00, 1.85, 2.90, 4.60] + adım×0.0022 |
+| ACWR | `ort(yük, 7 gün) / ort(yük, 28 gün)` |
+| Kardiyak toparlanma | `0.55·clamp(düşüş/0.16) + 0.45·clamp((0.72−f_dip)/0.42)` |
+| SRI | ardışık günlerde 10 dk'lık dilimlerde uyku/uyanık durumunun örtüşme yüzdesi |
 
-## 8. Notlar
+## 8. Bağımlılık kısıtları
 
-- Uygulama **hicbir teshis ya da tibbi tavsiye vermez**; kendi verini kendi
-  taban cizgine gore gosterir.
-- 30 gunden eski kayitlar icin `READ_HEALTH_DATA_HISTORY` izni sarttir; manifestte var.
-- Manifestte yalnizca **READ** izinleri var, hicbir WRITE yok.
-- Play Store'a cikilacaksa gizlilik politikasi URL'i ve `ViewPermissionUsageActivity`
-  alias'i zorunlu; alias manifestte hazir.
+Bunlar acı çekilerek öğrenildi, değiştirilmemeli:
 
-## 9. Gercek veriyi prototipe tasima
-
-Disa aktardigin JSON'u sohbete birakirsan, prototipteki sentetik veri yerine
-kendi 90 gunun konur; boylece esikleri (uyku ihtiyaci tabani, bolge agirliklari,
-seviye sinirlari) kendi dagilimina gore kalibre edebiliriz. JSON'da ad, konum ya
-da cihaz kimligi yoktur; yalnizca tarih ve olcum degerleri vardir.
-
-## 10. APK uretme
-
-### Android Studio ile
-1. Once bir kez `bash kurulum.sh` calistir (platform klasorlerini uretir).
-2. Android Studio → **Open** → uretilen `kerteriz` klasorunu ac.
-3. **Build → Flutter → Build APK**.
-4. Cikti: `build/app/outputs/flutter-apk/app-release.apk`
-
-### Komut satiri ile
-```bash
-bash apk-olustur.sh
-```
-`flutter create`'in urettigi varsayilan yapilandirmada release derlemesi debug
-anahtariyla imzalanir; ayrica bir keystore olusturmana gerek yok. Play Store'a
-cikarken gercek imza gerekir.
-
-Telefona kurmak: dosyayi telefona kopyalayip ac, "bilinmeyen kaynaklardan kurulum"
-iznini ver. Ya da telefon USB ile bagliyken `flutter install --release`.
-
-### Ilk derlemede tipik takiliklar
-
-| Belirti | Cozum |
+| Kısıt | Sebep |
 |---|---|
-| `Android license status unknown` | `flutter doctor --android-licenses` |
-| JDK surumu uyusmuyor | `flutter config --jdk-dir "<Android Studio'nun jbr yolu>"` |
-| `minSdk` hatasi (Health Connect) | `android/app/build.gradle.kts` icinde `minSdk = 28` |
-| `Unable to find MainActivity` | `MainActivity.kt` yolu `android/app/src/main/kotlin/com/kerteriz/kerteriz/` altinda olmali |
-| Uygulama aciliyor ama izin ekrani gelmiyor | Android 9–13'te **Health Connect** uygulamasi Play Store'dan kurulmali; Android 14+ da sistemde gomulu |
-| Grafikler bos | Google Health → Health Connect'te ilgili tiplerin yazilmasi acik mi, bak |
+| `intl: any` | `flutter_localizations` intl'i kesin sabitler; caret koymak sürüm çatışması üretir |
+| `share_plus: ^13.3.0` | `health` → `device_info_plus 13` → `win32 ^6`; eski share_plus `win32 ^5` istiyor |
+| Dart SDK ≥ 3.10 | `share_plus 13`'ün gereksinimi |
+| `minSdk = 28` | Health Connect daha eskisinde çalışmıyor |
+| `READ_HEALTH_DATA_HISTORY` | Olmadan 30 günden eski kayıt okunamaz; taban çizgiler buna bağlı |
+| `FlutterFragmentActivity` | `health` paketi Android 14 için bunu şart koşuyor |
+| Manifestte yalnızca READ | Hiçbir WRITE izni yok, bilinçli |
 
-## 11. Surum notlari
+`share_plus 13`'te API değişti: `Share.shareXFiles(...)` yerine
+`SharePlus.instance.share(ShareParams(files: [...]))`.
 
-- `health 13.3.2`, `intl ^0.20.2` istiyor. `pubspec.yaml` bu surumde sabitli.
-  `version solving failed` hatasi goruyorsan once buraya bak.
-- `health 13.3.2` -> `device_info_plus 13` -> `win32 ^6`. Bu yuzden `share_plus` da
-  ayni win32 kusagindan olmali: `^13.3.0`. Eski `share_plus 10.x`, `win32 ^5.5.3`
-  istedigi icin cakisiyor.
-- `share_plus 13`'te paylasim API'si degisti: statik `Share.shareXFiles(...)` yerine
-  `SharePlus.instance.share(ShareParams(files: [...]))`.
-- Dart SDK alt siniri 3.10 (`share_plus 13`'un gereksinimi).
-- `kurulum.sh`, `flutter create`'in biraktigi ornek `test/widget_test.dart` dosyasini siler;
-  o dosya `MyApp` arar, bizim uygulama sinifimizin adi `KerterizApp`.
+## 9. Dil
 
-## 12. Veri kapsami ekrani
+`lib/l10n.dart` içinde tek sınıf, iki harita (tr, en). Kod üretimi ya da ARB yok.
+Cihaz dili desteklenmiyorsa İngilizceye düşer. Arayüzde düz metin bırakma,
+`S.of(context).t('anahtar')` kullan; yer tutuculu metinler için
+`t2('anahtar', {'x': değer})`. Yeni dil eklemek için bir harita daha yazıp
+`_all`'a koymak yeterli.
 
-Alt sekmelerdeki **Veri**, Health Connect'ten tip tip kac kayit geldigini gosterir.
-Veri henuz azken uygulama dogrudan bu ekranla aciliyor; skor ekranlarini bos bos
-gostermek yaniltici olurdu.
+## 10. Notlar
 
-Bir tip 0 gorunuyorsa sirasiyla bak: Google Health'te cihaz bagli mi, Health Connect'te
-Google Health o tipi yazmaya yetkili mi, Kerteriz o tipi okumaya yetkili mi.
-Ucu de aciksa veri gercekten yok demektir.
-
-## 13. Dil ve yayin
-
-- **Iki dil:** `lib/l10n.dart` icinde tek sinif, iki harita (tr, en). Kod uretimi
-  ya da ARB yok. Cihaz dili desteklenmiyorsa Ingilizceye duser. Yeni dil eklemek
-  icin bir harita daha yazip `_all`'a koymak yeterli.
-- **Metin yazarken:** arayuzde duz metin birakma, `S.of(context).t('anahtar')`
-  kullan. Yer tutuculu metinler icin `t2('anahtar', {'x': deger})`.
-- **`intl: any`** — `flutter_localizations` intl surumunu kesin sabitler; caret
-  koymak SDK yukseldiginde surum catismasi uretir.
-- **Ikon:** `android-icons/` altinda butun yogunluklar hazir, `kurulum.sh`
-  yerlestiriyor. Magaza ikonu `play-store-512.png`.
-- **Yayin:** `YAYIN.md` — imzalama, saglik verisi beyani, magaza metinleri.
-- **Gizlilik:** `GIZLILIK.md` — bir web adresine koyulmali, Play zorunlu tutuyor.
-- **Para kazanma:** su an yok, planlanmiyor da degil. Sonradan eklenirse
-  mevcut ozellikler odeme duvarinin arkasina alinmayacak; yalnizca yeni
-  ozellikler premium olacak.
+- Uygulama **hiçbir teşhis ya da tıbbi tavsiye vermez**; kendi verini kendi
+  taban çizgine göre gösterir.
+- Play Store'a çıkılacaksa gizlilik politikası URL'i ve `ViewPermissionUsageActivity`
+  alias'ı zorunlu; alias'ı `patch_manifest.py` ekliyor.
+- Para kazanma şu an yok. Sonradan eklenirse mevcut özellikler ödeme duvarının
+  arkasına alınmayacak; yalnızca yeni özellikler premium olacak.

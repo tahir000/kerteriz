@@ -1,275 +1,277 @@
 # Kerteriz — Proje Brifingi
 
-> Bu belge, projeyi baska bir yapay zeka asistanina devretmek icin hazirlandi.
-> Amaci: kod okumadan once neyin neden boyle yapildigini anlatmak.
-> Yanindaki `kerteriz-kaynak-kod.md` dosyasi butun Dart kaynagini icerir.
+> Bu belge, projeyi başka bir yapay zeka asistanına devretmek için hazırlandı.
+> Amacı: kod okumadan önce neyin neden böyle yapıldığını anlatmak.
 
 ---
 
-## 1. Tek cumleyle
+## 1. Tek cümleyle
 
-Google **Fitbit Air** bileklikten gelen veriyi **Health Connect** uzerinden telefonda okuyup,
-ham olculeri bilesik saglik metriklerine (hazirlik, uyku skoru, yuk, sirkadiyen duzenlilik)
-ceviren, **Flutter** ile yazilmis kisisel bir Android uygulamasi. Veri cihazdan cikmiyor.
+Google **Fitbit Air** bileklikten gelen veriyi **Health Connect** üzerinden telefonda
+okuyup, ham ölçüleri bileşik sağlık metriklerine (hazırlık, uyku skoru, yük,
+sirkadiyen düzenlilik) çeviren, **Flutter** ile yazılmış kişisel bir Android
+uygulaması. Veri cihazdan çıkmıyor.
 
-**Kullanici:** Tahir. Istanbul'da bir hukuk burosunda calisiyor, yazilimci degil ama teknik
-konulari takip ediyor. Uygulamayi kendisi icin yapiyor.
+**Kullanıcı:** Tahir. İstanbul'da bir hukuk bürosunda çalışıyor, yazılımcı değil ama
+teknik konuları takip ediyor.
 
 ---
 
 ## 2. Neden bu mimari — kritik zamanlama bilgisi
 
-**Eski Fitbit Web API Eylul 2026'da tamamen kapandi.** Internette bulunan hemen her
-"Fitbit API" ornegi, kutuphanesi ve tutorial'i artik olu. Yerine **Google Health API** geldi.
+**Eski Fitbit Web API Eylül 2026'da tamamen kapandı.** İnternette bulunan hemen her
+"Fitbit API" örneği, kütüphanesi ve tutorial'ı artık ölü. Yerine **Google Health API** geldi.
 
-Iki erisim yolu var:
+İki erişim yolu var:
 
-| | A — Health Connect (secilen) | B — Google Health API |
+| | A — Health Connect (seçilen) | B — Google Health API |
 |---|---|---|
-| Nerede calisir | Telefonda, cihaz uzerinde | Bulut, REST |
+| Nerede çalışır | Telefonda, cihaz üzerinde | Bulut, REST |
 | Onay | Yok | Restricted scope, CASA denetimi |
-| Maliyet | Yok | Yayina cikarken 500–4.500 USD |
-| Kullanici siniri | Yok | Dogrulanmamis uygulama 100 kullanici |
-| Platform | Yalnizca Android | Her yer |
-| Cozunurluk | Google Health ne yazarsa | ~5 saniyelik nabiz dahil |
+| Maliyet | Yok | Yayına çıkarken 500–4.500 USD |
+| Kullanıcı sınırı | Yok | Doğrulanmamış uygulama 100 kullanıcı |
+| Platform | Yalnızca Android | Her yer |
+| Çözünürlük | Google Health ne yazarsa | ~5 saniyelik nabız dahil |
 
-**A secildi.** Kisisel kullanim icin onay beklemeye ve ucret odemeye gerek yok, veri
-telefondan cikmiyor, offline calisiyor. Ilerde yayina cikilirsa B'ye tasinabilir.
+**A seçildi.** Kişisel kullanım için onay beklemeye ve ücret ödemeye gerek yok, veri
+telefondan çıkmıyor, offline çalışıyor. İlerde yayına çıkılırsa B'ye taşınabilir.
 
-**Zincir:** Fitbit Air → Google Health uygulamasi → Health Connect → Kerteriz.
-
----
-
-## 3. Cozulmemis en onemli soru
-
-Google Health'in Health Connect'e yazdigi resmi tip listesinde **adim, nabiz, uyku evreleri,
-solunum hizi, cilt sicakligi, VO2max, kilo** var. **HRV ve SpO2 bu listede acikca yer almiyor.**
-
-Bu onemli, cunku **HRV hazirlik skorunun %40'i**. Uygulamaya bunun icin iki sey konuldu:
-
-1. **Zarif bozulma:** bir girdi hic gelmezse agirligi otekilere oransal dagitilir,
-   skor yine 0–100 arasinda kalir (`MetricsEngine.run` icindeki `add()` blogu).
-2. **Veri kapsami ekrani** (5. sekme): Health Connect'ten tip tip kac kayit geldigini
-   gosterir. Bir tip sifir gorunuyorsa sebebi orada tespit edilir.
-
-**Devralan asistana:** Kullaniciya once bu ekrandaki HRV ve SpO2 satirlarini sor.
-Sifirsalar ya agirliklar yeniden dagitilmali ya da B yoluna gecilmeli.
+**Zincir:** Fitbit Air → Google Health uygulaması → Health Connect → Kerteriz.
 
 ---
 
-## 4. Turetilmis metrik sistemi
+## 3. Bilinen veri kapsamı
 
-Projenin asil degeri burada. Ham veriyi Whoop/Bevel tarzinda bilesik metriklere ceviriyor.
+Fitbit Air + Google Health birleşiminde **dinlenme nabzı, solunum hızı ve SpO2**
+kaydı Health Connect'e yazılmıyor. Nabız serisi, uyku evreleri ve adım yazılıyor.
 
-### Katman 1 — normalize edilmis sapmalar
+- **Dinlenme nabzı türetiliyor:** gecenin en düşük 30 dakikalık kararlı ortalaması.
+  Cihazın yazacağı değerden biraz farklı çıkabilir ama kendi içinde tutarlı olduğu
+  için taban çizgi ve z-skoru doğru çalışır.
+- **Solunum ve SpO2 türetilemez.** Kaybedilen tek özellik hastalık erken uyarısı.
+- **HRV** durumu doğrulanmalı — hazırlık skorunun %40'ı.
 
-Her olcum kendi **14 gunluk taban cizgisine** gore z-skoruna cevrilir:
+Uygulamada bunun için iki mekanizma var:
+
+1. **Zarif bozulma:** bir girdi hiç gelmezse ağırlığı ötekilere oransal dağıtılır,
+   skor yine 0–100 arasında kalır (`MetricsEngine.run` içindeki `add()` bloğu).
+2. **Veri kapsamı ekranı** (5. sekme): Health Connect'ten tip tip kaç kayıt geldiğini
+   ve hangi metriğin hesaplanabildiğini gösterir.
+
+---
+
+## 4. Türetilmiş metrik sistemi
+
+Projenin asıl değeri burada. Ham veriyi Whoop/Bevel tarzında bileşik metriklere çevirir.
+
+### Katman 1 — normalize edilmiş sapmalar
+
+Her ölçüm kendi **14 günlük taban çizgisine** göre z-skoruna çevrilir:
 
 ```
 z      = (x - ort14) / ss14
-nz(z)  = clamp(0.5 + z / 3.6, 0, 1)     # 0..1 araligina tasima
+nz(z)  = clamp(0.5 + z / 3.6, 0, 1)     # 0..1 aralığına taşıma
 ```
 
-**HRV icin taban cizgi `ln(x)` uzerinde kurulur** — RMSSD log-normal dagilir, ham ortalama
-yaniltir. Bu ayrinti atlanmamali.
+**HRV için taban çizgi `ln(x)` üzerinde kurulur** — RMSSD log-normal dağılır, ham
+ortalama yanıltır. Bu ayrıntı atlanmamalı.
 
-### Katman 2 — bilesik skorlar
+### Katman 2 — bileşik skorlar
 
-**Hazirlik (0–100)**
+**Hazırlık (0–100)**
 ```
-hazirlik = 100 * ( 0.40*nz(z_HRV)
-                 + 0.25*nz(-z_RHR)              # dusuk nabiz iyi, isaret ters
+hazırlık = 100 * ( 0.40*nz(z_HRV)
+                 + 0.25*nz(-z_RHR)              # düşük nabız iyi, işaret ters
                  + 0.25*(uyku_skoru/100)
-                 + 0.10*nz(-(z_solunum + z_sicaklik)/2) )
+                 + 0.10*nz(-(z_solunum + z_sıcaklık)/2) )
 ```
-Eksik girdi olursa agirliklar kalanlara oransal dagitilir.
+Eksik girdi olursa ağırlıklar kalanlara oransal dağıtılır.
 
-**Uyku skoru (0–100)** — bes bilesenin agirlikli toplami
+**Uyku skoru (0–100)** — beş bileşenin ağırlıklı toplamı
 ```
-sure          = clamp(uyku / ihtiyac, 0, 1) * 100                    # %35
+süre          = clamp(uyku / ihtiyaç, 0, 1) * 100                    # %35
 verim         = clamp((uyku/yatakta - 0.78) / 0.17, 0, 1) * 100      # %20
-onarim        = clamp(((derin+rem)/uyku) / 0.42, 0, 1) * 100         # %25
-kesintisizlik = clamp(100 - 4.5*uyanma - 0.55*uyanik_dk, 0, 100)     # %10
+onarım        = clamp(((derin+rem)/uyku) / 0.42, 0, 1) * 100         # %25
+kesintisizlik = clamp(100 - 4.5*uyanma - 0.55*uyanık_dk, 0, 100)     # %10
 zamanlama     = clamp(100 - 1.05*|orta_nokta - 21g_ortalama|, 0, 100)# %10
 ```
 
-**Uyku ihtiyaci** — sabit degil, dunku yuke gore kayar:
+**Uyku ihtiyacı** — sabit değil, dünkü yüke göre kayar:
 ```
-ihtiyac = 438 dk + dunku_yuk * 2.2
-```
-
-**Uyku borcu** — son 14 gun, gunde %7 sonumleme:
-```
-borc = SUM( max(0, ihtiyac_j - uyku_j) * 0.93^(bugun - j) )
+ihtiyaç = 438 dk + dünkü_yük * 2.2
 ```
 
-**Gunluk yuk (0–21)** — Banister TRIMP mantigi, log olcek:
+**Uyku borcu** — son 14 gün, günde %7 sönümleme:
 ```
-HRR      = (nabiz - dinlenme) / (maks - dinlenme)     # maks = 208 - 0.7*yas
-bolgeler = [%50-60, %60-70, %70-85, %85+] HRR
-agirlik  = [1.00, 1.85, 2.90, 4.60]
-ham      = SUM(bolge_dk * agirlik) + adim * 0.0022
-yuk      = clamp( 6.9 * ln(1 + ham/24), 0, 21 )
+borç = SUM( max(0, ihtiyaç_j - uyku_j) * 0.93^(bugün - j) )
 ```
 
-**ACWR — akut/kronik yuk orani**
+**Günlük yük (0–21)** — Banister TRIMP mantığı, log ölçek:
 ```
-oran = ort(yuk, son 7 gun) / ort(yuk, son 28 gun)
-0.80–1.30 surdurulebilir · 0.60–1.50 sinir · disi riskli
-```
-
-**Gece kardiyak toparlanma (0–100)** — nabzin ne kadar *ve ne kadar erken* dip yaptigi
-```
-dusus = (ilk_hr - dip_hr) / ilk_hr
-f_dip = dip_zamani / gece_suresi
-skor  = 100 * ( 0.55*clamp(dusus/0.16,0,1) + 0.45*clamp((0.72-f_dip)/0.42,0,1) )
+HRR      = (nabız - dinlenme) / (maks - dinlenme)     # maks = 208 - 0.7*yaş
+bölgeler = [%50-60, %60-70, %70-85, %85+] HRR
+ağırlık  = [1.00, 1.85, 2.90, 4.60]
+ham      = SUM(bölge_dk * ağırlık) + adım * 0.0022
+yük      = clamp( 6.9 * ln(1 + ham/24), 0, 21 )
 ```
 
-**SRI — Sleep Regularity Index (0–100)** — literaturdeki gercek metrik
+**ACWR — akut/kronik yük oranı**
 ```
-Ardisik iki gunu 10 dakikalik 144 dilime bol.
-Ayni dilimde ayni durumda (uyku/uyanik) olma yuzdesi, 30 gun uzerinden ortalama.
+oran = ort(yük, son 7 gün) / ort(yük, son 28 gün)
+0.80–1.30 sürdürülebilir · 0.60–1.50 sınır · dışı riskli
 ```
 
-### Katman 3 — icgoruler
+**Gece kardiyak toparlanma (0–100)** — nabzın ne kadar *ve ne kadar erken* dip yaptığı
+```
+düşüş = (ilk_hr - dip_hr) / ilk_hr
+f_dip = dip_zamanı / gece_süresi
+skor  = 100 * ( 0.55*clamp(düşüş/0.16,0,1) + 0.45*clamp((0.72-f_dip)/0.42,0,1) )
+```
 
-- **Hastalik erken uyarisi:** solunum z > 1.2 **ve** cilt sicakligi z > 1.0 **ve** nabiz z > 0.8,
-  son 3 gunun en az 2'sinde. Uclusune birlikte bakmak tek basina nabza bakmaktan erken uyarir.
-- **Yuklenme:** ACWR > 1.45 **ve** HRV uc gundur taban cizginin altinda.
+**SRI — Sleep Regularity Index (0–100)** — literatürdeki gerçek metrik
+```
+Ardışık iki günü 10 dakikalık 144 dilime böl.
+Aynı dilimde aynı durumda (uyku/uyanık) olma yüzdesi, 30 gün üzerinden ortalama.
+```
+
+### Katman 3 — içgörüler
+
+- **Hastalık erken uyarısı:** solunum z > 1.2 **ve** cilt sıcaklığı z > 1.0 **ve**
+  nabız z > 0.8, son 3 günün en az 2'sinde. Üçlüsüne birlikte bakmak tek başına
+  nabza bakmaktan erken uyarır.
+- **Yüklenme:** ACWR > 1.45 **ve** HRV üç gündür taban çizginin altında.
 
 ---
 
-## 5. Mimari ve dosya haritasi
+## 5. Mimari ve dosya haritası
 
 ```
 lib/
-  config.dart                 kisisel sabitler (yas, gecmis gun sayisi, taban pencere)
+  config.dart                 kişisel sabitler
+  l10n.dart                   iki dil (tr, en), 197 anahtar
+  theme.dart                  renkler, tipografi, seviye eşikleri
   data/
-    day_record.dart           gun modeli + JSON serilestirme
-    health_repository.dart    Health Connect okuma, gunluk toplama, kapsama takibi
-    exporter.dart             90 gunluk ham+turetilmis veriyi JSON'a yazip paylasir
+    day_record.dart           gün modeli + JSON serileştirme
+    health_repository.dart    Health Connect okuma, günlük toplama, kapsama takibi
+    exporter.dart             90 günlük ham+türetilmiş veriyi JSON'a yazıp paylaşır
   metrics/
-    engine.dart               taban cizgiler, z-skorlari, butun bilesik metrikler
+    engine.dart               taban çizgiler, z-skorları, bütün bileşik metrikler
   ui/
-    shell.dart                izin akisi, yukleme, 5 sekme
-    screens.dart              Bugun / Uyku / Yuk / Kalp
-    coverage_screen.dart      Veri — Health Connect tani ekrani
-    widgets/kit.dart          satir, bolgeli olcek, rozet, hero deger
-    widgets/charts.dart       CustomPainter grafikleri (harici grafik kutuphanesi yok)
+    shell.dart                izin akışı, yükleme, 5 sekme
+    screens.dart              Bugün / Uyku / Yük / Kalp
+    coverage_screen.dart      Veri — Health Connect tanı ekranı
+    widgets/kit.dart          satır, bölgeli ölçek, rozet
+    widgets/gauge.dart        yay göstergesi, mini eğilim çizgisi, giriş animasyonu
+    widgets/charts.dart       CustomPainter grafikleri (harici grafik kütüphanesi yok)
 ```
 
-**Onemli tasarim karari:** gunler "uyanilan takvim gunu"ne yazilir. Sabah 18:00'dan once
-biten uyku o gune, sonra bitenler ertesi gune. `HealthRepository._sleepDay()`.
+**Önemli tasarım kararı:** günler "uyanılan takvim günü"ne yazılır. Sabah 18:00'dan
+önce biten uyku o güne, sonra bitenler ertesi güne. `HealthRepository._sleepDay()`.
 
-**Gun iskeleti onceden olusturulur** ve arama fonksiyonu `null` doner — aksi halde aksam
-saatindeki tek bir olcum "yarin" tarihli hayalet bir kayit uretiyordu.
+**Gün iskeleti önceden oluşturulur** ve arama fonksiyonu `null` döner — aksi halde
+akşam saatindeki tek bir ölçüm "yarın" tarihli hayalet bir kayıt üretiyordu.
+
+**Android dosyaları üzerine yazılmaz, yamalanır.** Elle yazılmış bir
+`AndroidManifest.xml`'i kopyalamak `Build failed due to use of deleted Android v1
+embedding` hatasına yol açtı. `patch_manifest.py` ve `patch_mainactivity.py`
+idempotent yamalayıcılardır.
 
 ---
 
-## 6. Ortam ve bagimlilik kisitlari
+## 6. Ortam ve bağımlılık kısıtları
 
-Bunlar aci cekilerek ogrenildi, degistirilmemeli:
+Bunlar acı çekilerek öğrenildi, değiştirilmemeli:
 
-| Kisit | Sebep |
+| Kısıt | Sebep |
 |---|---|
-| `intl: ^0.20.2` | `health 13.3.2` bunu istiyor; `^0.19.0` catisiyor |
+| `intl: any` | `flutter_localizations` intl'i kesin sabitler; caret sürüm çatışması üretir |
 | `share_plus: ^13.3.0` | `health` → `device_info_plus 13` → `win32 ^6`; eski share_plus `win32 ^5` istiyor |
-| Dart SDK ≥ 3.10 | `share_plus 13`'un gereksinimi |
-| `minSdk = 28` | Health Connect daha eskisinde calismiyor |
-| `READ_HEALTH_DATA_HISTORY` izni | Olmadan 30 gunden eski kayit okunamaz; taban cizgiler buna bagli |
-| `FlutterFragmentActivity` | `health` paketi Android 14 icin bunu sart kosuyor |
-| Manifestte yalnizca READ | Hicbir WRITE izni yok, bilincli |
+| Dart SDK ≥ 3.10 | `share_plus 13`'ün gereksinimi |
+| `minSdk = 28` | Health Connect daha eskisinde çalışmıyor |
+| `READ_HEALTH_DATA_HISTORY` izni | Olmadan 30 günden eski kayıt okunamaz; taban çizgiler buna bağlı |
+| `FlutterFragmentActivity` | `health` paketi Android 14 için bunu şart koşuyor |
+| Manifestte yalnızca READ | Hiçbir WRITE izni yok, bilinçli |
 
-`share_plus 13`'te API degisti: `Share.shareXFiles(...)` yerine
+`share_plus 13`'te API değişti: `Share.shareXFiles(...)` yerine
 `SharePlus.instance.share(ShareParams(files: [...]))`.
 
-**Android dosyalari uzerine yazilmaz, yamalanir.** Elle yazilmis bir
-`AndroidManifest.xml`'i kopyalamak `Build failed due to use of deleted Android v1
-embedding` hatasina yol acti. Flutter'in urettigi manifest o surumun embedding
-yapilandirmasini dogru tasir; `patch_manifest.py` yalnizca Health Connect izinlerini,
-`queries` blogunu ve gerekce ekranlarini ekler, `patch_mainactivity.py` de
-`FlutterActivity` -> `FlutterFragmentActivity` cevirir. Ikisi de idempotent.
-
-**Gelistirme ortami:** macOS (MacBook Air), **VS Code** (Flutter eklentisi ile),
-Android Studio yalnizca Android SDK deposu olarak kurulu — editor olarak kullanilmiyor.
-Test cihazi: Samsung SM-F956B (Galaxy Z Fold 6).
+**Geliştirme ortamı:** macOS (MacBook Air), **VS Code** (Flutter eklentisi ile),
+Android Studio yalnızca Android SDK deposu olarak kurulu — editör olarak
+kullanılmıyor. Test cihazı: Samsung SM-F956B (Galaxy Z Fold 6).
 
 ---
-
-## 6b. Dil, tasarim ve yayin
-
-- **Iki dil:** `lib/l10n.dart` — tek sinif, iki harita (tr/en), 197 anahtar.
-  Kod uretimi yok. Arayuzde duz metin birakilmaz, `S.of(context).t('anahtar')`.
-- **`intl: any` olmali** — `flutter_localizations` intl'i kesin sabitler.
-- **Hero degerler yay gostergesi** (`ArcGauge`): 260 derecelik yay, seviye renginde
-  dolan kavis, ortada sayi, altinda seviye etiketi. Renk asla tek basina anlam tasimaz.
-- **Para kazanma karari:** once ucretsiz yayin, model sonra. Uygulamada odeme
-  ekrani yok ve "simdilik ucretsiz" gibi bir vaat de verilmiyor. Sonradan
-  eklenirse mevcut ozellikler odeme duvarinin arkasina alinmayacak.
-- **Play kisiti:** Health Connect verisi reklamda kullanilamaz, satilamaz.
-  Beyan formu ve gizlilik politikasi URL'i zorunlu. Ayrinti: `YAYIN.md`.
 
 ## 7. Durum
 
-**Calisiyor:** Proje derleniyor, telefona kuruluyor, aciliyor. Health Connect izinleri
-veriliyor, okuma yapiliyor.
+**Çalışıyor:** Proje derleniyor, telefona kuruluyor, açılıyor. Health Connect
+izinleri veriliyor, okuma yapılıyor.
 
-**Bekleniyor:** Cihaz yeni alindi, henuz birkac gunluk veri var. Taban cizgiler icin
-~14 gece gerekiyor. O zamana kadar z-skorlari sifira yakin cikar — hata degil.
+**Bekleniyor:** Cihaz yeni alındı, henüz birkaç günlük veri var. Taban çizgiler için
+~14 gece gerekiyor. O zamana kadar z-skorları sıfıra yakın çıkar — hata değil.
 
-**Bilinen kapsam (Fitbit Air + Google Health):** dinlenme nabzi, solunum hizi ve
-SpO2 kaydi Health Connect'e yazilmiyor. Dinlenme nabzi gece nabiz serisinden
-turetiliyor (en dusuk 30 dk kararli ortalama). Solunum ve SpO2 turetilemez;
-kaybedilen tek ozellik hastalik erken uyarisi.
-
-**Siradaki adimlar:**
-1. HRV akiyor mu, Veri sekmesinden dogrula
+**Sıradaki adımlar:**
+1. HRV akıyor mu, Veri sekmesinden doğrula
 2. ~2 hafta veri biriktir
-3. Uygulamadan JSON disa aktar, esikleri kullanicinin kendi dagilimina gore kalibre et
-   (uyku ihtiyaci tabani, bolge agirliklari, seviye sinirlari)
-4. Istege bagli: Play Store'a cikis (gercek imza, gizlilik politikasi URL'i gerekir)
+3. Uygulamadan JSON dışa aktar, eşikleri kullanıcının kendi dağılımına göre kalibre et
+   (uyku ihtiyacı tabanı, bölge ağırlıkları, seviye sınırları)
+4. Play Store'a çıkış — `YAYIN.md`
 
 ---
 
-## 8. Tasarim dili — uyulmasi gereken kurallar
-
-Kullanicinin butun ciktilarda uyguladigi Apple Style Guide temelli sistem:
+## 8. Tasarım dili
 
 - Saf beyaz zemin, renkli kart/blok yok, koyu sayfa yok
-- Tipografi: SF Pro / sistem yazi tipi, serif kullanilmaz, hiyerarsi agirlikla kurulur
-- Iki kademeli murekkep: `#1D1D1F` birincil, `#6E6E73` ikincil
-- Tek dolgu rengi: `#F5F5F7` (yalnizca not bloklari)
-- Kilcal ayrac cizgileri: `#D2D2D7` ve `#E8E8ED`
-- Tek renkli aksan gerekirse baglanti mavisi `#0066CC`
-- Madde imi kalin nokta degil orta nokta (·)
+- Tipografi: sistem yazı tipi, serif kullanılmaz, hiyerarşi ağırlıkla kurulur
+- İki kademeli mürekkep: `#1D1D1F` birincil, `#6E6E73` ikincil
+- Tek dolgu rengi: `#F5F5F7` (yalnızca not blokları)
+- Kılcal ayraç çizgileri: `#D2D2D7` ve `#E8E8ED`
+- Tek renkli aksan gerekirse bağlantı mavisi `#0066CC`
+- Madde imi kalın nokta değil orta nokta (·)
 
-**Istisna — seviye renkleri:** kullanici acikca istedi. Yesil `#1B7A3E` / turuncu `#A85B00` /
-kirmizi `#BE3125` (metin), isaretlerde `#34A853` / `#F09000` / `#E04A3F`.
-Renk **hicbir zaman tek basina birakilmaz** — yaninda daima sayi ya da seviye etiketi var,
-cunku yesil-turuncu-kirmizi renk korlugunde ayirt edilemeyen ucludur.
+**Seviye renkleri:** yeşil `#1B7A3E` / turuncu `#A85B00` / kırmızı `#BE3125` (metin),
+işaretlerde `#34A853` / `#F09000` / `#E04A3F`. Renk **hiçbir zaman tek başına
+bırakılmaz** — yanında daima sayı ya da seviye etiketi var, çünkü yeşil-turuncu-kırmızı
+renk körlüğünde ayırt edilemeyen üçlüdür.
 
-**Yazim kurali:** sapkali karakter kullanilmaz — â, î, û yerine duz a, i, u
-("iflas", "hal" — "iflâs", "hâl" degil).
+**Hero değerler yay göstergesi** (`ArcGauge`): 260 derecelik yay, seviye renginde
+dolan kavis, ortada sayı, altında seviye etiketi.
 
----
-
-## 9. Uygulamanin sinirlari
-
-- **Teshis ya da tibbi tavsiye vermez.** Kullanicinin kendi verisini kendi taban cizgisine
-  gore gosterir, o kadar. Bu kural bozulmamali.
-- Skorlar mutlak degil, **kisiye gore**. HRV degeri kisiler arasi karsilastirilamaz.
-- Yalnizca Android. iOS icin Google Health API (B yolu) gerekir.
+**Yazım kuralı:** şapkalı karakter kullanılmaz — â, î, û yerine düz a, i, u
+("iflas", "hal"). Bunun dışındaki bütün Türkçe karakterler tam kullanılır:
+ç, ğ, ı, İ, ö, ş, ü.
 
 ---
 
-## 10. Devralan asistana talimat
+## 9. Uygulamanın sınırları
 
-Bu projede yardim ederken:
+- **Teşhis ya da tıbbi tavsiye vermez.** Kullanıcının kendi verisini kendi taban
+  çizgisine göre gösterir, o kadar. Bu kural bozulmamalı.
+- Skorlar mutlak değil, **kişiye göre**. HRV değeri kişiler arası karşılaştırılamaz.
+- Yalnızca Android. iOS için Google Health API (B yolu) gerekir.
 
-1. **Once veri kapsami ekranini sor** — HRV ve SpO2 akiyor mu. Cogu karar buna bagli.
-2. **Formulleri koru.** Ustteki metrikler dusunulerek secildi; degistirilecekse sebebi
-   acikca tartisilmali. Ozellikle HRV'nin log uzayindaki taban cizgisi.
-3. **Bagimlilik surumlerini degistirme.** Bolum 6'daki tablo catismalar cozulerek olustu.
-4. **Tasarim dilini uygula.** Beyaz zemin, kartsiz yapi, seviye renkleri yaninda etiket.
-5. **Turkce yaz, sapkali karakter kullanma.**
-6. Kullanici yazilimci degil: komutlari tam ver, ne yaptigini ve **neden** yaptigini acikla.
+---
+
+## 10. Para kazanma
+
+**Karar: önce ücretsiz yayın, model sonra.** Uygulamada ödeme ekranı yok ve
+"şimdilik ücretsiz" gibi bir vaat de verilmiyor — çünkü öyle bir cümle sonradan
+ödeme duvarı konduğunda aleyhe kullanılır.
+
+**Play kısıtı:** Health Connect verisi reklamda kullanılamaz, kişiselleştirilemez,
+üçüncü taraflara aktarılamaz, satılamaz. Yani reklam modeli masada yok. Beyan formu
+ve gizlilik politikası URL'i zorunlu.
+
+Sonradan eklenirse kural: mevcut özellikler ödeme duvarının arkasına alınmayacak,
+yalnızca yeni özellikler premium olacak.
+
+---
+
+## 11. Devralan asistana talimat
+
+1. **Önce veri kapsamı ekranını sor** — HRV akıyor mu. Çoğu karar buna bağlı.
+2. **Formülleri koru.** Üstteki metrikler düşünülerek seçildi; değiştirilecekse
+   sebebi açıkça tartışılmalı. Özellikle HRV'nin log uzayındaki taban çizgisi.
+3. **Bağımlılık sürümlerini değiştirme.** Bölüm 6'daki tablo çatışmalar çözülerek oluştu.
+4. **Tasarım dilini uygula.** Beyaz zemin, kartsız yapı, seviye renkleri yanında etiket.
+5. **Türkçe yaz, şapkalı karakter kullanma** — ama ç, ğ, ı, İ, ö, ş, ü tam kullanılır.
+6. Kullanıcı yazılımcı değil: komutları tam ver, ne yaptığını ve **neden** yaptığını açıkla.

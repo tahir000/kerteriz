@@ -5,9 +5,9 @@
 <h1 align="center">Kerteriz</h1>
 
 <p align="center">
-  Fitbit ve Pixel verisini Health Connect uzerinden okuyup<br>
-  hazirlik, uyku ve yuk skorlarina ceviren Android uygulamasi.<br>
-  <sub>Veri cihazdan cikmaz.</sub>
+  Fitbit ve Pixel verini Health Connect üzerinden okuyup<br>
+  hazırlık, uyku ve yük skorlarına çeviren Android uygulaması.<br>
+  <sub>Veri cihazdan çıkmaz.</sub>
 </p>
 
 <p align="center">
@@ -17,69 +17,69 @@
 
 ---
 
-## Ne yapiyor
+## Ne yapıyor
 
-Bileklik ham olcumler verir: nabiz, uyku evreleri, HRV. Bunlar tek baslarina az
-sey soyler. Kerteriz onlari **kendi taban cizgine** gore normalize edip bilesik
-metriklere cevirir — Whoop ve Bevel'in yaptigi ise yakin, ama veriyi hicbir yere
-gondermeden.
+Bileklik ham ölçümler verir: nabız, uyku evreleri, HRV. Bunlar tek başlarına az
+şey söyler. Kerteriz onları **kendi taban çizgine** göre normalize edip bileşik
+metriklere çevirir — Whoop ve Bevel'in yaptığı işe yakın, ama veriyi hiçbir yere
+göndermeden.
 
-| Metrik | Nasil |
+| Metrik | Nasıl |
 |---|---|
-| **Hazirlik** | HRV %40 · dinlenme nabzi %25 · uyku skoru %25 · solunum + cilt sicakligi %10 |
-| **Uyku skoru** | Sure %35 · verim %20 · onarici evreler %25 · kesintisizlik %10 · zamanlama %10 |
-| **Uyku borcu** | Son 14 gunun acigi, gunde %7 sonumlenerek |
-| **Gunluk yuk** | Bolge agirlikli nabiz dakikalari (TRIMP), 0–21 logaritmik olcek |
-| **ACWR** | 7 gunluk akut yuk / 28 gunluk kronik yuk |
-| **Kardiyak toparlanma** | Gece nabzinin ne kadar *ve ne kadar erken* dustugu |
-| **Sirkadiyen duzenlilik** | Sleep Regularity Index — ardisik gecelerin ortusmesi |
+| **Hazırlık** | HRV %40 · dinlenme nabzı %25 · uyku skoru %25 · solunum + cilt sıcaklığı %10 |
+| **Uyku skoru** | Süre %35 · verim %20 · onarıcı evreler %25 · kesintisizlik %10 · zamanlama %10 |
+| **Uyku borcu** | Son 14 günün açığı, günde %7 sönümlenerek |
+| **Günlük yük** | Bölge ağırlıklı nabız dakikaları (TRIMP), 0–21 logaritmik ölçek |
+| **ACWR** | 7 günlük akut yük / 28 günlük kronik yük |
+| **Kardiyak toparlanma** | Gece nabzının ne kadar *ve ne kadar erken* düştüğü |
+| **Sirkadiyen düzenlilik** | Sleep Regularity Index — ardışık gecelerin örtüşmesi |
 
-Taban cizgiler 14 gunluk penceredir ve HRV icin logaritmik uzayda kurulur
-(RMSSD log-normal dagilir; ham ortalama yanlis sonuc verir).
+Taban çizgiler 14 günlük penceredir ve HRV için logaritmik uzayda kurulur
+(RMSSD log-normal dağılır; ham ortalama yanlış sonuç verir).
 
-## Tasarim ilkeleri
+## Tasarım ilkeleri
 
-- **Renk tek basina anlam tasimaz.** Yesil-turuncu-kirmizi, kirmizi-yesil renk
-  korlugunde ayirt edilemeyen ucludur; bu yuzden her renkli isaretin yaninda
-  sayi ve seviye etiketi vardir.
-- **Eksik veriyle calisir.** Bir girdi gelmiyorsa agirligi otekilere oransal
-  dagitilir. Hangi metrigin calistigini **Veri** sekmesi acikca gosterir.
-- **Teshis koymaz.** Kendi verini kendi taban cizgine gore gosterir, o kadar.
+- **Renk tek başına anlam taşımaz.** Yeşil-turuncu-kırmızı, kırmızı-yeşil renk
+  körlüğünde ayırt edilemeyen üçlüdür; bu yüzden her renkli işaretin yanında
+  sayı ve seviye etiketi vardır.
+- **Eksik veriyle çalışır.** Bir girdi gelmiyorsa ağırlığı ötekilere oransal
+  dağıtılır. Hangi metriğin çalıştığını **Veri** sekmesi açıkça gösterir.
+- **Teşhis koymaz.** Kendi verini kendi taban çizgine göre gösterir, o kadar.
 
 ## Kurulum
 
-Flutter SDK ve Android SDK gerekiyor. Ayrinti: [`docs/KURULUM.md`](docs/KURULUM.md)
+Flutter SDK ve Android SDK gerekiyor. Ayrıntı: [`docs/KURULUM.md`](docs/KURULUM.md)
 
 ```bash
-bash kurulum.sh          # Flutter projesini uretir ve yamalar
+bash kurulum.sh          # Flutter projesini üretir ve yamalar
 cd ../kerteriz
-flutter run              # telefon USB ile bagliyken
+flutter run              # telefon USB ile bağlıyken
 ```
 
-`kurulum.sh` Android dosyalarinin **uzerine yazmaz**, yamalar: Flutter'in urettigi
-manifest o surumun embedding yapilandirmasini dogru tasir, betik yalnizca Health
+`kurulum.sh` Android dosyalarının **üzerine yazmaz**, yamalar: Flutter'ın ürettiği
+manifest o sürümün embedding yapılandırmasını doğru taşır, betik yalnızca Health
 Connect izinlerini ekler.
 
 ## Belgeler
 
-| Dosya | Icerik |
+| Dosya | İçerik |
 |---|---|
-| [`docs/PROJE.md`](docs/PROJE.md) | Mimari, kararlar ve gerekceler, butun formuller |
-| [`docs/KURULUM.md`](docs/KURULUM.md) | Kurulum, dosya haritasi, bagimlilik kisitlari |
-| [`docs/YAYIN.md`](docs/YAYIN.md) | Play Store yayin listesi, saglik verisi beyani |
-| [`docs/GIZLILIK.md`](docs/GIZLILIK.md) | Gizlilik politikasi metni |
+| [`docs/PROJE.md`](docs/PROJE.md) | Mimari, kararlar ve gerekçeler, bütün formüller |
+| [`docs/KURULUM.md`](docs/KURULUM.md) | Kurulum, dosya haritası, bağımlılık kısıtları |
+| [`docs/YAYIN.md`](docs/YAYIN.md) | Play Store yayın listesi, sağlık verisi beyanı |
+| [`docs/GIZLILIK.md`](docs/GIZLILIK.md) | Gizlilik politikası metni |
 
 ## Gizlilik
 
-Uygulamanin sunucusu yoktur. Health Connect'e **yalnizca okuma** izniyle erisir,
-hicbir sey yazmaz, analiz ve cokme raporlama kitapligi icermez, reklam gostermez.
-Veri cihazdan yalnizca senin baslattigin disa aktarma ile cikar.
+Uygulamanın sunucusu yoktur. Health Connect'e **yalnızca okuma** izniyle erişir,
+hiçbir şey yazmaz, analiz ve çökme raporlama kitaplığı içermez, reklam göstermez.
+Veri cihazdan yalnızca senin başlattığın dışa aktarma ile çıkar.
 
-## Uyari
+## Uyarı
 
-Kerteriz bir tibbi cihaz degildir. Teshis koymaz, tedavi onermez, tibbi tavsiye
-vermez. Sagligiyla ilgili kararlar icin bir hekime danisilmalidir.
+Kerteriz bir tıbbi cihaz değildir. Teşhis koymaz, tedavi önermez, tıbbi tavsiye
+vermez. Sağlığıyla ilgili kararlar için bir hekime danışılmalıdır.
 
 ## Lisans
 
-Tum haklari saklidir — bkz. [LICENSE](LICENSE).
+Tüm hakları saklıdır — bkz. [LICENSE](LICENSE).
