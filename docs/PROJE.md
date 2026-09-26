@@ -159,21 +159,21 @@ Aynı dilimde aynı durumda (uyku/uyanık) olma yüzdesi, 30 gün üzerinden ort
 
 ```
 lib/
-  config.dart                 kişisel sabitler
-  l10n.dart                   iki dil (tr, en), 225 anahtar
+  config.dart                 motor sabitleri + tercih varsayılanları
+  l10n.dart                   iki dil (tr, en), 246 anahtar
   theme.dart                  iki palet (açık/koyu), tipografi, seviye eşikleri
   data/
-    ayarlar.dart              tema tercihi (küçük JSON dosyası, path_provider)
+    ayarlar.dart              tema, yaş, günlük hedefler (küçük JSON dosyası)
     day_record.dart           gün modeli + JSON serileştirme
     health_repository.dart    Health Connect okuma, günlük toplama, kapsama takibi
     exporter.dart             90 günlük ham+türetilmiş veriyi JSON'a yazıp paylaşır
-    ozet_yazici.dart          özet widget'ı için küçük JSON köprüsü
+    ozet_yazici.dart          widget köprüsü: türetilmiş skorlar + hedefler
     tani.dart                 açılış izi (diske yazılır), güvenli mod
   metrics/
     engine.dart               taban çizgiler, z-skorları, bütün bileşik metrikler
   ui/
     shell.dart                izin akışı, yükleme, 5 sekme (PageView), alt menü
-    ayarlar_ekrani.dart       tema tercihi, sürüm, gizlilik notu
+    ayarlar_ekrani.dart       görünüm, yaş, günlük hedefler, sürüm
     screens.dart              Bugün / Uyku / Yük / Kalp
     coverage_screen.dart      Veri — Health Connect tanı ekranı
     widgets/kit.dart          satır, bölgeli ölçek, rozet, bölmeli seçici
@@ -186,6 +186,7 @@ native/
   kotlin/OzetWidgetProvider.kt  ana ekran özet widget'ı (Google Health karşılığı)
   kotlin/OzetOkuyucu.kt       günlük adım/kalori/mesafe toplamı + özet JSON
   kotlin/HalkaCizer.kt        üç eş merkezli halkayı bitmap'e çizer
+  kotlin/AyarOkuyucu.kt       widget hedeflerini özet dosyasından okur
   res/                        widget düzenleri, çizimleri, renkleri, metinleri
 patch_manifest.py             izinler, queries, izin gerekçesi alias'ı, widget alıcısı
 patch_mainactivity.py         FlutterActivity -> FlutterFragmentActivity
@@ -198,6 +199,16 @@ gece modunda aynı adlar farklı değer döndürüyor. Bayrak `KerterizApp.build
 içinde, tercih ile cihaz parlaklığı birlikte değerlendirilerek kuruluyor.
 Bunun bir bedeli var: tema jetonu içeren hiçbir ifade artık `const` olamaz.
 Ölçü jetonları (boşluk, yarıçap) temadan bağımsız olduğu için `const` kaldı.
+
+**Hedefler artık koda gömülü değil.** 0.8.0'a kadar yaş ve günlük hedefler
+`lib/config.dart` içindeydi; `patch_native.py` kurulum sırasında bu sayıları
+Kotlin sabitlerinin üstüne yazıyordu. Kendi telefonunda çalışan kişisel bir
+yapıda bu yeterliydi, mağazadan kurulan bir uygulamada değil: nabız
+bölgelerini herkes için 30 yaşa göre hesaplamak yanlış sonuç üretir. Şimdi
+seçimler [Ayarlar] içinde, `kerteriz_ayarlar.json` dosyasında; hedefler ayrıca
+`kerteriz_ozet.json` içindeki `hedefler` nesnesiyle Kotlin tarafına taşınıyor.
+Gömülü sabitler yedek olarak duruyor: uygulama hiç açılmadan widget eklenirse
+widget onlara düşüyor.
 
 **Önemli tasarım kararı:** günler "uyanılan takvim günü"ne yazılır. Sabah 18:00'dan
 önce biten uyku o güne, sonra bitenler ertesi güne. `HealthRepository._sleepDay()`.

@@ -3,39 +3,54 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'ayarlar.dart';
 import 'day_record.dart';
 
-/// Ana ekran özet widget'ı için küçük bir özet dosyası yazar.
+/// Ana ekran widget'larının okuduğu küçük köprü dosyası.
 ///
-/// Widget Kotlin tarafında çalışıyor ve Dart'taki metrik motoruna erişemiyor:
-/// hazırlık, uyku skoru ve dinlenme nabzı 14 günlük taban çizgiye dayanan
-/// türetilmiş değerler, widget'ın kendi başına hesaplaması mümkün değil.
-/// Bu dosya ikisi arasındaki tek köprü.
+/// İki iş görür:
+///
+///  1. **Türetilmiş skorlar.** Hazırlık, uyku skoru ve dinlenme nabzı 14
+///     günlük taban çizgiye dayanır; motor Dart tarafında çalışıyor ve
+///     Kotlin oraya erişemiyor. Uygulama her okumadan sonra buraya yazıyor.
+///  2. **Hedefler.** Adım, kalori, mesafe ve su hedefleri artık koda gömülü
+///     değil, kullanıcının ayarlardan seçtiği değerler. Widget'lar hedefi
+///     buradan okuyor; dosya yoksa derlemeye gömülü varsayılana düşüyorlar.
 ///
 /// `getApplicationSupportDirectory()` Android'de `context.filesDir` ile aynı
-/// klasördür; Kotlin tarafı dosyayı oradan okuyor. Uygulamanın kendi özel
-/// alanı, dışarıdan erişilemez.
+/// klasördür. Uygulamanın kendi özel alanı, dışarıdan erişilemez.
 class OzetYazici {
   static const String dosyaAdi = 'kerteriz_ozet.json';
 
   /// Her okumadan sonra çağrılır. Hata verirse yutulur: özet dosyası
   /// yazılamadığında widget boş gösterir, uygulama çalışmaya devam eder.
+  ///
+  /// Gün listesi boş olsa bile dosya yazılır: hedefler skorlardan bağımsız,
+  /// widget'ın onlara her durumda ihtiyacı var.
   static Future<void> yaz(List<DayRecord> days) async {
-    if (days.isEmpty) return;
-    final d = days.last;
     final dir = await getApplicationSupportDirectory();
     final f = File('${dir.path}${Platform.pathSeparator}$dosyaAdi');
+    final d = days.isEmpty ? null : days.last;
+
     // Skorlar hesaplanamadıysa sıfır yazmak yerine null yazıyoruz: widget
     // "0 hazırlık" ile "hazırlık yok" arasındaki farkı ancak böyle görebilir.
-    final hesaplandi = d.readiness > 0;
+    final hesaplandi = d != null && d.readiness > 0;
     await f.writeAsString(jsonEncode({
-      'schema': 1,
+      'schema': 2,
       'updatedAtMs': DateTime.now().millisecondsSinceEpoch,
-      'date': d.date.toIso8601String(),
+      'date': d?.date.toIso8601String(),
       'readiness': hesaplandi ? d.readiness : null,
-      'sleepScore': d.sleepScore > 0 ? d.sleepScore : null,
-      'sleepMinutes': d.asleep > 0 ? d.asleep.round() : null,
-      'rhr': d.rhr,
+      'sleepScore': (d != null && d.sleepScore > 0) ? d.sleepScore : null,
+      'sleepMinutes': (d != null && d.asleep > 0) ? d.asleep.round() : null,
+      'rhr': d?.rhr,
+      'hedefler': {
+        'su': Ayarlar.suHedefiMl,
+        'suPorsiyon': Ayarlar.suPorsiyonMl,
+        'adim': Ayarlar.adimHedefi,
+        'kalori': Ayarlar.kaloriHedefi,
+        'kaloriAktif': Ayarlar.aktifKaloriHedefi,
+        'mesafeOndaKm': Ayarlar.mesafeHedefiOndaKm,
+      },
     }));
   }
 }

@@ -27,23 +27,19 @@ class SuWidgetProvider : AppWidgetProvider() {
     companion object {
         const val ACTION_EKLE = "com.kerteriz.kerteriz.SU_EKLE"
         const val ACTION_GERI_AL = "com.kerteriz.kerteriz.SU_GERI_AL"
-        private const val PREFS = "kerteriz_su"
-        private const val KEY_MIKTAR = "porsiyon_ml"
-        private const val KEY_HEDEF = "hedef_ml"
-
-        // Bu iki sayıyı elle değiştirme: patch_native.py, kurulum sırasında
-        // lib/config.dart içindeki waterServingMl ve dailyWaterGoalMl
-        // değerlerini buraya yazar. Tek kaynak config.dart'tır.
+        // Bu iki sayı artık yalnızca VARSAYILAN: gerçek değeri kullanıcı
+        // uygulamanın ayarlar ekranından seçiyor ve [AyarOkuyucu] onu
+        // kerteriz_ozet.json üzerinden buraya taşıyor. patch_native.py
+        // kurulumda lib/config.dart'taki değerleri buraya yazmaya devam
+        // ediyor: uygulama hiç açılmadan widget eklenirse bunlar geçerli.
         private const val VARSAYILAN_PORSIYON = 250
         private const val VARSAYILAN_HEDEF = 2500
 
         fun porsiyon(context: Context): Int =
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getInt(KEY_MIKTAR, VARSAYILAN_PORSIYON)
+            AyarOkuyucu.say(context, "suPorsiyon", VARSAYILAN_PORSIYON)
 
         fun hedef(context: Context): Int =
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getInt(KEY_HEDEF, VARSAYILAN_HEDEF)
+            AyarOkuyucu.say(context, "su", VARSAYILAN_HEDEF)
     }
 
     /**

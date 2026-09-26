@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../config.dart';
 import '../metrics/engine.dart';
+import 'ayarlar.dart';
 import 'day_record.dart';
 
 /// Ham + türetilmiş veriyi tek bir JSON dosyasına yazıp paylaşır.
@@ -17,8 +18,8 @@ class Exporter {
       'schema': 1,
       'generatedAt': DateTime.now().toIso8601String(),
       'config': {
-        'age': Config.age,
-        'hrMax': Config.hrMax,
+        'age': Ayarlar.yas,
+        'hrMax': Ayarlar.hrMax,
         'baselineWindow': Config.baselineWindow,
         'sleepNeedBaseMinutes': Config.sleepNeedBaseMinutes,
       },

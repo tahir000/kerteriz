@@ -43,7 +43,12 @@ def paket_adi(hedef_kotlin):
 
 
 def su_sabitleri(here):
-    """lib/config.dart tek kaynak; iki widget'ın varsayılanları oradan gelir.
+    """lib/config.dart widget varsayilanlarinin kaynagi.
+
+    0.8.0'dan beri gercek hedefler kullanicinin ayarlarindan geliyor ve
+    Kotlin tarafina kerteriz_ozet.json ile tasiniyor. Buradaki enjeksiyon
+    yalnizca yedegi ayarliyor: uygulama hic acilmadan widget eklenirse
+    widget bu sayilara duser.
     Dönen sözlüğün anahtarları Kotlin'deki sabit adlarıdır."""
     src = open(os.path.join(here, 'lib/config.dart'), encoding='utf-8').read()
 

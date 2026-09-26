@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:health/health.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../data/ayarlar.dart';
 import '../data/day_record.dart';
 import '../data/exporter.dart';
 import '../data/health_repository.dart';
@@ -46,10 +47,44 @@ class _ShellState extends State<Shell> {
   /// Sekmeler arası parmakla geçiş. Sayfa sırası alt menüyle aynı.
   final PageController _pc = PageController();
 
+  /// Ayar değişiminden sonra yeniden okumayı geciktiren sayaç.
+  Timer? _ayarZaman;
+
   @override
   void dispose() {
+    Ayarlar.yenidenOku.removeListener(_ayarDegisti);
+    Ayarlar.degisti.removeListener(_hedefDegisti);
+    _ayarZaman?.cancel();
     _pc.dispose();
     super.dispose();
+  }
+
+  /// Yaş değişti: nabız bölgeleri ve günlük yük ona bağlı, veri yeniden
+  /// işlenmeli. Ayarlar ekranı açıkken de çalışıyor, kullanıcı geri
+  /// döndüğünde sayılar güncel oluyor.
+  ///
+  /// Gecikme şart: yaşı artı düğmesiyle beş kez artıran biri beş okuma
+  /// başlatırdı. Son dokunuştan bir saniye sonra tek bir okuma yapılıyor.
+  void _ayarDegisti() {
+    _ayarZaman?.cancel();
+    _ayarZaman = Timer(const Duration(milliseconds: 1000), () {
+      if (!mounted) return;
+      // Okuma sürüyorsa iptal etmek yerine erteliyoruz: ilk açılışta yaşını
+      // düzelten biri, okuma bitince eski hrMax ile hesaplanmış sayılarla
+      // kalmamalı.
+      if (_loading) {
+        _ayarDegisti();
+        return;
+      }
+      _boot();
+    });
+  }
+
+  /// Hedef değişti (su, adım, kalori, mesafe). Skorlar bundan etkilenmiyor,
+  /// yeniden okumaya gerek yok; ama ana ekran widget'ları hedefi özet
+  /// dosyasından okuyor, o dosyanın tazelenmesi lazım.
+  void _hedefDegisti() {
+    OzetYazici.yaz(_days).catchError((_) {});
   }
 
   /// Alt menüden ya da ekran içindeki bir düğmeden sekme değiştirme.
@@ -67,6 +102,8 @@ class _ShellState extends State<Shell> {
   @override
   void initState() {
     super.initState();
+    Ayarlar.yenidenOku.addListener(_ayarDegisti);
+    Ayarlar.degisti.addListener(_hedefDegisti);
     if (Tani.cokmeIzi != null) {
       _guvenliMod = true;
       _loading = false;

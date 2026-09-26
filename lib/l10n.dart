@@ -265,6 +265,32 @@ class S {
     'data.thinCaption':
         'Taban çizgiler önceki 14 gecenin ortalamasından kuruluyor. O sayıya '
             'ulaşana kadar z-skorları sıfıra yakın kalır. Bekleyerek düzelir.',
+    'unit.year': 'yaş',
+    'unit.step': 'adım',
+    'unit.kcal': 'kcal',
+    'unit.km': 'km',
+    'settings.personal': 'Kişisel',
+    'settings.age': 'Yaş',
+    'settings.ageSub': 'Tahmini maksimum nabız: {hr} atım/dk',
+    'settings.ageNote':
+        'Nabız bölgeleri ve günlük yük hesabı yaşa bağlı (208 - 0,7 x yaş). '
+        'Yaşı değiştirince veriler yeniden işlenir.',
+    'settings.goals': 'Günlük hedefler',
+    'settings.waterGoal': 'Su hedefi',
+    'settings.waterGoalSub': 'Bugün ekranındaki ölçek ve su widget\'ı',
+    'settings.waterServing': 'Su porsiyonu',
+    'settings.waterServingSub': 'Widget düğmesine her basışta eklenen miktar',
+    'settings.stepGoal': 'Adım',
+    'settings.ringSub': 'Ana ekran özet widget\'ındaki halka',
+    'settings.calorieGoal': 'Kalori (toplam)',
+    'settings.calorieGoalSub': 'Bazal dahil günlük toplam',
+    'settings.activeCalorieGoal': 'Kalori (aktif)',
+    'settings.activeCalorieGoalSub':
+        'Cihaz yalnızca aktif kalori yazıyorsa bu hedef kullanılır',
+    'settings.distanceGoal': 'Mesafe',
+    'settings.goalsNote':
+        'Hedefler skorlara girmez, yalnızca ölçekleri ve halkaları belirler. '
+        'Değişiklik widget\'lara bir sonraki yenilemede yansır.',
     'settings.title': 'Ayarlar',
     'settings.about': 'Hakkında',
     'settings.dataTabSub':
@@ -567,6 +593,32 @@ class S {
     'data.thinCaption':
         'Baselines are built from the previous 14 nights. Until you reach that, '
             'z-scores stay near zero. Time fixes this.',
+    'unit.year': 'years',
+    'unit.step': 'steps',
+    'unit.kcal': 'kcal',
+    'unit.km': 'km',
+    'settings.personal': 'Personal',
+    'settings.age': 'Age',
+    'settings.ageSub': 'Estimated maximum heart rate: {hr} bpm',
+    'settings.ageNote':
+        'Heart rate zones and the daily load figure depend on age '
+        '(208 - 0.7 x age). Changing it reprocesses your data.',
+    'settings.goals': 'Daily goals',
+    'settings.waterGoal': 'Water goal',
+    'settings.waterGoalSub': 'The meter on Today and the water widget',
+    'settings.waterServing': 'Water serving',
+    'settings.waterServingSub': 'Amount added on each widget tap',
+    'settings.stepGoal': 'Steps',
+    'settings.ringSub': 'Ring on the home screen summary widget',
+    'settings.calorieGoal': 'Calories (total)',
+    'settings.calorieGoalSub': 'Daily total including basal',
+    'settings.activeCalorieGoal': 'Calories (active)',
+    'settings.activeCalorieGoalSub':
+        'Used when the device only writes active calories',
+    'settings.distanceGoal': 'Distance',
+    'settings.goalsNote':
+        'Goals do not feed the scores; they only set the meters and rings. '
+        'Changes reach the widgets on their next refresh.',
     'settings.title': 'Settings',
     'settings.about': 'About',
     'settings.dataTabSub':

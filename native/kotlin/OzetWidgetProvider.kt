@@ -31,8 +31,11 @@ class OzetWidgetProvider : AppWidgetProvider() {
     companion object {
         const val ACTION_YENILE = "com.kerteriz.kerteriz.OZET_YENILE"
 
-        // Bu üç sayıyı elle değiştirme: patch_native.py kurulum sırasında
-        // lib/config.dart içindeki hedeflerle değiştirir.
+        // Bu dört sayı artık yalnızca VARSAYILAN: gerçek hedefi kullanıcı
+        // uygulamanın ayarlar ekranından seçiyor ve [AyarOkuyucu] onu
+        // kerteriz_ozet.json üzerinden buraya taşıyor. patch_native.py
+        // kurulumda lib/config.dart'taki değerleri buraya yazmaya devam
+        // ediyor: uygulama hiç açılmadan widget eklenirse bunlar geçerli.
         private const val HEDEF_ADIM = 10000
         private const val HEDEF_KALORI = 2400
 
@@ -94,8 +97,17 @@ class OzetWidgetProvider : AppWidgetProvider() {
         val views = RemoteViews(context.packageName, R.layout.ozet_widget)
         val yerel = Locale.getDefault()
 
-        val hedefMesafeKm = HEDEF_MESAFE_ONDA_KM / 10.0
-        val hedefKalori = if (o.kaloriAktif) HEDEF_KALORI_AKTIF else HEDEF_KALORI
+        // Hedefler kullanıcının ayarlarından; dosya yoksa gömülü varsayılan.
+        // Dosya bir kez okunuyor, dört hedef aynı nesneden çıkıyor.
+        val hedefler = AyarOkuyucu.hedefler(context)
+        val hedefAdim = AyarOkuyucu.say(hedefler, "adim", HEDEF_ADIM)
+        val hedefMesafeKm =
+            AyarOkuyucu.say(hedefler, "mesafeOndaKm", HEDEF_MESAFE_ONDA_KM) / 10.0
+        val hedefKalori = if (o.kaloriAktif) {
+            AyarOkuyucu.say(hedefler, "kaloriAktif", HEDEF_KALORI_AKTIF)
+        } else {
+            AyarOkuyucu.say(hedefler, "kalori", HEDEF_KALORI)
+        }
 
         // --- halkalar ---
         // Yogunlugu yuksek ekranlarda bitmap RemoteViews'in aktarim sinirini
@@ -103,7 +115,7 @@ class OzetWidgetProvider : AppWidgetProvider() {
         val boyut = minOf(dp(context, 88f).toInt(), 264)
         val bmp = HalkaCizer.ciz(
             oranlar = listOf(
-                if (HEDEF_ADIM > 0) o.adim.toFloat() / HEDEF_ADIM else 0f,
+                if (hedefAdim > 0) o.adim.toFloat() / hedefAdim else 0f,
                 if (hedefKalori > 0) o.kaloriKcal.toFloat() / hedefKalori else 0f,
                 if (hedefMesafeKm > 0) (o.mesafeKm / hedefMesafeKm).toFloat() else 0f
             ),
@@ -116,7 +128,7 @@ class OzetWidgetProvider : AppWidgetProvider() {
         // --- ham sayilar ---
         views.setTextViewText(
             R.id.ozet_adim_deger,
-            "%s / %s".format(yerel, bin(o.adim, yerel), bin(HEDEF_ADIM, yerel))
+            "%s / %s".format(yerel, bin(o.adim, yerel), bin(hedefAdim, yerel))
         )
         views.setTextViewText(
             R.id.ozet_kalori_deger,

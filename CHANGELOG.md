@@ -1,5 +1,48 @@
 # Değişiklik günlüğü
 
+## 0.8.0 — Eylül 2026
+
+Yayına hazırlık sürümü. Kişisel sabitler koddan çıktı, kullanıcının seçimi
+oldu; mağaza için gereken belgeler yazıldı.
+
+**Ayarlar**
+
+- Yaş artık ayarlardan giriliyor. Nabız bölgeleri ve dolayısıyla günlük yük
+  buna bağlı (Tanaka: 208 - 0,7 x yaş). 0.7.0'a kadar `lib/config.dart`
+  içinde 30 yazıyordu: kendi telefonunda doğru, başkasının telefonunda yanlış
+- Günlük hedefler de ayarlardan: su hedefi, su porsiyonu, adım, toplam kalori,
+  aktif kalori, mesafe. Hepsi eksi/artı düğmeleriyle, klavye olmadan
+- Yaş değişince veri yeniden işleniyor (son dokunuştan bir saniye sonra, tek
+  okuma). Hedef değişince yalnızca widget köprüsü tazeleniyor: hedefler
+  skorlara girmiyor, yeniden okumaya gerek yok
+- Seçimler `kerteriz_ayarlar.json` dosyasına yazılıyor. Yazımlar sıraya
+  alınıyor: hızlı dokunuşlarda iki yazım çakışıp dosyayı bozuyordu
+
+**Widget'lar hedefi çalışma anında okuyor**
+
+- Hedefler eskiden derlemeye gömülüydü: `patch_native.py` kurulumda
+  `lib/config.dart` içindeki sayıları Kotlin sabitlerinin üstüne yazıyordu.
+  Artık `kerteriz_ozet.json` içindeki `hedefler` nesnesiyle taşınıyorlar
+- Yeni `AyarOkuyucu.kt` bu nesneyi okuyor; dosya yoksa (uygulama hiç
+  açılmadan widget eklendiyse) gömülü varsayılana düşüyor
+- Su widget'ındaki ölü `SharedPreferences` yolu kaldırıldı: hiçbir yerde
+  yazılmıyordu
+
+**Yayın belgeleri**
+
+- `docs/index.html` — iki dilli gizlilik politikası sayfası, tek dosya, dış
+  bağımlılığı yok. GitHub Pages ile yayınlanacak
+- `docs/MAGAZA.md` — Play Store metinleri: iki dilde kısa ve uzun açıklama,
+  sürüm notları, karakter sayıları
+- `docs/YAYIN.md` yeniden yazıldı: API 36 şartı, imzalama, GitHub Pages
+  kurulumu, her izin için sağlık beyanı gerekçesi, ekran görüntüsü ve özellik
+  grafiği rehberi, 12 kişi / 14 gün kapalı test kuralı
+
+**Düzeltmeler**
+
+- Ayarlardaki sayı sütunu, sistem yazı ölçeği büyükken beş haneli hedefi
+  taşırıyordu
+
 ## 0.7.0 — Eylül 2026
 
 Ayarlar ekranı, parmakla sekme geçişi, canlanan alt menü, tek seferlik

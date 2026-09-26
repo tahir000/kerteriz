@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:health/health.dart';
 
 import '../config.dart';
+import 'ayarlar.dart';
 import 'day_record.dart';
 import 'tani.dart';
 
@@ -387,7 +388,7 @@ class HealthRepository {
           DateTime(rec.date.year, rec.date.month, rec.date.day + 1));
       if (g0 != null && g1 != null) {
         final rest = rec.rhr ?? 60;
-        final aralik = Config.hrMax - rest;
+        final aralik = Ayarlar.hrMax - rest;
         for (var k = g0; k < g1; k++) {
           final v = dakikaNabzi(k);
           if (v == null) continue;

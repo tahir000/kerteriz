@@ -1,9 +1,12 @@
 # Kerteriz — Gizlilik Politikası
 
-**Yürürlük tarihi:** 5 Eylül 2026
+**Yürürlük tarihi:** 26 Eylül 2026
 
-Bu belgeyi bir web adresinde yayınlamalısın (ör. GitHub Pages, Notion, kendi siten).
-Google Play, sağlık verisi okuyan uygulamalarda gizlilik politikası URL'ini zorunlu tutuyor.
+Bu belgenin yayınlanabilir hali `docs/index.html` dosyasıdır: iki dilli, tek
+dosya, dış bağımlılığı yok. GitHub Pages ile yayınlanıyor (bkz. `YAYIN.md`
+adım 2). Google Play, sağlık verisi okuyan uygulamalarda gizlilik politikası
+URL'ini zorunlu tutuyor ve o adresin Health Connect içindeki bağlantıyla
+aynı olmasını istiyor. **İki dosyayı birlikte güncelle.**
 
 ---
 
@@ -37,6 +40,10 @@ Uygulama başka hiçbir sağlık tipine yazmaz.
 Veriler yalnızca cihazınızda işlenir. Uygulama bunlardan hazırlık skoru,
 uyku skoru, uyku borcu, günlük yük, akut/kronik yük oranı, sirkadiyen düzenlilik
 ve kardiyak toparlanma gibi türetilmiş ölçüler hesaplar ve ekranda gösterir.
+
+Uygulamanın kendi ayarları (tema tercihi, yaş, günlük hedefler) da yalnızca
+cihazdaki özel uygulama alanında küçük bir dosyada tutulur. Yaş yalnızca
+maksimum nabız tahmini için kullanılır ve hiçbir yere gönderilmez.
 
 ## 3. Nereye gönderiyoruz
 

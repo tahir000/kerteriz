@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../config.dart';
+import '../data/ayarlar.dart';
 import '../data/day_record.dart';
 import '../l10n.dart';
 import '../metrics/engine.dart';
@@ -84,7 +84,7 @@ class TodayScreen extends StatelessWidget {
     final hydDays = allDays ?? days;
     final hydToday = hydDays.isEmpty ? d : hydDays.last;
     final hyd =
-        MetricsEngine.hydrationEffect(hydDays, Config.dailyWaterGoalMl);
+        MetricsEngine.hydrationEffect(hydDays, Ayarlar.suHedefiMl);
     final waterLink = hyd == null
         ? s.t('today.waterLinkNone')
         : s.t2('today.waterLink', {
@@ -180,14 +180,14 @@ class TodayScreen extends StatelessWidget {
       SectionLabel(s.t('today.water')),
       MetricRow(
         title: s.t('today.water'),
-        subtitle: s.t2('today.waterGoal', {'goal': '${Config.dailyWaterGoalMl}'}),
+        subtitle: s.t2('today.waterGoal', {'goal': '${Ayarlar.suHedefiMl}'}),
         value: '${hydToday.hydrationMl}',
         unit: s.t('unit.ml'),
-        level: Levels.water(hydToday.hydrationMl, Config.dailyWaterGoalMl),
+        level: Levels.water(hydToday.hydrationMl, Ayarlar.suHedefiMl),
         levelText:
-            s.t(Levels.waterKey(hydToday.hydrationMl, Config.dailyWaterGoalMl)),
+            s.t(Levels.waterKey(hydToday.hydrationMl, Ayarlar.suHedefiMl)),
         extra: ZoneMeter.water(hydToday.hydrationMl.toDouble(),
-            Config.dailyWaterGoalMl.toDouble()),
+            Ayarlar.suHedefiMl.toDouble()),
         trend: [for (final x in _tail(hydDays, 14)) x.hydrationMl.toDouble()],
       ),
       NoteBlock(waterLink),

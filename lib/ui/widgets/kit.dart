@@ -486,3 +486,90 @@ class SegmentliSecici extends StatelessWidget {
     );
   }
 }
+
+/// Ayarlardaki sayı satırı: eksi ve artı düğmeleriyle değiştirilen bir değer.
+///
+/// Klavye yerine düğme: yaş ve hedefler tek elle, yanlış yazma ihtimali
+/// olmadan ayarlanıyor. Sınırlar [Ayarlar] tarafında da uygulanıyor, buradaki
+/// [enAz] / [enCok] yalnızca düğmeyi soluklaştırmak için.
+class SayiSatiri extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final int deger;
+  final int adim;
+  final int enAz;
+  final int enCok;
+  final String? birim;
+
+  /// Ekranda gösterilecek biçim. Verilmezse sayının kendisi yazılır
+  /// (mesafe hedefi onda bir kilometre tutulduğu için gerekiyor).
+  final String Function(int)? bicim;
+  final ValueChanged<int> onChanged;
+
+  const SayiSatiri({
+    super.key,
+    required this.title,
+    required this.deger,
+    required this.adim,
+    required this.enAz,
+    required this.enCok,
+    required this.onChanged,
+    this.subtitle,
+    this.birim,
+    this.bicim,
+  });
+
+  Widget _dugme(IconData ikon, bool acik, VoidCallback onTap) => Opacity(
+        opacity: acik ? 1 : 0.35,
+        child: Basilabilir(
+          onTap: acik ? onTap : () {},
+          child: Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: K.fill,
+              borderRadius: BorderRadius.circular(K.kapsul),
+            ),
+            child: Icon(ikon, size: 18, color: K.ink),
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) => Kart(
+        padding: const EdgeInsets.fromLTRB(16, 13, 13, 13),
+        child: Row(children: [
+          Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title, style: K.rowTitle),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(subtitle!, style: K.rowSub),
+              ],
+            ]),
+          ),
+          const SizedBox(width: 10),
+          _dugme(Icons.remove, deger > enAz,
+              () => onChanged((deger - adim) < enAz ? enAz : deger - adim)),
+          SizedBox(
+            width: 78,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              // Rakam bölünemiyor: sistem yazı ölçeği büyükken beş haneli
+              // hedef sütunu taşırırdı. Küçülterek sığdırıyoruz.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(bicim?.call(deger) ?? '$deger',
+                    style: K.rowValue, textAlign: TextAlign.center),
+              ),
+              if (birim != null)
+                // Birim jetonları satır içi kullanım için baştan boşluklu
+                // ('  ml'); burada alt satırda ortalandığı için kırpılıyor.
+                Text(birim!.trim(), style: K.axis, textAlign: TextAlign.center),
+            ]),
+          ),
+          _dugme(Icons.add, deger < enCok,
+              () => onChanged((deger + adim) > enCok ? enCok : deger + adim)),
+        ]),
+      );
+}

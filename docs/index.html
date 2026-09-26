@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kerteriz — Gizlilik Politikası</title>
+<meta name="description" content="Kerteriz gizlilik politikası. Sağlık verisi cihazdan çıkmaz: sunucu yok, hesap yok, analiz yok, reklam yok.">
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #1D1D1F;
+    --ink2: #6E6E73;
+    --line: #D2D2D7;
+    --line2: #E8E8ED;
+    --fill: #F5F5F7;
+    --link: #0066CC;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: #FFFFFF;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+                 Roboto, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sayfa { max-width: 720px; margin: 0 auto; padding: 56px 24px 72px; }
+
+  h1 { font-size: 34px; line-height: 1.15; font-weight: 700;
+       letter-spacing: -0.02em; margin: 0 0 6px; }
+  h2 { font-size: 21px; line-height: 1.3; font-weight: 600;
+       letter-spacing: -0.01em; margin: 42px 0 10px; }
+  h3 { font-size: 17px; font-weight: 600; margin: 26px 0 6px; }
+  p  { margin: 0 0 14px; }
+  .ikincil { color: var(--ink2); }
+  .ust { font-size: 15px; color: var(--ink2); margin: 0 0 34px; }
+  strong { font-weight: 600; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* madde imi orta nokta, asili girinti */
+  ul { list-style: none; margin: 0 0 16px; padding: 0; }
+  ul li { padding-left: 18px; text-indent: -18px; margin-bottom: 6px; }
+  ul li::before { content: "·"; display: inline-block; width: 18px;
+                  text-indent: 0; color: var(--ink2); font-weight: 700; }
+
+  .not { background: var(--fill); border-radius: 12px;
+         padding: 16px 18px; margin: 18px 0 20px; font-size: 16px; }
+  .not p:last-child { margin-bottom: 0; }
+
+  .ayrac { border: 0; border-top: 1px solid var(--line2); margin: 44px 0 0; }
+  .diller { font-size: 15px; color: var(--ink2); margin: 0 0 40px;
+            padding-bottom: 14px; border-bottom: 1px solid var(--line2); }
+  .diller a { margin-right: 14px; }
+
+  footer { margin-top: 56px; padding-top: 14px; border-top: 1px solid var(--line);
+           display: flex; justify-content: space-between; gap: 16px;
+           font-size: 13px; color: var(--ink2); }
+
+  @media (max-width: 520px) {
+    .sayfa { padding: 40px 18px 56px; }
+    h1 { font-size: 28px; }
+    body { font-size: 16px; }
+    footer { flex-direction: column; gap: 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="sayfa">
+
+  <p class="diller"><a href="#tr">Türkçe</a><a href="#en">English</a></p>
+
+  <!-- ================= TÜRKÇE ================= -->
+  <h1 id="tr">Kerteriz — Gizlilik Politikası</h1>
+  <p class="ust">Yürürlük tarihi: 26 Eylül 2026</p>
+
+  <div class="not">
+    <p>Kerteriz verini telefonundan dışarı çıkarmaz. Sunucu yok, hesap yok,
+    analiz aracı yok, reklam yok.</p>
+  </div>
+
+  <h2>1. Hangi verilere erişiyoruz</h2>
+  <p>Kerteriz, Android <strong>Health Connect</strong> üzerinden şu tiplere
+  <strong>okuma</strong> izniyle erişir:</p>
+  <ul>
+    <li>Uyku oturumları ve uyku evreleri (derin, hafif, REM, uyanık)</li>
+    <li>Nabız, dinlenme nabzı, kalp hızı değişkenliği (HRV)</li>
+    <li>Solunum hızı, kandaki oksijen (SpO2), cilt sıcaklığı</li>
+    <li>Adım, egzersiz oturumları, yakılan kalori, mesafe</li>
+    <li>Kilo, VO2max</li>
+    <li>Su alımı (hidrasyon)</li>
+    <li>30 günden eski kayıtlara erişim (geçmiş verisi izni)</li>
+  </ul>
+  <p>Bunların tek biri dışında hepsi salt okunurdur. Tek yazma izni
+  <strong>su alımıdır</strong> (<code>WRITE_HYDRATION</code>): ana ekran
+  widget'ındaki düğmeye bastığınızda uygulama telefonunuzun Health Connect
+  deposuna bir su kaydı ekler. Bu kayıt sizin eyleminizle oluşur, telefonunuzda
+  kalır ve hiçbir yere gönderilmez. Uygulama başka hiçbir sağlık tipine yazmaz.</p>
+
+  <h2>2. Bu verilerle ne yapıyoruz</h2>
+  <p>Veriler yalnızca cihazınızda işlenir. Uygulama bunlardan hazırlık skoru,
+  uyku skoru, uyku borcu, günlük yük, akut/kronik yük oranı, sirkadiyen
+  düzenlilik ve kardiyak toparlanma gibi türetilmiş ölçüler hesaplar ve
+  ekranda gösterir.</p>
+  <p>Uygulamanın kendi ayarları (tema tercihi, yaş, günlük hedefler) da yalnızca
+  cihazdaki özel uygulama alanında küçük bir dosyada tutulur.</p>
+
+  <h2>3. Nereye gönderiyoruz</h2>
+  <p><strong>Hiçbir yere.</strong> Kerteriz'in sunucusu yoktur. Veriler internete
+  çıkmaz. Uygulama analiz (analytics), çökme raporlama ya da reklam kitaplığı
+  içermez.</p>
+  <p>Tek istisna, sizin başlattığınız <strong>dışa aktarma</strong> işlemidir:
+  paylaş düğmesine bastığınızda cihazınızda bir JSON dosyası oluşturulur ve
+  Android'in paylaşım menüsü açılır. O dosyanın nereye gideceğine yalnızca siz
+  karar verirsiniz. Dosya oluşturulmadığı sürece hiçbir yere gitmez.</p>
+
+  <h2>4. Reklam ve satış</h2>
+  <p>Health Connect'ten gelen veriler reklam göstermek, reklam kişiselleştirmek,
+  üçüncü taraflara aktarmak, satmak ya da kredi değerlendirmesi gibi amaçlarla
+  <strong>kullanılmaz</strong>. Uygulamada reklam yoktur.</p>
+
+  <h2>5. Saklama ve silme</h2>
+  <p>Veriler uygulamanın kendi alanında geçici olarak işlenir. Uygulamayı
+  kaldırdığınızda bu alan Android tarafından tamamen silinir.</p>
+  <p>Health Connect izinlerini istediğiniz an geri alabilirsiniz:
+  <strong>Ayarlar → Uygulamalar → Health Connect → Uygulama izinleri →
+  Kerteriz</strong>. İzni geri aldığınızda uygulama hiçbir veri okuyamaz ve su
+  kaydı da yazamaz.</p>
+  <p>Uygulamanın yazdığı su kayıtlarını silmek için Health Connect'te
+  <strong>Veri ve erişim → Beslenme → Su</strong> yolunu izleyin. Widget'taki
+  geri alma düğmesi de yalnızca uygulamanın kendi yazdığı son kaydı siler,
+  başka kaynakların kayıtlarına dokunmaz.</p>
+  <p>Health Connect'teki verilerin kendisi Google'ın Health Connect deposunda
+  tutulur; onları silmek için Health Connect uygulamasını kullanın.</p>
+
+  <h2>6. Güvenlik</h2>
+  <p>Veri cihazdan çıkmadığı için ağ üzerinde aktarım yoktur. Cihaz üzerindeki
+  koruma, Android'in uygulama korumalı alanı (sandbox) ve cihaz şifrelemesidir.</p>
+
+  <h2>7. Çocuklar</h2>
+  <p>Kerteriz 18 yaş altı kullanıcılar için tasarlanmamıştır.</p>
+
+  <h2>8. Tıbbi uyarı</h2>
+  <p>Kerteriz bir tıbbi cihaz değildir. Teşhis koymaz, tedavi önermez, tıbbi
+  tavsiye vermez. Gösterdiği bütün ölçüler bilgilendirme amaçlıdır. Sağlığınızla
+  ilgili kararlar için bir sağlık profesyoneline danışın.</p>
+
+  <h2>9. Değişiklikler</h2>
+  <p>Bu politika değişirse yürürlük tarihi güncellenir ve değişiklik uygulama
+  mağazası açıklamasında belirtilir.</p>
+
+  <h2>10. İletişim</h2>
+  <!-- BURAYI DEĞİŞTİR: kendi iletişim e-postanı yaz. Play Console da aynı
+       adresi soracak. -->
+  <p><a href="mailto:ORNEK@ORNEK.COM">ORNEK@ORNEK.COM</a></p>
+
+  <hr class="ayrac">
+
+  <!-- ================= ENGLISH ================= -->
+  <h1 id="en" style="margin-top:44px">Kerteriz — Privacy Policy</h1>
+  <p class="ust">Effective date: 26 September 2026</p>
+
+  <div class="not">
+    <p>Kerteriz does not take your data off your phone. No server, no account,
+    no analytics, no ads.</p>
+  </div>
+
+  <h2>1. What we access</h2>
+  <p>Kerteriz reads the following types through Android
+  <strong>Health Connect</strong>:</p>
+  <ul>
+    <li>Sleep sessions and sleep stages (deep, light, REM, awake)</li>
+    <li>Heart rate, resting heart rate, heart rate variability (HRV)</li>
+    <li>Respiratory rate, blood oxygen (SpO2), skin temperature</li>
+    <li>Steps, exercise sessions, calories burned, distance</li>
+    <li>Weight, VO2max</li>
+    <li>Hydration</li>
+    <li>Records older than 30 days (health data history permission)</li>
+  </ul>
+  <p>All of these are read-only but one. The single write permission is
+  <strong>hydration</strong> (<code>WRITE_HYDRATION</code>): when you tap the
+  button on the home screen widget, the app adds a water record to Health
+  Connect on your phone. That record is created by your own action, stays on
+  your phone and is never sent anywhere. The app writes to no other health
+  type.</p>
+
+  <h2>2. What we do with it</h2>
+  <p>All processing happens on your device. The app computes derived measures
+  such as readiness, sleep score, sleep debt, daily load, acute-to-chronic load
+  ratio, circadian regularity and cardiac recovery, and shows them on screen.</p>
+  <p>The app's own settings (theme preference, age, daily goals) are also kept
+  in a small file inside the app's private storage on the device.</p>
+
+  <h2>3. Where we send it</h2>
+  <p><strong>Nowhere.</strong> Kerteriz has no server. Your data never leaves
+  the device. The app contains no analytics, crash reporting or advertising
+  library.</p>
+  <p>The only exception is an <strong>export</strong> you start yourself: when
+  you tap share, a JSON file is created on your device and Android's share sheet
+  opens. Where that file goes is entirely your decision. Until you create it,
+  nothing goes anywhere.</p>
+
+  <h2>4. Advertising and sale</h2>
+  <p>Data from Health Connect is <strong>never</strong> used to show or
+  personalise ads, transferred to third parties, sold, or used for purposes such
+  as credit assessment. The app contains no advertising.</p>
+
+  <h2>5. Retention and deletion</h2>
+  <p>Data is processed temporarily in the app's own storage. Uninstalling the
+  app removes that storage completely.</p>
+  <p>You can revoke Health Connect permissions at any time:
+  <strong>Settings → Apps → Health Connect → App permissions → Kerteriz</strong>.
+  Once revoked, the app can read nothing and can write no water records.</p>
+  <p>To delete the water records the app wrote, open Health Connect and go to
+  <strong>Data and access → Nutrition → Water</strong>. The undo button on the
+  widget only removes the last record the app itself wrote; it never touches
+  records from other sources.</p>
+  <p>The data in Health Connect itself is stored by Google's Health Connect;
+  use the Health Connect app to delete it.</p>
+
+  <h2>6. Security</h2>
+  <p>Because data never leaves the device, there is no network transmission.
+  On-device protection is Android's application sandbox and device encryption.</p>
+
+  <h2>7. Children</h2>
+  <p>Kerteriz is not designed for users under 18.</p>
+
+  <h2>8. Medical disclaimer</h2>
+  <p>Kerteriz is not a medical device. It does not diagnose, treat or give
+  medical advice. Everything it shows is for information only. Consult a health
+  professional for decisions about your health.</p>
+
+  <h2>9. Changes</h2>
+  <p>If this policy changes, the effective date is updated and the change is
+  noted in the app store description.</p>
+
+  <h2>10. Contact</h2>
+  <p><a href="mailto:ORNEK@ORNEK.COM">ORNEK@ORNEK.COM</a></p>
+
+  <footer>
+    <span>Kerteriz · kişisel sağlık analizi · kaynak kod GitHub'da</span>
+    <span>26.09.2026</span>
+  </footer>
+
+</div>
+</body>
+</html>
