@@ -157,6 +157,12 @@ Aynı dilimde aynı durumda (uyku/uyanık) olma yüzdesi, 30 gün üzerinden ort
 
 ## 5. Mimari ve dosya haritası
 
+> **Depo düzeni.** İki ayrı README var, karıştırılmamalı:
+> kökteki `README.md` GitHub'ın ana sayfasında görünen tanıtım sayfasıdır
+> (ortalanmış logo, metrik tablosu, belge bağlantıları). Kurulum ve teknik
+> notlar `docs/KURULUM.md` içindedir ve zip paketinde kökteki `README.md`
+> olarak dağıtılır. Biri ötekinin üstüne kopyalanmamalı.
+
 ```
 lib/
   config.dart                 motor sabitleri + tercih varsayılanları

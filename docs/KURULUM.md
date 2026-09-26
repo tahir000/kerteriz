@@ -97,23 +97,37 @@ ama kendi içinde tutarlı olduğu için taban çizgi ve z-skoru doğru çalış
 
 **Veri** sekmesi hangi tipin geldiğini ve hangi metriğin hesaplanabildiğini gösterir.
 
-## 4. Kişisel ayarlar
+## 4. Ayarlar
 
-`lib/config.dart`:
+0.8.0'dan itibaren kullanıcının seçtiği değerler **uygulama içinden**
+ayarlanıyor: her ekranın başlığının sağındaki düğme ayarlar ekranını açar.
 
-- `age` — maksimum nabız tahmini (Tanaka: 208 − 0.7 × yaş). Nabız bölgeleri buna bağlı.
+Ayarlar ekranından:
+
+- `yaş` — maksimum nabız tahmini (Tanaka: 208 − 0,7 × yaş). Nabız bölgeleri ve
+  dolayısıyla günlük yük buna bağlı. Değiştirince veri yeniden işlenir.
+- günlük su hedefi ve widget'ın tek dokunuşta eklediği porsiyon
+- özet widget'ının halka hedefleri: adım, toplam kalori, aktif kalori, mesafe
+- görünüm: sistem / açık / koyu
+
+Seçimler `kerteriz_ayarlar.json` dosyasına (uygulamanın özel alanı) yazılır.
+Hedefler ayrıca `kerteriz_ozet.json` içindeki `hedefler` nesnesiyle Kotlin
+tarafına taşınır: widget'lar hedefi oradan okur.
+
+`lib/config.dart` artık bu değerlerin **varsayılanı** ve motorun kendi
+sabitlerinin yeri:
+
 - `historyDays` — kaç gün geriye okunacak (varsayılan 90).
 - `baselineWindow` — taban çizgi penceresi (varsayılan 14 gün).
-- `sleepNeedBaseMinutes` — uyku ihtiyacı taban değeri; üzerine dünkü yükün katkısı eklenir.
-- `dailyWaterGoalMl` — günlük su hedefi (varsayılan 2500 ml). Hem Bugün sekmesi hem widget bunu kullanır.
-- `waterServingMl` — widget'ın tek dokunuşta eklediği miktar (varsayılan 250 ml).
-- `dailyStepGoal`, `dailyCalorieGoal`, `dailyActiveCalorieGoal`,
-  `dailyDistanceTenthKm` — özet widget'ının halka hedefleri. Mesafe
-  kilometrenin onda biri cinsinden tutulur (70 = 7,0 km).
+- `sleepNeedBaseMinutes` — uyku ihtiyacı taban değeri; üzerine dünkü yükün
+  katkısı eklenir.
+- `atlananTipler` — bir tip eklentiyi çökertiyorsa adını buraya yazmak yeter.
+
+Bu üçü tercih değil, formülün parçası; ayarlar ekranına konmadı.
 
 ## 5. Su widget'ı
 
-Ana ekran widget'ı tek dokunuşla `waterServingMl` kadar su ekler ve toplamı
+Ana ekran widget'ı tek dokunuşla ayarlardaki porsiyon kadar su ekler ve toplamı
 Health Connect'e `HydrationRecord` olarak yazar. Bugün sekmesi aynı kaydı
 oradan geri okur — yani widget ile uygulama arasında ayrı bir veritabanı yok,
 tek kaynak Health Connect.
@@ -180,23 +194,26 @@ gece nabız serisi ve `derived` altında tüm skorlar.
 
 ```
 lib/
-  config.dart                 kişisel sabitler
-  l10n.dart                   iki dil (tr, en), 204 anahtar
-  theme.dart                  renkler, tipografi, seviye eşikleri
+  config.dart                 motor sabitleri + tercih varsayılanları
+  l10n.dart                   iki dil (tr, en), 246 anahtar
+  theme.dart                  iki palet (açık/koyu), tipografi, seviye eşikleri
   data/
+    ayarlar.dart              tema, yaş ve hedefler (küçük JSON dosyası)
     day_record.dart           gün modeli + JSON
     health_repository.dart    Health Connect okuma ve günlük toplama
     exporter.dart             JSON dışa aktarım
-    ozet_yazici.dart          özet widget'ı için küçük JSON köprüsü
+    ozet_yazici.dart          widget köprüsü: skorlar + hedefler
   metrics/
     engine.dart               taban çizgiler, z-skorları, bileşik metrikler
   ui/
-    shell.dart                izin akışı, yükleme, sekmeler
+    shell.dart                izin akışı, yükleme, sekmeler (PageView), alt menü
     screens.dart              Bugün / Uyku / Yük / Kalp
     coverage_screen.dart      Veri — Health Connect tanı ekranı
-    widgets/kit.dart          satır, ölçek, rozet
+    ayarlar_ekrani.dart       görünüm, yaş, günlük hedefler
+    widgets/kit.dart          satır, ölçek, rozet, bölmeli seçici, sayı satırı
     widgets/gauge.dart        yay göstergesi, mini eğilim çizgisi
     widgets/charts.dart       CustomPainter grafikleri
+    widgets/marka.dart        açılış ekranı: simge dolarak çiziliyor
 native/
   kotlin/SuWidgetProvider.kt  su widget'ı
   kotlin/SuKaydedici.kt       Health Connect'e su yazma / okuma / silme
