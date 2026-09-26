@@ -3,8 +3,32 @@ import 'dart:math' as math;
 import '../config.dart';
 import '../data/day_record.dart';
 
-/// Ham gunluk kayitlari bilesik metriklere ceviren motor.
-/// Formuller prototipteki ile birebir ayni.
+/// Su alımı ile ERTESİ günün hazırlığı arasındaki karşılaştırma.
+/// Hazırlık formülüne bir katsayı olarak GİRMEZ — etkisi gerçek ama bir
+/// ağırlık rakamı verecek kadar net değil. Burada yalnızca kullanıcının
+/// kendi verisinden hesaplanan fark gösterilir.
+class HydrationInsight {
+  /// Hedefin altında kalınan gün sayısı ve o günlerin ertesindeki hazırlık ortalaması.
+  final int belowDays;
+  final double belowReadiness;
+
+  /// Hedefin tutturulduğu gün sayısı ve o günlerin ertesindeki hazırlık ortalaması.
+  final int atDays;
+  final double atReadiness;
+
+  const HydrationInsight({
+    required this.belowDays,
+    required this.belowReadiness,
+    required this.atDays,
+    required this.atReadiness,
+  });
+
+  /// Pozitif olması, hedefi tutturulan günlerin ertesinin daha iyi olduğu anlamına gelir.
+  double get delta => atReadiness - belowReadiness;
+}
+
+/// Ham günlük kayıtları bileşik metriklere çeviren motor.
+/// Formüller prototipteki ile birebir aynı.
 class MetricsEngine {
   static double clamp(double x, double a, double b) => x < a ? a : (x > b ? b : x);
 
@@ -17,8 +41,8 @@ class MetricsEngine {
     return math.sqrt(mean(a.map((x) => (x - m) * (x - m)).toList()) + 1e-9);
   }
 
-  /// z-skoru: onceki [win] gunun ortalamasina gore konum.
-  /// [log] true ise ln donusumu uzerinde (HRV log-normal dagilir).
+  /// z-skoru: önceki [win] günün ortalamasına göre konum.
+  /// [log] true ise ln dönüşümü üzerinde (HRV log-normal dağılır).
   static double _z(
     List<DayRecord> days,
     int i,
@@ -40,7 +64,7 @@ class MetricsEngine {
     return clamp((x - mean(prev)) / s, -3.5, 3.5);
   }
 
-  /// z-skorunu 0..1 araligina tasir.
+  /// z-skorunu 0..1 aralığına taşır.
   static double nz(double z) => clamp(0.5 + z / 3.6, 0, 1);
 
   static void run(List<DayRecord> days) {
@@ -68,7 +92,7 @@ class MetricsEngine {
       }
       if (rhrPrev.length >= 3) d.rhrBaseline = mean(rhrPrev);
 
-      // ---- gunluk yuk (TRIMP benzeri, log olcek) ----
+      // ---- günlük yük (TRIMP benzeri, log ölçek) ----
       const w = [0.0, 1.00, 1.85, 2.90, 4.60];
       var raw = 0.0;
       for (var k = 1; k < 5; k++) {
@@ -78,7 +102,7 @@ class MetricsEngine {
       d.strainRaw = raw;
       d.strain = clamp(6.9 * math.log(1 + raw / 24), 0, 21);
 
-      // ---- uyku ihtiyaci ----
+      // ---- uyku ihtiyacı ----
       final prevStrain = i > 0 ? days[i - 1].strain : 12.0;
       d.need = (Config.sleepNeedBaseMinutes + prevStrain * 2.2).round();
 
@@ -135,7 +159,7 @@ class MetricsEngine {
             .round();
       }
 
-      // ---- hazirlik: eksik girdinin agirligi otekilere dagitilir ----
+      // ---- hazırlık: eksik girdinin ağırlığı ötekilere dağıtılır ----
       final weights = <double>[];
       final values = <double>[];
       void add(double weight, double? value) {
@@ -165,7 +189,7 @@ class MetricsEngine {
       }
     }
 
-    // ---- uyku borcu: 14 gun, gunde %7 sonumleme ----
+    // ---- uyku borcu: 14 gün, günde %7 sönümleme ----
     for (var i = 0; i < days.length; i++) {
       var debt = 0.0;
       for (var j = math.max(0, i - 13); j <= i; j++) {
@@ -177,7 +201,7 @@ class MetricsEngine {
       days[i].debtMinutes = debt.round();
     }
 
-    // ---- akut / kronik yuk ----
+    // ---- akut / kronik yük ----
     for (var i = 0; i < days.length; i++) {
       final a = <double>[];
       for (var j = math.max(0, i - 6); j <= i; j++) {
@@ -191,10 +215,13 @@ class MetricsEngine {
       days[i].chronic = mean(c);
       days[i].acwr =
           days[i].chronic < 0.1 ? 1.0 : days[i].acute / days[i].chronic;
+      // Kronik pencerede gerçekten yük üretmiş gün sayısı. Yarısından azsa
+      // oran soğuk başlangıç yüzünden şişiyor, güvenilmez.
+      days[i].acwrReady = c.where((x) => x > 0).length >= 14;
     }
   }
 
-  /// Sleep Regularity Index — ardisik gunlerde uyku/uyanik durumu ortusmesi.
+  /// Sleep Regularity Index — ardışık günlerde uyku/uyanık durumu örtüşmesi.
   static int sri(List<DayRecord> days, {int window = 30}) {
     List<int> mask(DayRecord d) {
       final m = List<int>.filled(144, 0);
@@ -222,7 +249,7 @@ class MetricsEngine {
     return total == 0 ? 0 : (100 * match / total).round();
   }
 
-  /// Hastalik erken uyarisi: solunum + cilt sicakligi + nabiz birlikte yukselmis mi.
+  /// Hastalık erken uyarısı: solunum + cilt sıcaklığı + nabız birlikte yükselmiş mi.
   static bool illnessSignal(List<DayRecord> days) {
     final w = days.length < 3 ? days : days.sublist(days.length - 3);
     final hit = w.where((d) => d.respZ > 1.2 && d.tempZ > 1.0 && d.rhrZ > 0.8).length;
@@ -233,5 +260,37 @@ class MetricsEngine {
     if (days.isEmpty) return false;
     final w = days.length < 3 ? days : days.sublist(days.length - 3);
     return days.last.acwr > 1.45 && w.every((d) => d.hrvZ < 0);
+  }
+
+  /// Su kaydı olan her günü "hedefin altında" / "hedefte" diye ikiye ayırır ve
+  /// ertesi günün hazırlık ortalamalarını karşılaştırır. Her iki grupta da
+  /// [minPerGroup] gün yoksa null döner — az veriden çıkarım yapılmaz.
+  static HydrationInsight? hydrationEffect(
+    List<DayRecord> days,
+    int goalMl, {
+    int minPerGroup = 4,
+  }) {
+    final below = <double>[];
+    final at = <double>[];
+    for (var i = 0; i < days.length - 1; i++) {
+      final d = days[i];
+      final next = days[i + 1];
+      // Su kaydı olmayan gün "az su içildi" demek değil; sayılmaz.
+      if (d.hydrationMl <= 0) continue;
+      // Ertesi günün hazırlığı uyku olmadan anlamlı değil.
+      if (!next.hasSleep) continue;
+      // "Ertesi gün" takvimde gerçekten ertesi gün olmalı. Liste filtrelenmiş
+      // olabilir; yaz saati geçişi için saat aralığı kullanıyoruz.
+      final saat = next.date.difference(d.date).inHours;
+      if (saat < 20 || saat > 28) continue;
+      (d.hydrationMl >= goalMl ? at : below).add(next.readiness.toDouble());
+    }
+    if (below.length < minPerGroup || at.length < minPerGroup) return null;
+    return HydrationInsight(
+      belowDays: below.length,
+      belowReadiness: mean(below),
+      atDays: at.length,
+      atReadiness: mean(at),
+    );
   }
 }

@@ -8,8 +8,8 @@ import '../config.dart';
 import '../metrics/engine.dart';
 import 'day_record.dart';
 
-/// Ham + turetilmis veriyi tek bir JSON dosyasina yazip paylasir.
-/// Dosya cihazda uretilir; nereye gidecegine kullanici karar verir.
+/// Ham + türetilmiş veriyi tek bir JSON dosyasına yazıp paylaşır.
+/// Dosya cihazda üretilir; nereye gideceğine kullanıcı karar verir.
 class Exporter {
   static Future<File> write(List<DayRecord> days) async {
     final payload = {

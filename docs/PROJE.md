@@ -50,6 +50,11 @@ kaydı Health Connect'e yazılmıyor. Nabız serisi, uyku evreleri ve adım yaz�
   için taban çizgi ve z-skoru doğru çalışır.
 - **Solunum ve SpO2 türetilemez.** Kaybedilen tek özellik hastalık erken uyarısı.
 - **HRV** durumu doğrulanmalı — hazırlık skorunun %40'ı.
+- **Su alımı uygulamanın kendi ürettiği tek veridir.** Ana ekran widget'ı
+  Health Connect'e yazar, uygulama aynı yerden geri okur; ayrı bir veritabanı yok.
+- **Mesafe ve kalori yalnızca özet widget'ı için okunur.** Skorlara girmezler,
+  90 günlük okumaya da dahil değiller; izinleri uygulama üzerinden isteniyor
+  çünkü widget ayrı bir izin akışı çalıştıramaz.
 
 Uygulamada bunun için iki mekanizma var:
 
@@ -140,6 +145,13 @@ Aynı dilimde aynı durumda (uyku/uyanık) olma yüzdesi, 30 gün üzerinden ort
   nabız z > 0.8, son 3 günün en az 2'sinde. Üçlüsüne birlikte bakmak tek başına
   nabza bakmaktan erken uyarır.
 - **Yüklenme:** ACWR > 1.45 **ve** HRV üç gündür taban çizginin altında.
+- **Hidrasyon karşılaştırması** (`MetricsEngine.hydrationEffect`): su kaydı olan
+  günler "hedefte" / "hedefin altında" diye ikiye ayrılır, her grubun **ertesi**
+  günündeki hazırlık ortalaması karşılaştırılır. Her iki grupta da en az 4 gün
+  şartı var; ayrıca eşleşen iki gün takvimde gerçekten ardışık olmalıdır.
+  **Hazırlık skoruna ağırlıkla girmez** — su alımının HRV ve nabza etkisi gerçek
+  ama bir katsayı rakamı verecek kadar net değil. Göstermek başka, skora katmak
+  başka; burada uydurulmuş katsayı yerine kullanıcının kendi verisi konuşur.
 
 ---
 
@@ -148,22 +160,44 @@ Aynı dilimde aynı durumda (uyku/uyanık) olma yüzdesi, 30 gün üzerinden ort
 ```
 lib/
   config.dart                 kişisel sabitler
-  l10n.dart                   iki dil (tr, en), 197 anahtar
-  theme.dart                  renkler, tipografi, seviye eşikleri
+  l10n.dart                   iki dil (tr, en), 225 anahtar
+  theme.dart                  iki palet (açık/koyu), tipografi, seviye eşikleri
   data/
+    ayarlar.dart              tema tercihi (küçük JSON dosyası, path_provider)
     day_record.dart           gün modeli + JSON serileştirme
     health_repository.dart    Health Connect okuma, günlük toplama, kapsama takibi
     exporter.dart             90 günlük ham+türetilmiş veriyi JSON'a yazıp paylaşır
+    ozet_yazici.dart          özet widget'ı için küçük JSON köprüsü
+    tani.dart                 açılış izi (diske yazılır), güvenli mod
   metrics/
     engine.dart               taban çizgiler, z-skorları, bütün bileşik metrikler
   ui/
-    shell.dart                izin akışı, yükleme, 5 sekme
+    shell.dart                izin akışı, yükleme, 5 sekme (PageView), alt menü
+    ayarlar_ekrani.dart       tema tercihi, sürüm, gizlilik notu
     screens.dart              Bugün / Uyku / Yük / Kalp
     coverage_screen.dart      Veri — Health Connect tanı ekranı
-    widgets/kit.dart          satır, bölgeli ölçek, rozet
+    widgets/kit.dart          satır, bölgeli ölçek, rozet, bölmeli seçici
     widgets/gauge.dart        yay göstergesi, mini eğilim çizgisi, giriş animasyonu
     widgets/charts.dart       CustomPainter grafikleri (harici grafik kütüphanesi yok)
+    widgets/marka.dart        açılış ekranı: Kerteriz simgesi dolarak çiziliyor
+native/
+  kotlin/SuWidgetProvider.kt  ana ekran su widget'ı (AppWidgetProvider, RemoteViews)
+  kotlin/SuKaydedici.kt       Health Connect'e su yazma / okuma / son kaydı silme
+  kotlin/OzetWidgetProvider.kt  ana ekran özet widget'ı (Google Health karşılığı)
+  kotlin/OzetOkuyucu.kt       günlük adım/kalori/mesafe toplamı + özet JSON
+  kotlin/HalkaCizer.kt        üç eş merkezli halkayı bitmap'e çizer
+  res/                        widget düzenleri, çizimleri, renkleri, metinleri
+patch_manifest.py             izinler, queries, izin gerekçesi alias'ı, widget alıcısı
+patch_mainactivity.py         FlutterActivity -> FlutterFragmentActivity
+patch_native.py               native/ kopyalar, paketi ve config değerlerini yazar
 ```
+
+**Tema tek bir bayrağa bağlı.** `K` sınıfındaki renkler, yazı biçimleri ve
+gölgeler `static const` değil `static get`: hepsi `K.koyu` bayrağına bakıyor ve
+gece modunda aynı adlar farklı değer döndürüyor. Bayrak `KerterizApp.build`
+içinde, tercih ile cihaz parlaklığı birlikte değerlendirilerek kuruluyor.
+Bunun bir bedeli var: tema jetonu içeren hiçbir ifade artık `const` olamaz.
+Ölçü jetonları (boşluk, yarıçap) temadan bağımsız olduğu için `const` kaldı.
 
 **Önemli tasarım kararı:** günler "uyanılan takvim günü"ne yazılır. Sabah 18:00'dan
 önce biten uyku o güne, sonra bitenler ertesi güne. `HealthRepository._sleepDay()`.
@@ -173,8 +207,34 @@ akşam saatindeki tek bir ölçüm "yarın" tarihli hayalet bir kayıt üretiyor
 
 **Android dosyaları üzerine yazılmaz, yamalanır.** Elle yazılmış bir
 `AndroidManifest.xml`'i kopyalamak `Build failed due to use of deleted Android v1
-embedding` hatasına yol açtı. `patch_manifest.py` ve `patch_mainactivity.py`
-idempotent yamalayıcılardır.
+embedding` hatasına yol açtı. `patch_manifest.py`, `patch_mainactivity.py` ve
+`patch_native.py` idempotent yamalayıcılardır.
+
+**Widget'ın ayarları `lib/config.dart`'tan gelir.** Kotlin tarafında
+`VARSAYILAN_PORSIYON` ve `VARSAYILAN_HEDEF` sabitleri vardır; `patch_native.py`
+kurulum sırasında bunları `waterServingMl` ve `dailyWaterGoalMl` değerleriyle
+değiştirir. Tek kaynak config.dart'tır, Kotlin elle düzenlenmez. Aynı betik
+Kotlin dosyalarının `package` satırını da MainActivity.kt'ninkiyle eşitler.
+
+**Özet widget'ı ile Dart arasındaki köprü bir dosyadır.** Hazırlık, uyku skoru
+ve dinlenme nabzı 14 günlük taban çizgiye dayanır; motor Dart'ta çalıştığı için
+Kotlin bunları hesaplayamaz. Uygulama her okumadan sonra `kerteriz_ozet.json`
+dosyasına yazıyor (`getApplicationSupportDirectory()`, Android'de
+`context.filesDir`), widget oradan okuyor. MethodChannel ya da
+`shared_preferences` yerine bunun seçilmesinin sebebi: MainActivity'yi
+yamalamayı gerektirmiyor ve eklenti sürümlerine bağımlı değil. Dosyada hem
+yazılma zamanı hem skorların ait olduğu gün var; ikisi de kontrol ediliyor,
+çünkü uyku kaydı gelmeyen bir gece sonrası dosya bugün yazılsa da içindeki
+skorlar birkaç gün öncesine ait olabiliyor.
+
+**Günlük toplamlar tek tek sorulur.** Health Connect, aggregate kümesindeki tek
+bir tipin izni yoksa çağrının tamamını reddediyor. Adım, mesafe ve kalori ayrı
+isteklerle sorulmasaydı, "toplam kalori" iznini vermeyen bir kullanıcıda üç
+halka birden sıfır görünürdü.
+
+**Widget yayın alıcısıdır**, dolayısıyla `onReceive` dönünce süreç öldürülebilir.
+Health Connect yazması ve çizim `goAsync()` ile alınan bekleyen sonuca bağlanır;
+iş bitince `finish()` çağrılır. Bu olmadan dokunuşlar sessizce kayboluyordu.
 
 ---
 
@@ -190,14 +250,23 @@ Bunlar acı çekilerek öğrenildi, değiştirilmemeli:
 | `minSdk = 28` | Health Connect daha eskisinde çalışmıyor |
 | `READ_HEALTH_DATA_HISTORY` izni | Olmadan 30 günden eski kayıt okunamaz; taban çizgiler buna bağlı |
 | `FlutterFragmentActivity` | `health` paketi Android 14 için bunu şart koşuyor |
-| Manifestte yalnızca READ | Hiçbir WRITE izni yok, bilinçli |
+| Tek WRITE izni `WRITE_HYDRATION` | Su widget'ı için şart; başka hiçbir tipe yazılmaz, bilinçli |
+| `patch_manifest.py` parça parça korumalı | Tek "zaten yamalı" kontrolü, sonradan eklenen izin ve widget'ı mevcut projeye hiç sokmuyordu |
+| `connect-client:1.1.0` | Bu sürümde `Record` yapıcısında `metadata` zorunlu; `Metadata.manualEntry()` |
 
 `share_plus 13`'te API değişti: `Share.shareXFiles(...)` yerine
 `SharePlus.instance.share(ShareParams(files: [...]))`.
 
 **Geliştirme ortamı:** macOS (MacBook Air), **VS Code** (Flutter eklentisi ile),
-Android Studio yalnızca Android SDK deposu olarak kurulu — editör olarak
-kullanılmıyor. Test cihazı: Samsung SM-F956B (Galaxy Z Fold 6).
+Android Studio yalnızca Android SDK deposu olarak kurulu, editör olarak
+kullanılmıyor. Test cihazı: **Honor Magic 7** (MagicOS). Daha önce Samsung
+SM-F956B (Galaxy Z Fold 6) kullanılıyordu.
+
+**MagicOS arka planı sert kesiyor.** Widget'lar yayın alıcısıyla çalıştığı için
+periyodik güncelleme atlanabiliyor. Kurulumda Optimizer > Uygulama başlatma
+altında otomatik yönetim kapatılmalı, pil optimizasyonu "İzin verme" yapılmalı.
+Her iki widget da elle yenilenebilir (su: düğme, özet: halkalara dokunma);
+bu, bilinçli bir telafi.
 
 ---
 
@@ -208,6 +277,13 @@ izinleri veriliyor, okuma yapılıyor.
 
 **Bekleniyor:** Cihaz yeni alındı, henüz birkaç günlük veri var. Taban çizgiler için
 ~14 gece gerekiyor. O zamana kadar z-skorları sıfıra yakın çıkar — hata değil.
+
+**Son eklenen:** (1) ayrı bir uygulama olan su takibi widget'ı Kerteriz'e tam
+olarak birleştirildi, tek uygulama tek paket; uygulama böylece ilk ve tek yazma
+iznini kazandı (`WRITE_HYDRATION`). (2) Google Health'in kendi widget'ının
+karşılığı olan özet widget'ı eklendi: üç halka (adım, kalori, mesafe) ve altında
+hazırlık, uyku, dinlenme nabzı. Gizlilik politikası, Play sağlık beyanı ve
+README buna göre güncellendi.
 
 **Sıradaki adımlar:**
 1. HRV akıyor mu, Veri sekmesinden doğrula
@@ -220,27 +296,34 @@ izinleri veriliyor, okuma yapılıyor.
 
 ## 8. Tasarım dili
 
-- Saf beyaz zemin, renkli kart/blok yok, koyu sayfa yok
-- Tipografi: sistem yazı tipi, serif kullanılmaz, hiyerarşi ağırlıkla kurulur
-- İki kademeli mürekkep: `#1D1D1F` birincil, `#6E6E73` ikincil
-- Tek dolgu rengi: `#F5F5F7` (yalnızca not blokları)
-- Kılcal ayraç çizgileri: `#D2D2D7` ve `#E8E8ED`
-- Tek renkli aksan gerekirse bağlantı mavisi `#0066CC`
-- Madde imi kalın nokta değil orta nokta (·)
+**Eylül 2026'da değişti.** Kullanıcı Honor Magic 7'ye geçtikten sonra
+uygulamanın işletim sistemiyle aynı dili konuşmasını istedi. Önceki dil
+(Apple Style Guide: saf beyaz zemin, kartsız yapı) bırakıldı.
 
-**Seviye renkleri:** yeşil `#1B7A3E` / turuncu `#A85B00` / kırmızı `#BE3125` (metin),
-işaretlerde `#34A853` / `#F09000` / `#E04A3F`. Renk **hiçbir zaman tek başına
-bırakılmaz** — yanında daima sayı ya da seviye etiketi var, çünkü yeşil-turuncu-kırmızı
-renk körlüğünde ayırt edilemeyen üçlüdür.
+Yeni dil MagicOS'un yüzey diline yaklaşıyor:
 
-**Hero değerler yay göstergesi** (`ArcGauge`): 260 derecelik yay, seviye renginde
-dolan kavis, ortada sayı, altında seviye etiketi.
+- Sayfa zemini gri (`#F1F2F5`), içerik beyaz kartlarda
+- Büyük köşe yarıçapı (kart 22), rozet ve düğmeler kapsül biçimli
+- Çok yumuşak ve geniş gölge: amaç gölge göstermek değil, kartı zeminden
+  ayırmak
+- Aksan `#1668E3`
+- Tipografi sistem yazı tipi; başlıklar daha kalın, sayılar tablo hizalı
 
-**Yazım kuralı:** şapkalı karakter kullanılmaz — â, î, û yerine düz a, i, u
-("iflas", "hal"). Bunun dışındaki bütün Türkçe karakterler tam kullanılır:
-ç, ğ, ı, İ, ö, ş, ü.
+**Seviye renkleri korundu.** Yeşil, turuncu ve kırmızı bu uygulamada süs
+değil, veriyi okuma anahtarı. Her iki palette de (açık ve koyu) ayrı ayrı
+dengelendi: koyu zeminde okunabilmeleri için açıldılar. Renk hiçbir yerde tek başına bırakılmadı: yanında her
+zaman seviye etiketi ve sayının kendisi var.
 
----
+**Hareket ve derinlik.** Uygulama donuk hissettiriyordu. Eklenenler:
+ekranlar kademeli süzülerek giriyor, yay göstergesindeki sayı yayla birlikte
+sıfırdan sayıyor, sütun grafikleri tabandan büyüyerek geliyor, çizgi
+grafikleri soldan sağa çiziliyor, sekme değişimi yumuşak bir geçişle oluyor,
+dokunulan satır hafifçe küçülüyor, kaydırınca üstte kompakt bir başlık
+çubuğu beliriyor.
+
+**Kullanıcının genel tercihi ayrı.** Sunum, belge ve görsel çıktılarda Apple
+Style Guide dili varsayılan olmaya devam ediyor; bu değişiklik yalnızca
+Kerteriz uygulamasının kendisi için.
 
 ## 9. Uygulamanın sınırları
 

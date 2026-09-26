@@ -33,6 +33,8 @@ göndermeden.
 | **ACWR** | 7 günlük akut yük / 28 günlük kronik yük |
 | **Kardiyak toparlanma** | Gece nabzının ne kadar *ve ne kadar erken* düştüğü |
 | **Sirkadiyen düzenlilik** | Sleep Regularity Index — ardışık gecelerin örtüşmesi |
+| **Su** | Ana ekran widget'ından tek dokunuşla eklenir; hedefe göre gösterilir |
+| **Özet widget'ı** | Adım, kalori, mesafe halkaları + hazırlık, uyku, dinlenme nabzı |
 
 Taban çizgiler 14 günlük penceredir ve HRV için logaritmik uzayda kurulur
 (RMSSD log-normal dağılır; ham ortalama yanlış sonuç verir).
@@ -45,6 +47,9 @@ Taban çizgiler 14 günlük penceredir ve HRV için logaritmik uzayda kurulur
 - **Eksik veriyle çalışır.** Bir girdi gelmiyorsa ağırlığı ötekilere oransal
   dağıtılır. Hangi metriğin çalıştığını **Veri** sekmesi açıkça gösterir.
 - **Teşhis koymaz.** Kendi verini kendi taban çizgine göre gösterir, o kadar.
+- **Uydurma katsayı yok.** Su alımı hazırlık skoruna ağırlıkla katılmaz; yerine
+  hedefi tutturulan günlerin ertesiyle tutturulmayanların ertesi, kendi verinden
+  hesaplanıp karşılaştırılır.
 
 ## Kurulum
 
@@ -71,8 +76,10 @@ Connect izinlerini ekler.
 
 ## Gizlilik
 
-Uygulamanın sunucusu yoktur. Health Connect'e **yalnızca okuma** izniyle erişir,
-hiçbir şey yazmaz, analiz ve çökme raporlama kitaplığı içermez, reklam göstermez.
+Uygulamanın sunucusu yoktur. Health Connect'ten okuduğu her şey cihazda kalır;
+analiz ve çökme raporlama kitaplığı içermez, reklam göstermez. Tek yazma izni
+**su alımıdır** (`WRITE_HYDRATION`): widget'ta düğmeye bastığında telefonun kendi
+Health Connect deposuna bir su kaydı ekler. Başka hiçbir tipe yazmaz.
 Veri cihazdan yalnızca senin başlattığın dışa aktarma ile çıkar.
 
 ## Uyarı

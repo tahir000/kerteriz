@@ -1,84 +1,158 @@
 import 'package:flutter/material.dart';
 
-/// Apple Style Guide temelli beyaz zemin + seviye renkleri.
+/// Kullanıcının seçtiği tema. Sistem seçiliyse cihazın gece modu izlenir.
+enum TemaTercihi { sistem, acik, koyu }
+
+/// MagicOS'un yüzey diline yaklaştırılmış tema, açık ve koyu iki palet.
+///
+/// Renkler ve yazı biçimleri `static const` değil `static get`: gece modunda
+/// aynı adlar farklı değer döndürüyor. Ölçü jetonları (boşluk, yarıçap)
+/// temadan bağımsız olduğu için `const` kaldı.
+///
+/// Seviye renkleri (yeşil / turuncu / kırmızı) iki palette de var: onlar süs
+/// değil, veriyi okuma anahtarı. Koyu zeminde okunacak şekilde açıldılar.
 class K {
-  // yuzeyler
-  static const bg = Color(0xFFFFFFFF);
-  static const fill = Color(0xFFF5F5F7);
-  static const fillSoft = Color(0xFFFAFAFC);
+  /// Tüm palet bu bayrağa bakar. [KerterizApp] her yapımda ayarlıyor.
+  static bool koyu = false;
 
-  // murekkep
-  static const ink = Color(0xFF1D1D1F);
-  static const ink2 = Color(0xFF6E6E73);
-  static const ink3 = Color(0xFF8E8E93);
-  static const ink4 = Color(0xFFAEAEB2);
+  static Color _s(Color acik, Color koyuRenk) => koyu ? koyuRenk : acik;
 
-  // cizgiler
-  static const line = Color(0xFFD2D2D7);
-  static const line2 = Color(0xFFE8E8ED);
-  static const line3 = Color(0xFFF0F0F3);
+  // yüzeyler
+  static Color get bg => _s(const Color(0xFFF1F2F5), const Color(0xFF0E0F12));
+  static Color get card => _s(const Color(0xFFFFFFFF), const Color(0xFF1A1C21));
+  static Color get fill => _s(const Color(0xFFF4F5F8), const Color(0xFF23262C));
+  static Color get fillSoft =>
+      _s(const Color(0xFFFAFBFC), const Color(0xFF1E2127));
 
-  static const accent = Color(0xFF0066CC);
+  // mürekkep
+  static Color get ink => _s(const Color(0xFF17181C), const Color(0xFFF1F2F5));
+  static Color get ink2 => _s(const Color(0xFF63666E), const Color(0xFFA4A9B3));
+  static Color get ink3 => _s(const Color(0xFF93979F), const Color(0xFF7D838D));
+  static Color get ink4 => _s(const Color(0xFFB6BAC1), const Color(0xFF5B606A));
+
+  // çizgiler
+  static Color get line => _s(const Color(0xFFDDE0E5), const Color(0xFF353942));
+  static Color get line2 => _s(const Color(0xFFE9EBEF), const Color(0xFF2A2E36));
+  static Color get line3 => _s(const Color(0xFFF2F3F6), const Color(0xFF23262C));
+
+  static Color get accent =>
+      _s(const Color(0xFF1668E3), const Color(0xFF4C9AFF));
 
   // seviye
-  static const good = Color(0xFF1B7A3E);
-  static const goodMark = Color(0xFF34A853);
-  static const goodTint = Color(0xFFE8F5EC);
-  static const warn = Color(0xFFA85B00);
-  static const warnMark = Color(0xFFF09000);
-  static const warnTint = Color(0xFFFDF0E3);
-  static const bad = Color(0xFFBE3125);
-  static const badMark = Color(0xFFE04A3F);
-  static const badTint = Color(0xFFFBEAE8);
+  static Color get good => _s(const Color(0xFF1B7F49), const Color(0xFF5FD79A));
+  static Color get goodMark =>
+      _s(const Color(0xFF2FBF6B), const Color(0xFF35C46F));
+  static Color get goodTint =>
+      _s(const Color(0xFFE9F7EF), const Color(0xFF16301F));
+  static Color get warn => _s(const Color(0xFFA35F00), const Color(0xFFFFC178));
+  static Color get warnMark =>
+      _s(const Color(0xFFFF9A1F), const Color(0xFFFF9A1F));
+  static Color get warnTint =>
+      _s(const Color(0xFFFEF3E4), const Color(0xFF33240E));
+  static Color get bad => _s(const Color(0xFFBE3225), const Color(0xFFFF8C82));
+  static Color get badMark =>
+      _s(const Color(0xFFF1594C), const Color(0xFFF1594C));
+  static Color get badTint =>
+      _s(const Color(0xFFFCEBE9), const Color(0xFF35191A));
 
   // uyku evreleri
-  static const stageDeep = Color(0xFF0B3F73);
-  static const stageLight = Color(0xFF4A8FD6);
-  static const stageRem = Color(0xFF93B8E6);
-  static const stageWake = Color(0xFFC7CDD4);
+  static Color get stageDeep =>
+      _s(const Color(0xFF14427A), const Color(0xFF3D7CC4));
+  static Color get stageLight =>
+      _s(const Color(0xFF4A8FD6), const Color(0xFF6FA8E4));
+  static Color get stageRem =>
+      _s(const Color(0xFF93B8E6), const Color(0xFFA7C8EF));
+  static Color get stageWake =>
+      _s(const Color(0xFFCBD1D9), const Color(0xFF4B5058));
 
-  // olcek
-  static const double gutter = 20;
-  static const double sectionGap = 30;
+  // ölçü jetonları: temadan bağımsız, const kalabilir
+  static const double gutter = 18;
+  static const double sectionGap = 26;
+  static const double rKart = 22;
+  static const double rIc = 14;
+  static const double rDugme = 16;
+  static const double kapsul = 999;
 
-  static const eyebrow = TextStyle(
+  /// Kart gölgesi. Koyu temada gölge neredeyse görünmez; kartı zeminden
+  /// ayıran şey artık gölge değil, yüzeyin biraz daha açık olması.
+  static List<BoxShadow> get golge => koyu
+      ? const [
+          BoxShadow(color: Color(0x33000000), blurRadius: 14, offset: Offset(0, 4)),
+        ]
+      : const [
+          BoxShadow(color: Color(0x0D000000), blurRadius: 18, offset: Offset(0, 6)),
+          BoxShadow(color: Color(0x08000000), blurRadius: 3, offset: Offset(0, 1)),
+        ];
+
+  static List<BoxShadow> get cubukGolge => koyu
+      ? const [
+          BoxShadow(color: Color(0x40000000), blurRadius: 10, offset: Offset(0, 2)),
+        ]
+      : const [
+          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 2)),
+        ];
+
+  static BoxDecoration get kartDekor => BoxDecoration(
+        color: card,
+        borderRadius: BorderRadius.circular(rKart),
+        boxShadow: golge,
+      );
+
+  static TextStyle get eyebrow => TextStyle(
       fontSize: 11,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.w700,
       letterSpacing: 0.9,
       height: 1.3,
       color: ink3);
-  static const title = TextStyle(
-      fontSize: 28,
-      fontWeight: FontWeight.w600,
-      letterSpacing: -0.6,
-      height: 1.15,
+  static TextStyle get title => TextStyle(
+      fontSize: 30,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.8,
+      height: 1.12,
       color: ink);
-  static const hero = TextStyle(
+  static TextStyle get titleSmall => TextStyle(
+      fontSize: 17,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.3,
+      height: 1.2,
+      color: ink);
+  static TextStyle get hero => TextStyle(
       fontSize: 60,
       fontWeight: FontWeight.w300,
       letterSpacing: -2.4,
       height: 1,
-      color: ink);
-  static const heroUnit = TextStyle(
-      fontSize: 17, fontWeight: FontWeight.w400, color: ink3, letterSpacing: -0.2);
-  static const rowTitle = TextStyle(
-      fontSize: 15.5, fontWeight: FontWeight.w500, letterSpacing: -0.15, color: ink);
-  static const rowSub =
+      color: ink,
+      fontFeatures: const [FontFeature.tabularFigures()]);
+  static TextStyle get heroUnit => TextStyle(
+      fontSize: 17, fontWeight: FontWeight.w500, color: ink3, letterSpacing: -0.2);
+  static TextStyle get rowTitle => TextStyle(
+      fontSize: 15.5, fontWeight: FontWeight.w600, letterSpacing: -0.2, color: ink);
+  static TextStyle get rowSub =>
       TextStyle(fontSize: 12.5, color: ink2, height: 1.4, letterSpacing: -0.05);
-  static const rowValue = TextStyle(
-      fontSize: 17, fontWeight: FontWeight.w500, letterSpacing: -0.3, color: ink);
-  static const caption =
+  static TextStyle get rowValue => TextStyle(
+      fontSize: 17,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.3,
+      color: ink,
+      fontFeatures: const [FontFeature.tabularFigures()]);
+  static TextStyle get caption =>
       TextStyle(fontSize: 14, color: ink2, height: 1.55, letterSpacing: -0.1);
-  static const axis = TextStyle(fontSize: 10, color: ink3, letterSpacing: 0.1);
-  static const note =
+  static TextStyle get axis =>
+      TextStyle(fontSize: 10, color: ink3, letterSpacing: 0.1);
+  static TextStyle get note =>
       TextStyle(fontSize: 13, color: ink2, height: 1.6, letterSpacing: -0.05);
 
   static ThemeData get theme => ThemeData(
         useMaterial3: true,
+        brightness: koyu ? Brightness.dark : Brightness.light,
         scaffoldBackgroundColor: bg,
-        colorScheme: ColorScheme.fromSeed(seedColor: accent, surface: bg),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: accent,
+          surface: bg,
+          brightness: koyu ? Brightness.dark : Brightness.light,
+        ),
         splashFactory: NoSplash.splashFactory,
-        highlightColor: line3,
+        highlightColor: Colors.transparent,
       );
 }
 
@@ -102,7 +176,7 @@ extension LevelStyle on Level {
       };
 }
 
-/// Esikler ve etiket anahtarlari. Metin degil ANAHTAR doner; cevirisi S'ten alinir.
+/// Eşikler ve etiket anahtarları. Metin değil ANAHTAR döner; çevirisi S'ten alınır.
 class Levels {
   static Level score(num v) => v >= 80 ? Level.good : (v >= 60 ? Level.warn : Level.bad);
   static String scoreKey(num v) =>
@@ -132,6 +206,13 @@ class Levels {
   static Level sri(num v) => v >= 85 ? Level.good : (v >= 70 ? Level.warn : Level.bad);
   static String sriKey(num v) =>
       v >= 85 ? 'lvl.veryRegular' : (v >= 70 ? 'lvl.variable' : 'lvl.irregular');
+
+  /// Su: günlük hedefe göre. Hedefin üstü yeterli, %70 üzeri izlenmeli.
+  static Level water(num ml, num goal) =>
+      ml >= goal ? Level.good : (ml >= goal * 0.7 ? Level.warn : Level.bad);
+  static String waterKey(num ml, num goal) => ml >= goal
+      ? 'lvl.enough'
+      : (ml >= goal * 0.7 ? 'lvl.below' : 'lvl.wellBelow');
 
   static Level dev(num absZ) =>
       absZ < 1 ? Level.good : (absZ < 2 ? Level.warn : Level.bad);

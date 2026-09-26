@@ -1,35 +1,38 @@
 #!/usr/bin/env bash
-# Kerteriz — Flutter iskeletini calisir projeye cevirir.
-# Kullanim:  bash kurulum.sh  (bu klasorun icinde, Flutter SDK kurulu olmali)
+# Kerteriz — Flutter iskeletini çalışır projeye çevirir.
+# Kullanım:  bash kurulum.sh  (bu klasörün içinde, Flutter SDK kurulu olmalı)
 #
-# Onemli: Android tarafindaki dosyalarin UZERINE YAZMAZ. Flutter'in urettigi
-# manifest ve MainActivity, o Flutter surumunun bekledigi yapilandirmayi zaten
-# dogru tasir; biz yalnizca Health Connect icin gerekenleri ekliyoruz.
+# Önemli: Android tarafındaki dosyaların ÜZERİNE YAZMAZ. Flutter'ın ürettiği
+# manifest ve MainActivity, o Flutter sürümünün beklediği yapılandırmayı zaten
+# doğru taşır; biz yalnızca Health Connect için gerekenleri ekliyoruz.
 set -e
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 OUT="${1:-$HERE/../kerteriz}"
 
-echo "==> Flutter projesi olusturuluyor: $OUT"
+echo "==> Flutter projesi oluşturuluyor: $OUT"
 flutter create --org com.kerteriz --project-name kerteriz "$OUT"
 
-echo "==> Dart kaynagi kopyalaniyor"
+echo "==> Dart kaynağı kopyalanıyor"
 rm -rf "$OUT/lib"
 cp -R "$HERE/lib" "$OUT/lib"
 cp "$HERE/pubspec.yaml" "$OUT/pubspec.yaml"
 cp "$HERE/analysis_options.yaml" "$OUT/analysis_options.yaml"
 
-# flutter create ornek bir test birakir; o test MyApp arar, bizim sinifimiz
-# KerterizApp oldugu icin analizor hata verir.
+# flutter create örnek bir test bırakır; o test MyApp arar, bizim sınıfımız
+# KerterizApp olduğu için analizör hata verir.
 rm -f "$OUT/test/widget_test.dart"
 
-echo "==> AndroidManifest yamalaniyor (Health Connect izinleri)"
+echo "==> AndroidManifest yamalanıyor (Health Connect izinleri)"
 python3 "$HERE/patch_manifest.py" "$OUT/android/app/src/main/AndroidManifest.xml"
 
-echo "==> MainActivity yamalaniyor (FlutterFragmentActivity)"
+echo "==> MainActivity yamalanıyor (FlutterFragmentActivity)"
 python3 "$HERE/patch_mainactivity.py" "$OUT"
 
-echo "==> Uygulama ikonu yerlestiriliyor"
+echo "==> Su widget'ı yerleştiriliyor (native Kotlin + kaynaklar)"
+python3 "$HERE/patch_native.py" "$OUT"
+
+echo "==> Uygulama ikonu yerleştiriliyor"
 for D in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
   SRC="$HERE/android-icons/mipmap-$D/ic_launcher.png"
   DST="$OUT/android/app/src/main/res/mipmap-$D"
@@ -38,7 +41,7 @@ for D in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
   fi
 done
 
-echo "==> minSdk 28'e cekiliyor"
+echo "==> minSdk 28'e çekiliyor"
 GRADLE_KTS="$OUT/android/app/build.gradle.kts"
 GRADLE_GROOVY="$OUT/android/app/build.gradle"
 if [ -f "$GRADLE_KTS" ]; then
@@ -49,10 +52,10 @@ elif [ -f "$GRADLE_GROOVY" ]; then
   rm -f "$GRADLE_GROOVY.bak"
 fi
 
-echo "==> Bagimliliklar"
+echo "==> Bağımlılıklar"
 cd "$OUT"
 flutter pub get
 
 echo
-echo "Bitti. Telefonu USB ile bagla, sonra:"
+echo "Bitti. Telefonu USB ile bağla, sonra:"
 echo "  cd $OUT && flutter run"

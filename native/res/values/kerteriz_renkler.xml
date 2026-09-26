@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Uygulamanın tasarım diliyle aynı renkler -->
+<resources>
+    <color name="kerteriz_ink">#1D1D1F</color>
+    <color name="kerteriz_ink2">#6E6E73</color>
+    <color name="kerteriz_ink3">#8E8E93</color>
+    <color name="kerteriz_line">#D2D2D7</color>
+    <color name="kerteriz_line2">#E8E8ED</color>
+    <color name="kerteriz_green">#34A853</color>
+    <color name="kerteriz_accent">#0066CC</color>
+
+    <!-- Özet widget'ının halkaları: aksan mavisinin üç tonu.
+         Yeşil/turuncu/kırmızı bu uygulamada seviye anlamı taşıdığı için
+         halkalarda süs olarak kullanılmıyor. -->
+    <color name="kerteriz_halka_dis">#0066CC</color>
+    <color name="kerteriz_halka_orta">#4D94DB</color>
+    <color name="kerteriz_halka_ic">#99C2EB</color>
+</resources>

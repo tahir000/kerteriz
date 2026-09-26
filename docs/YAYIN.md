@@ -93,8 +93,12 @@ Kullanabileceğin gerekçeler:
 | READ_OXYGEN_SATURATION | Gece SpO2 takibi; Kalp sekmesinde ortalama ve en düşük değer olarak gösterilir. |
 | READ_SKIN_TEMPERATURE | Hastalık erken uyarı sinyalinin ikinci bileşeni; kendi ortalamadan sapma olarak gösterilir. |
 | READ_STEPS | Günlük yük hesabına katkıda bulunur; Yük sekmesinde gösterilir. |
+| READ_DISTANCE | Ana ekran özet widget'ında günün mesafesi halka olarak gösterilir. |
 | READ_EXERCISE | Egzersiz oturumları günlük yük hesabına girer. |
+| READ_TOTAL_CALORIES_BURNED / READ_ACTIVE_CALORIES_BURNED | Ana ekran özet widget'ında günün kalorisi halka olarak gösterilir; toplam kalori yoksa aktif kaloriye düşülür. |
 | READ_HEALTH_DATA_HISTORY | Bütün metrikler 14 günlük taban çizgiye dayanır; 30 günden eski kayıt okunamazsa skorlar hesaplanamaz. |
+| READ_HYDRATION | Bugün eklenen su toplamı Bugün sekmesinde hedef ölçeğiyle gösterilir ve hedefin tutturulduğu günlerin ertesindeki hazırlık ortalamasıyla karşılaştırılır. |
+| WRITE_HYDRATION | Ana ekran widget'ındaki düğmeye her basışta kullanıcının kendi eylemiyle bir su kaydı eklenir; geri alma düğmesi yalnızca uygulamanın kendi yazdığı son kaydı siler. |
 
 Ayrıca sorulacaklar ve doğru cevaplar:
 
@@ -102,6 +106,12 @@ Ayrıca sorulacaklar ve doğru cevaplar:
 - Veri reklam için kullanılıyor mu? **Hayır**
 - Veri satılıyor mu? **Hayır**
 - Veri sunucuya gönderiliyor mu? **Hayır, tüm işleme cihazda**
+- Uygulama Health Connect'e veri yazıyor mu? **Evet, yalnızca su alımı
+  (`WRITE_HYDRATION`)**; kullanıcının widget'ta düğmeye basmasıyla oluşur,
+  cihazdan çıkmaz. Başka hiçbir tipe yazılmaz.
+
+> Bu satırı atlama. Beyanda "hiçbir şey yazmıyoruz" deyip manifestte
+> `WRITE_HYDRATION` bulunması, incelemede doğrudan ret sebebi.
 
 ## 5. Data safety formu
 

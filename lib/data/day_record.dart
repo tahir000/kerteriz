@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
 class HrSample {
-  final int minute; // gecenin basindan itibaren dakika
+  final int minute; // gecenin başından itibaren dakika
   final double bpm;
   const HrSample(this.minute, this.bpm);
   Map<String, dynamic> toJson() => {'m': minute, 'v': bpm};
@@ -20,9 +20,9 @@ class SleepSegment {
       };
 }
 
-/// Bir "gun" = o sabah biten gece + o gunun aktivitesi.
+/// Bir "gün" = o sabah biten gece + o günün aktivitesi.
 class DayRecord {
-  final DateTime date; // uyanilan takvim gunu (yerel, gece yarisi)
+  final DateTime date; // uyanılan takvim günü (yerel, gece yarısı)
 
   // --- ham ---
   DateTime? bedStart;
@@ -38,16 +38,17 @@ class DayRecord {
   List<HrSample> nightHr = [];
 
   double? hrv; // RMSSD, ms
-  double? rhr; // atim/dk
-  bool rhrDerived = false; // kayit yoktu, gece nabiz serisinden turetildi
+  double? rhr; // atım/dk
+  bool rhrDerived = false; // kayıt yoktu, gece nabız serisinden türetildi
   double? respiratory; // soluk/dk
   double? skinTempDelta; // C
   double? spo2Avg;
   double? spo2Min;
   int steps = 0;
-  List<double> zoneMinutes = [0, 0, 0, 0, 0]; // 0 kullanilmiyor, 1..4
+  int hydrationMl = 0; // su widget'ı Health Connect'e yazıyor, buradan okunuyor
+  List<double> zoneMinutes = [0, 0, 0, 0, 0]; // 0 kullanılmıyor, 1..4
 
-  // --- turetilmis (engine dolduruyor) ---
+  // --- türetilmiş (engine dolduruyor) ---
   double hrvZ = 0, rhrZ = 0, respZ = 0, tempZ = 0;
   double? hrvBaseline, hrvBaselineSd, rhrBaseline;
   double strainRaw = 0, strain = 0;
@@ -57,6 +58,11 @@ class DayRecord {
   int readiness = 0;
   int debtMinutes = 0;
   double acute = 0, chronic = 0, acwr = 1;
+
+  /// Akut/kronik oranı ancak 28 günlük kronik pencere gerçekten dolduğunda
+  /// anlamlı. Soğuk başlangıçta pencerenin çoğu boş gün olur ve oran
+  /// olduğundan büyük çıkar; o durumda oranı göstermiyoruz.
+  bool acwrReady = false;
   int cardiac = 0;
   double? nadirBpm;
   int? nadirMinute;
@@ -65,7 +71,7 @@ class DayRecord {
 
   bool get hasSleep => asleep > 0;
 
-  /// 20:00'dan itibaren dakika cinsinden yatis ani (raster ve zamanlama icin).
+  /// 20:00'dan itibaren dakika cinsinden yatış anı (raster ve zamanlama için).
   double? get bedOffset {
     if (bedStart == null) return null;
     final anchor = DateTime(date.year, date.month, date.day - 1, 20);
@@ -78,7 +84,7 @@ class DayRecord {
     return b + timeInBed / 2;
   }
 
-  /// Etiketlerin dili. Uygulama acilirken cihaz diline gore ayarlanir.
+  /// Etiketlerin dili. Uygulama açılırken cihaz diline göre ayarlanır.
   static String locale = 'en';
 
   String get label => DateFormat('d MMM', locale).format(date);
@@ -102,6 +108,7 @@ class DayRecord {
         'spo2Avg': spo2Avg,
         'spo2Min': spo2Min,
         'steps': steps,
+        'hydrationMl': hydrationMl,
         'zoneMinutes': zoneMinutes,
         'segments': segments.map((s) => s.toJson()).toList(),
         'nightHr': nightHr.map((s) => s.toJson()).toList(),
@@ -119,6 +126,7 @@ class DayRecord {
           'acute': acute,
           'chronic': chronic,
           'acwr': acwr,
+          'acwrReady': acwrReady,
           'cardiac': cardiac,
           'nadirBpm': nadirBpm,
           'nadirMinute': nadirMinute,

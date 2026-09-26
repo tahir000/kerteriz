@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/day_record.dart';
 import '../../theme.dart';
+import 'kit.dart';
 
 class Bar {
   final double value;
@@ -28,14 +29,20 @@ class BarSeriesChart extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+  Widget build(BuildContext context) => Kart(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(
             height: height,
             width: double.infinity,
-            child: CustomPaint(
-                painter: _BarPainter(bars, rule, ruleLabel)),
+            // Sütunlar tabandan yukarı doğru büyüyerek geliyor.
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 750),
+              curve: Curves.easeOutCubic,
+              builder: (context, v, _) => CustomPaint(
+                  painter: _BarPainter(bars, rule, ruleLabel, v)),
+            ),
           ),
           const SizedBox(height: 4),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -50,7 +57,10 @@ class _BarPainter extends CustomPainter {
   final List<Bar> bars;
   final double? rule;
   final String? ruleLabel;
-  _BarPainter(this.bars, this.rule, this.ruleLabel);
+
+  /// 0 ile 1 arası giriş ilerlemesi; sütun yükseklikleri bununla çarpılıyor.
+  final double ilerleme;
+  _BarPainter(this.bars, this.rule, this.ruleLabel, [this.ilerleme = 1]);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -66,17 +76,22 @@ class _BarPainter extends CustomPainter {
     final n = bars.length;
     final slot = size.width / n;
     final gap = n > 40 ? 1.0 : 2.0;
-    final bw = (slot - gap).clamp(1.0, slot);
+    // clamp alt sınırı üst sınırı geçerse hata fırlatır; çok dar alanda
+    // slot 1 pikselin altına düşebiliyor.
+    final bw = slot <= gap ? slot : slot - gap;
     final p = Paint()..style = PaintingStyle.fill;
 
     for (var i = 0; i < n; i++) {
       final b = bars[i];
-      final h = (b.value / maxV) * size.height;
+      final h = (b.value / maxV) * size.height * ilerleme;
+      // En az 1.5 piksel çiz, ama tepeyi de o yüksekliğe göre hesapla:
+      // yoksa sıfıra yakın sütunlar taban çizgisinin altına taşıyor.
+      final hh = h < 1.5 ? 1.5 : h;
       p.color = b.highlight
           ? K.accent
           : (b.level?.mark ?? K.line);
       final r = RRect.fromRectAndRadius(
-        Rect.fromLTWH(i * slot, size.height - h, bw, h < 1.5 ? 1.5 : h),
+        Rect.fromLTWH(i * slot, size.height - hh, bw, hh),
         Radius.circular(bw < 5 ? bw / 2 : 2.5),
       );
       canvas.drawRRect(r, p);
@@ -125,14 +140,24 @@ class LineSeriesChart extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+  Widget build(BuildContext context) => Kart(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(
             height: height,
             width: double.infinity,
-            child: CustomPaint(
-                painter: _LinePainter(values, bandLow, bandHigh, endLevel, decimals)),
+            // Çizgi soldan sağa doğru çiziliyor.
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 850),
+              curve: Curves.easeOutCubic,
+              builder: (context, v, _) => ClipRect(
+                clipper: _SoldanSaga(v),
+                child: CustomPaint(
+                    painter: _LinePainter(
+                        values, bandLow, bandHigh, endLevel, decimals)),
+              ),
+            ),
           ),
           const SizedBox(height: 4),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -184,7 +209,10 @@ class _LinePainter extends CustomPainter {
       tp.paint(canvas, Offset(size.width - tp.width, yy - tp.height - 1));
     }
 
-    if (bandLow != null && bandHigh != null && bandLow!.length == values.length) {
+    if (bandLow != null &&
+        bandHigh != null &&
+        bandLow!.length == values.length &&
+        bandHigh!.length == values.length) {
       final path = Path()..moveTo(x(0), y(bandHigh![0]));
       for (var i = 1; i < values.length; i++) {
         path.lineTo(x(i), y(bandHigh![i]));
@@ -196,7 +224,7 @@ class _LinePainter extends CustomPainter {
       canvas.drawPath(path, Paint()..color = K.fill);
     }
 
-    // cizginin altina cok soluk bir alan: egilimi okumayi kolaylastirir
+    // çizginin altına çok soluk bir alan: eğilimi okumayı kolaylaştırır
     final area = Path()..moveTo(x(0), size.height);
     for (var i = 0; i < values.length; i++) {
       area.lineTo(x(i), y(values[i]));
@@ -228,7 +256,8 @@ class _LinePainter extends CustomPainter {
           ..strokeJoin = StrokeJoin.round);
 
     final last = Offset(x(values.length - 1), y(values.last));
-    canvas.drawCircle(last, 5, Paint()..color = Colors.white);
+    // Uç noktanın halesi kart zemini: koyu temada beyaz bir benek kalırdı.
+    canvas.drawCircle(last, 5, Paint()..color = K.card);
     canvas.drawCircle(last, 4.2, Paint()..color = endLevel?.mark ?? K.accent);
   }
 
@@ -236,15 +265,15 @@ class _LinePainter extends CustomPainter {
   bool shouldRepaint(covariant _LinePainter old) => true;
 }
 
-/// Gecenin evre serisi — dort satir, her segment bir cubuk.
+/// Gecenin evre serisi — dört satır, her segment bir çubuk.
 class Hypnogram extends StatelessWidget {
   final DayRecord day;
   final Map<String, String> names;
   const Hypnogram(this.day, {super.key, required this.names});
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+  Widget build(BuildContext context) => Kart(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(
             height: 104,
@@ -267,7 +296,8 @@ class _HypnoPainter extends CustomPainter {
 
   static const rows = {'awake': 0, 'rem': 1, 'light': 2, 'deep': 3};
   static const order = ['awake', 'rem', 'light', 'deep'];
-  static const colors = [K.stageWake, K.stageRem, K.stageLight, K.stageDeep];
+  static List<Color> get colors =>
+      [K.stageWake, K.stageRem, K.stageLight, K.stageDeep];
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -284,13 +314,14 @@ class _HypnoPainter extends CustomPainter {
       tp.paint(canvas, Offset(0, i * (rh + gap) + 2));
     }
 
+    final renkler = colors;
     final p = Paint()..style = PaintingStyle.fill;
     for (final s in d.segments) {
       final row = rows[s.stage];
       if (row == null) continue;
       final t0 = s.start.difference(d.bedStart!).inMinutes / d.timeInBed;
       final w = (s.minutes / d.timeInBed) * plot;
-      p.color = colors[row];
+      p.color = renkler[row];
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromLTWH(gutter + t0 * plot, row * (rh + gap), w < 1.4 ? 1.4 : w, rh - 6),
@@ -313,8 +344,8 @@ class StackBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final total = parts.fold<double>(0, (s, e) => s + e.value);
     if (total <= 0) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+    return Kart(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
       child: Row(
         children: [
           for (final e in parts)
@@ -333,22 +364,26 @@ class StackBar extends StatelessWidget {
   }
 }
 
-/// Uyku penceresi haritasi: her satir bir gece, bant uykuda gecen sure.
+/// Uyku penceresi haritası: her satır bir gece, bant uykuda geçen süre.
 class SleepRaster extends StatelessWidget {
   final List<DayRecord> days;
   const SleepRaster(this.days, {super.key});
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+  Widget build(BuildContext context) => Kart(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(
-            height: days.length * 7.6 + 4,
-            width: double.infinity,
-            child: CustomPaint(painter: _RasterPainter(days)),
+          // Kırpıcı bir güvenlik ağı: bant hesabı tuvalin dışına taşsa bile
+          // boya kartın kenarını aşmıyor.
+          ClipRect(
+            child: SizedBox(
+              height: days.length * 7.6 + 4,
+              width: double.infinity,
+              child: CustomPaint(painter: _RasterPainter(days)),
+            ),
           ),
           const SizedBox(height: 4),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: const [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text('20:00', style: K.axis),
             Text('04:00', style: K.axis),
             Text('12:00', style: K.axis),
@@ -376,12 +411,18 @@ class _RasterPainter extends CustomPainter {
       );
       final b = d.bedOffset;
       if (b == null || d.timeInBed <= 0) continue;
+      // x ve w'yi ayrı ayrı kırpmak yetmiyor: ikisi de tek tek sınırda kalsa
+      // bile toplamı tuvali aşabiliyor (geç yatıp uzun uyunan geceler).
+      // Bandı önce sola, sonra kalan genişliğe göre sağa sığdırıyoruz.
       final x = (b / span).clamp(0.0, 1.0) * size.width;
-      final w = (d.timeInBed / span).clamp(0.0, 1.0) * size.width;
+      var w = (d.timeInBed / span).clamp(0.0, 1.0) * size.width;
+      if (w < 1) w = 1;
+      if (x + w > size.width) w = size.width - x;
+      if (w <= 0) continue;
       p.color = Levels.score(d.sleepScore).mark;
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(x, y, w < 1 ? 1 : w, rh), const Radius.circular(1)),
+            Rect.fromLTWH(x, y, w, rh), const Radius.circular(1)),
         p,
       );
     }
@@ -389,4 +430,25 @@ class _RasterPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RasterPainter old) => true;
+}
+
+
+/// Soldan sağa açılan kırpıcı: çizgi grafiğinin çizilerek gelmesi için.
+class _SoldanSaga extends CustomClipper<Rect> {
+  final double ilerleme;
+  const _SoldanSaga(this.ilerleme);
+
+  // Yalnızca sağ kenarı hareket ediyor. Öteki kenarlar cömert: _LinePainter
+  // üst etiketi tuvalin dışına, uç noktayı da sağ kenarın üstüne çiziyor;
+  // dar bir kırpma onları kesiyordu.
+  @override
+  Rect getClip(Size size) => Rect.fromLTRB(
+        -4,
+        -26,
+        size.width * ilerleme.clamp(0.0, 1.0) + 8,
+        size.height + 4,
+      );
+
+  @override
+  bool shouldReclip(covariant _SoldanSaga old) => old.ilerleme != ilerleme;
 }

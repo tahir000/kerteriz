@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Kerteriz — sifirdan kurulup APK uretir.
-# Kullanim: bash apk-olustur.sh
-# Cikti:    ../kerteriz/build/app/outputs/flutter-apk/app-release.apk
+# Kerteriz — sıfırdan kurulup APK üretir.
+# Kullanım: bash apk-olustur.sh
+# Çıktı:    ../kerteriz/build/app/outputs/flutter-apk/app-release.apk
 set -e
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -15,15 +15,15 @@ cd "$OUT"
 echo "==> flutter doctor"
 flutter doctor -v || true
 
-echo "==> APK derleniyor (release, varsayilan debug imzasiyla)"
+echo "==> APK derleniyor (release, varsayılan debug imzasıyla)"
 flutter build apk --release
 
 APK="$OUT/build/app/outputs/flutter-apk/app-release.apk"
 echo
 if [ -f "$APK" ]; then
-  echo "Hazir: $APK"
-  echo "Telefon USB ile bagliysa dogrudan kurmak icin:"
+  echo "Hazır: $APK"
+  echo "Telefon USB ile bağlıysa doğrudan kurmak için:"
   echo "  flutter install --release"
 else
-  echo "APK uretilemedi; yukaridaki Gradle ciktisina bak."
+  echo "APK üretilemedi; yukarıdaki Gradle çıktısına bak."
 fi

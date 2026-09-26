@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Flutter'in urettigi MainActivity'yi FlutterFragmentActivity'ye cevirir.
+# -*- coding: utf-8 -*-
+"""Flutter'ın ürettiği MainActivity'yi FlutterFragmentActivity'ye çevirir.
 
-health paketi Android 14'te activity result kaydi icin FlutterActivity yerine
-FlutterFragmentActivity ister. Dosyayi uzerine yazmak yerine yamaliyoruz;
-boylece Flutter'in sectigi paket adi ne olursa olsun dogru kaliyor.
+health paketi Android 14'te activity result kaydı için FlutterActivity yerine
+FlutterFragmentActivity ister. Dosyayı üzerine yazmak yerine yamalıyoruz;
+böylece Flutter'ın seçtiği paket adı ne olursa olsun doğru kalıyor.
 """
 import glob
 import sys
@@ -15,7 +16,7 @@ def main(project):
             + glob.glob(project + "/android/app/src/main/java/**/MainActivity.kt",
                         recursive=True))
     if not hits:
-        print("   UYARI: MainActivity.kt bulunamadi", file=sys.stderr)
+        print("   UYARI: MainActivity.kt bulunamadı", file=sys.stderr)
         return 0
 
     for path in hits:
@@ -29,7 +30,7 @@ def main(project):
         src = src.replace(": FlutterActivity()", ": FlutterFragmentActivity()")
         src = src.replace(":FlutterActivity()", ": FlutterFragmentActivity()")
         open(path, "w", encoding="utf-8").write(src)
-        print("   MainActivity FlutterFragmentActivity'ye cevrildi")
+        print("   MainActivity FlutterFragmentActivity'ye çevrildi")
     return 0
 
 

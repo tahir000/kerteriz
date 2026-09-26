@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../config.dart';
 import '../data/day_record.dart';
 import '../l10n.dart';
 import '../metrics/engine.dart';
@@ -16,23 +17,25 @@ List<DayRecord> _tail(List<DayRecord> d, int n) =>
 String _dur(S s, num minutes) =>
     fmtDur(minutes, h: s.t('common.hourShort'), m: s.t('common.minShort'));
 
-/// Hero bolgesi: yay gostergesi + tek paragraf aciklama.
+/// Hero bölgesi: yay göstergesi + tek paragraf açıklama.
 Widget _hero({
   required String tag,
   required double value,
   required double max,
   required String display,
   String? unit,
-  required Level level,
-  required String levelText,
+  Level? level,
+  String? levelText,
   required String caption,
+  bool sayiyor = true,
 }) =>
     FadeUp(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(K.gutter, 4, K.gutter, 26),
+      child: Kart(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
+        margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 10),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(tag.toUpperCase(), style: K.eyebrow),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Center(
             child: ArcGauge(
               value: value,
@@ -41,9 +44,10 @@ Widget _hero({
               display: display,
               unit: unit,
               label: levelText,
+              sayiyor: sayiyor,
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Text(caption, style: K.caption),
         ]),
       ),
@@ -52,7 +56,13 @@ Widget _hero({
 // =====================================================================
 class TodayScreen extends StatelessWidget {
   final List<DayRecord> days;
-  const TodayScreen(this.days, {super.key});
+
+  /// Filtrelenmemiş liste. Hidrasyon karşılaştırması "ertesi gün" ilişkisine
+  /// dayanır; uyku/nabız olmayan günlerin elendiği listede days[i+1] takvimde
+  /// ertesi gün olmayabilir. Verilmezse [days] kullanılır.
+  final List<DayRecord>? allDays;
+
+  const TodayScreen(this.days, {this.allDays, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +80,20 @@ class TodayScreen extends StatelessWidget {
       flags.add(NoteBlock(
           s.t2('today.overload', {'acwr': d.acwr.toStringAsFixed(2)})));
     }
+
+    final hydDays = allDays ?? days;
+    final hydToday = hydDays.isEmpty ? d : hydDays.last;
+    final hyd =
+        MetricsEngine.hydrationEffect(hydDays, Config.dailyWaterGoalMl);
+    final waterLink = hyd == null
+        ? s.t('today.waterLinkNone')
+        : s.t2('today.waterLink', {
+            'atDays': '${hyd.atDays}',
+            'at': hyd.atReadiness.toStringAsFixed(0),
+            'belowDays': '${hyd.belowDays}',
+            'below': hyd.belowReadiness.toStringAsFixed(0),
+            'delta': sgn(hyd.delta, digits: 0),
+          });
 
     return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
       ScreenHead('${d.label} · ${s.t('today.today')}', s.t('today.title')),
@@ -140,13 +164,34 @@ class TodayScreen extends StatelessWidget {
           level: Levels.debt(d.debtMinutes),
           levelText: s.t(Levels.debtKey(d.debtMinutes)),
           trend: [for (final x in _tail(days, 14)) x.debtMinutes.toDouble()]),
+      if (d.acwrReady)
+        MetricRow(
+            title: s.t('today.loadRatio'),
+            subtitle: s.t('today.loadRatioSub'),
+            value: d.acwr.toStringAsFixed(2),
+            level: Levels.acwr(d.acwr),
+            levelText: s.t(Levels.acwrKey(d.acwr)),
+            extra: ZoneMeter.acwr(d.acwr))
+      else
+        MetricRow(
+            title: s.t('today.loadRatio'),
+            subtitle: s.t('load.ratioWaiting'),
+            value: '--'),
+      SectionLabel(s.t('today.water')),
       MetricRow(
-          title: s.t('today.loadRatio'),
-          subtitle: s.t('today.loadRatioSub'),
-          value: d.acwr.toStringAsFixed(2),
-          level: Levels.acwr(d.acwr),
-          levelText: s.t(Levels.acwrKey(d.acwr)),
-          extra: ZoneMeter.acwr(d.acwr)),
+        title: s.t('today.water'),
+        subtitle: s.t2('today.waterGoal', {'goal': '${Config.dailyWaterGoalMl}'}),
+        value: '${hydToday.hydrationMl}',
+        unit: s.t('unit.ml'),
+        level: Levels.water(hydToday.hydrationMl, Config.dailyWaterGoalMl),
+        levelText:
+            s.t(Levels.waterKey(hydToday.hydrationMl, Config.dailyWaterGoalMl)),
+        extra: ZoneMeter.water(hydToday.hydrationMl.toDouble(),
+            Config.dailyWaterGoalMl.toDouble()),
+        trend: [for (final x in _tail(hydDays, 14)) x.hydrationMl.toDouble()],
+      ),
+      NoteBlock(waterLink),
+      NoteBlock(s.t('today.waterNote')),
       SectionLabel(s.t('today.last30')),
       BarSeriesChart(
         bars: [
@@ -239,7 +284,7 @@ class SleepScreen extends StatelessWidget {
                       color: e.key, borderRadius: BorderRadius.circular(2))),
               const SizedBox(width: 6),
               Text(e.value,
-                  style: const TextStyle(fontSize: 11.5, color: K.ink2)),
+                  style: TextStyle(fontSize: 11.5, color: K.ink2)),
             ]),
         ]),
       ),
@@ -324,8 +369,11 @@ class LoadScreen extends StatelessWidget {
         value: d.strain,
         max: 21,
         display: d.strain.toStringAsFixed(1),
-        level: Levels.acwr(d.acwr),
-        levelText: s.t(Levels.acwrKey(d.acwr)),
+        sayiyor: false,
+        // Seviye akut/kronik orandan geliyor; oran güvenilir değilken
+        // günlük yükü kırmızı "riskli" diye boyamak yanıltıcı olur.
+        level: d.acwrReady ? Levels.acwr(d.acwr) : null,
+        levelText: d.acwrReady ? s.t(Levels.acwrKey(d.acwr)) : null,
         caption: s.t2('load.caption', {'min': '${zoneTotal.round()}'}),
       ),
       SectionLabel(s.t('load.balance')),
@@ -341,16 +389,25 @@ class LoadScreen extends StatelessWidget {
           value: d.chronic.toStringAsFixed(1),
           unit: s.t('unit.of21'),
           trend: [for (final x in last28) x.chronic]),
-      MetricRow(
-          title: s.t('load.ratio'),
-          subtitle: s.t('load.ratioSub'),
-          value: d.acwr.toStringAsFixed(2),
-          level: Levels.acwr(d.acwr),
-          levelText: s.t(Levels.acwrKey(d.acwr)),
-          extra: ZoneMeter.acwr(d.acwr)),
+      if (d.acwrReady)
+        MetricRow(
+            title: s.t('load.ratio'),
+            subtitle: s.t('load.ratioSub'),
+            value: d.acwr.toStringAsFixed(2),
+            level: Levels.acwr(d.acwr),
+            levelText: s.t(Levels.acwrKey(d.acwr)),
+            extra: ZoneMeter.acwr(d.acwr))
+      else
+        MetricRow(
+            title: s.t('load.ratio'),
+            subtitle: s.t('load.ratioWaiting'),
+            value: '--'),
       SectionLabel(s.t('load.last28')),
       BarSeriesChart(
-        bars: [for (final x in last28) Bar(x.strain, level: Levels.acwr(x.acwr))],
+        bars: [
+          for (final x in last28)
+            Bar(x.strain, level: x.acwrReady ? Levels.acwr(x.acwr) : null)
+        ],
         rule: d.chronic,
         ruleLabel: s.t('load.avg28'),
         leftLabel: last28.first.label,
@@ -404,18 +461,24 @@ class HeartScreen extends StatelessWidget {
     return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
       ScreenHead(s.t('heart.last45'), s.t('heart.title')),
       FadeUp(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(K.gutter, 4, K.gutter, 20),
+        child: Kart(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 10),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(s.t('heart.hrvTag').toUpperCase(), style: K.eyebrow),
             const SizedBox(height: 10),
             Row(crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic, children: [
+              // Ölçüm yoksa seviye rozeti basmıyoruz: "-- ms NORMAL"
+              // olmayan bir şeyi iyi gibi gösterirdi.
               Text(d.hrv?.toStringAsFixed(0) ?? '--',
-                  style: K.hero.copyWith(color: Levels.z(d.hrvZ).ink)),
+                  style: K.hero.copyWith(
+                      color: d.hrv == null ? K.ink3 : Levels.z(d.hrvZ).ink)),
               Text(s.t('unit.ms'), style: K.heroUnit),
-              const SizedBox(width: 10),
-              StatusChip(Levels.z(d.hrvZ), s.t(Levels.zKey(d.hrvZ))),
+              if (d.hrv != null) ...[
+                const SizedBox(width: 10),
+                StatusChip(Levels.z(d.hrvZ), s.t(Levels.zKey(d.hrvZ))),
+              ],
             ]),
             const SizedBox(height: 14),
             Text(hasHrv ? s.t('heart.hrvCaption') : s.t('heart.hrvMissing'),
@@ -435,20 +498,23 @@ class HeartScreen extends StatelessWidget {
       SectionLabel(s.t('heart.measured')),
       MetricRow(
           title: s.t('heart.hrv'),
-          subtitle: s.t2('heart.hrvSub', {'z': sgn(d.hrvZ)}),
+          subtitle: d.hrv == null
+              ? s.t('heart.noValue')
+              : s.t2('heart.hrvSub', {'z': sgn(d.hrvZ)}),
           value: d.hrv?.toStringAsFixed(0) ?? '--',
           unit: s.t('unit.ms'),
-          level: Levels.z(d.hrvZ),
-          levelText: s.t(Levels.zKey(d.hrvZ)),
+          level: d.hrv == null ? null : Levels.z(d.hrvZ),
+          levelText: d.hrv == null ? null : s.t(Levels.zKey(d.hrvZ)),
           trend: hrvVals.length > 1 ? hrvVals : null),
       MetricRow(
           title: s.t('heart.rhr'),
-          subtitle:
-              d.rhrDerived ? s.t('heart.rhrDerivedSub') : s.t('heart.rhrSub'),
+          subtitle: d.rhr == null
+              ? s.t('heart.noValue')
+              : (d.rhrDerived ? s.t('heart.rhrDerivedSub') : s.t('heart.rhrSub')),
           value: d.rhr?.toStringAsFixed(0) ?? '--',
           unit: s.t('unit.bpm'),
-          level: Levels.z(-d.rhrZ),
-          levelText: s.t(Levels.zKey(-d.rhrZ)),
+          level: d.rhr == null ? null : Levels.z(-d.rhrZ),
+          levelText: d.rhr == null ? null : s.t(Levels.zKey(-d.rhrZ)),
           trend: [for (final x in rhrDays) x.rhr!]),
       MetricRow(
           title: s.t('heart.spo2'),

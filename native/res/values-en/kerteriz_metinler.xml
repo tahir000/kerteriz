@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget strings for English devices; the app itself falls back to English too. -->
+<resources>
+    <string name="su_widget_aciklama">Log water with one tap, see the daily total</string>
+    <string name="su_geri_al">undo</string>
+
+    <string name="ozet_widget_aciklama">Today\'s steps, calories, distance and Kerteriz scores</string>
+    <string name="ozet_halka_aciklama">Steps, calories and distance rings</string>
+    <string name="ozet_adim">Steps</string>
+    <string name="ozet_kalori">Calories</string>
+    <string name="ozet_mesafe">Distance</string>
+    <string name="ozet_hazirlik_etiket">Readiness</string>
+    <string name="ozet_uyku_etiket">Sleep</string>
+    <string name="ozet_nabiz_etiket">Resting HR</string>
+    <string name="ozet_yenile">Tap the rings to refresh</string>
+    <string name="ozet_bayat">Open the app for scores</string>
+</resources>

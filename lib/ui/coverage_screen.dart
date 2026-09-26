@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
 
+import '../config.dart';
 import '../data/day_record.dart';
 import '../data/health_repository.dart';
 import '../l10n.dart';
@@ -8,8 +9,8 @@ import '../theme.dart';
 import 'widgets/gauge.dart';
 import 'widgets/kit.dart';
 
-/// Health Connect'ten gercekte ne geldigini gosteren tani ekrani.
-/// Bir metrik bos cikiyorsa sebebi burada gorunur: izin mi yok, veri mi yok.
+/// Health Connect'ten gerçekte ne geldiğini gösteren tanı ekranı.
+/// Bir metrik boş çıkıyorsa sebebi burada görünür: izin mi yok, veri mi yok.
 class CoverageScreen extends StatelessWidget {
   final HealthRepository repo;
   final List<DayRecord> days;
@@ -35,9 +36,10 @@ class CoverageScreen extends StatelessWidget {
     HealthDataType.BLOOD_OXYGEN: 'type.spo2',
     HealthDataType.SKIN_TEMPERATURE: 'type.skinTemp',
     HealthDataType.STEPS: 'type.steps',
+    HealthDataType.WATER: 'type.water',
   };
 
-  /// Skorlarda dogrudan agirligi olan tipler — bos olmalari onemli.
+  /// Skorlarda doğrudan ağırlığı olan tipler — boş olmaları önemli.
   static const _critical = {
     HealthDataType.HEART_RATE_VARIABILITY_RMSSD,
     HealthDataType.HEART_RATE,
@@ -68,7 +70,7 @@ class CoverageScreen extends StatelessWidget {
       final a = repo.firstPoint, b = repo.lastPoint;
       if (a == null || b == null) return s.t('data.noRange');
       String f(DateTime d) => '${d.day}.${d.month}.${d.year}';
-      return '${f(a)} — ${f(b)}';
+      return '${f(a)} - ${f(b)}';
     }
 
     final sleepLevel =
@@ -77,8 +79,9 @@ class CoverageScreen extends StatelessWidget {
     return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
       ScreenHead(s.t('data.source'), s.t('data.title')),
       FadeUp(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(K.gutter, 4, K.gutter, 26),
+        child: Kart(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
+          margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 10),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(s.t('data.nightsWithSleep').toUpperCase(), style: K.eyebrow),
             const SizedBox(height: 14),
@@ -88,6 +91,7 @@ class CoverageScreen extends StatelessWidget {
                 max: 14,
                 level: sleepLevel,
                 display: '$withSleep',
+                sayiyor: true,
                 label: s.t(withSleep >= 14
                     ? 'lvl.enough'
                     : (withSleep >= 3 ? 'lvl.building' : 'lvl.tooFew')),
@@ -104,6 +108,16 @@ class CoverageScreen extends StatelessWidget {
       ),
 
       SectionLabel(s.t('data.summary')),
+      if (repo.timedOut.isNotEmpty)
+        NoteBlock(s.t2('data.timedOut', {
+          'list': repo.timedOut
+              .map((t) => s.t(_typeKeys[t] ?? 'lvl.noData'))
+              .join(', ')
+        })),
+      MetricRow(
+          title: s.t('data.version'),
+          subtitle: s.t('data.versionSub'),
+          value: Config.version),
       MetricRow(
           title: s.t('data.requested'),
           subtitle: s.t('data.requestedSub'),
@@ -185,10 +199,10 @@ class CoverageScreen extends StatelessWidget {
         child: OutlinedButton(
           style: OutlinedButton.styleFrom(
               foregroundColor: K.ink,
-              side: const BorderSide(color: K.line),
+              side: BorderSide(color: K.line),
               minimumSize: const Size.fromHeight(48),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12))),
+                  borderRadius: BorderRadius.circular(K.rDugme))),
           onPressed: onReload,
           child: Text(s.t('common.retry'),
               style: const TextStyle(fontWeight: FontWeight.w500)),

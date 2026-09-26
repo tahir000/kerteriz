@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="su_widget_aciklama">Tek dokunuşla su ekle, günlük toplamı gör</string>
+    <string name="su_geri_al">geri al</string>
+
+    <string name="ozet_widget_aciklama">Günün adımı, kalorisi, mesafesi ve Kerteriz skorları</string>
+    <string name="ozet_halka_aciklama">Adım, kalori ve mesafe halkaları</string>
+    <string name="ozet_adim">Adım</string>
+    <string name="ozet_kalori">Kalori</string>
+    <string name="ozet_mesafe">Mesafe</string>
+    <string name="ozet_hazirlik_etiket">Hazırlık</string>
+    <string name="ozet_uyku_etiket">Uyku</string>
+    <string name="ozet_nabiz_etiket">Dinlenme nabzı</string>
+    <string name="ozet_yenile">Halkaya dokun: yenile</string>
+    <string name="ozet_bayat">Skorlar için uygulamayı aç</string>
+</resources>

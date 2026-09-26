@@ -16,17 +16,21 @@ analiz aracı yok, reklam yok.
 
 ## 1. Hangi verilere erişiyoruz
 
-Kerteriz, Android **Health Connect** üzerinden yalnızca **okuma** izniyle şu
-tiplere erişir:
+Kerteriz, Android **Health Connect** üzerinden şu tiplere **okuma** izniyle erişir:
 
 - Uyku oturumları ve uyku evreleri (derin, hafif, REM, uyanık)
 - Nabız, dinlenme nabzı, kalp hızı değişkenliği (HRV)
 - Solunum hızı, kandaki oksijen (SpO2), cilt sıcaklığı
-- Adım, egzersiz oturumları, yakılan kalori
+- Adım, egzersiz oturumları, yakılan kalori, mesafe
 - Kilo, VO2max
+- Su alımı (hidrasyon)
 - 30 günden eski kayıtlara erişim (geçmiş verisi izni)
 
-Uygulama Health Connect'e **hiçbir şey yazmaz**. Manifestte tek bir yazma izni yoktur.
+Bunların **tek biri** dışında hepsi salt okunurdur. Tek yazma izni **su alımıdır**
+(`WRITE_HYDRATION`): ana ekran widget'ındaki düğmeye bastığınızda uygulama
+telefonunuzun Health Connect deposuna bir su kaydı ekler. Bu kayıt sizin
+eyleminizle oluşur, yine telefonunuzda kalır ve hiçbir yere gönderilmez.
+Uygulama başka hiçbir sağlık tipine yazmaz.
 
 ## 2. Bu verilerle ne yapıyoruz
 
@@ -57,7 +61,12 @@ kaldırdığınızda bu alan Android tarafından tamamen silinir.
 
 Health Connect izinlerini istediğiniz an geri alabilirsiniz:
 **Ayarlar → Uygulamalar → Health Connect → Uygulama izinleri → Kerteriz**.
-İzni geri aldığınızda uygulama hiçbir veri okuyamaz.
+İzni geri aldığınızda uygulama hiçbir veri okuyamaz ve su kaydı da yazamaz.
+
+Uygulamanın yazdığı su kayıtlarını silmek için Health Connect'te
+**Veri ve erişim → Beslenme → Su** yolunu izleyin; widget'taki geri alma düğmesi
+de yalnızca uygulamanın kendi yazdığı son kaydı siler, başka kaynakların
+kayıtlarına dokunmaz.
 
 Health Connect'teki verilerin kendisi Google'ın Health Connect deposunda tutulur;
 onları silmek için Health Connect uygulamasını kullanın.

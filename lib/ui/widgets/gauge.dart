@@ -4,34 +4,44 @@ import 'package:flutter/material.dart';
 
 import '../../theme.dart';
 
-/// Hero degerler icin yay gostergesi.
+/// Hero değerler için yay göstergesi.
 ///
-/// 260 derecelik bir yay: soluk bir iz uzerine seviye renginde dolan bir kavis,
-/// ortasinda sayinin kendisi. Renk tek basina anlam tasimiyor — sayi da,
-/// altindaki etiket de orada.
+/// 260 derecelik bir yay: soluk bir iz üzerine seviye renginde dolan bir kavis,
+/// ortasında sayının kendisi. Renk tek başına anlam taşımıyor — sayı da,
+/// altındaki etiket de orada.
 class ArcGauge extends StatelessWidget {
   final double value; // 0..max
   final double max;
-  final Level level;
+
+  /// null ise gösterge nötr çizilir: sayı var ama henüz bir seviyeye
+  /// oturtulamıyor demektir (taban çizgi dolmamış, veri yetmiyor).
+  final Level? level;
   final String display; // ortada yazan
   final String? unit;
-  final String? label; // yayin altindaki kucuk etiket
+  final String? label; // yayın altındaki küçük etiket
   final double size;
+
+  /// true ise ortadaki sayı da yayla birlikte sıfırdan sayarak dolar.
+  /// Tam sayı olmayan gösterimlerde (0.9 gibi) kapatılmalı.
+  final bool sayiyor;
 
   const ArcGauge({
     super.key,
     required this.value,
-    required this.level,
+    this.level,
     required this.display,
     this.max = 100,
     this.unit,
     this.label,
     this.size = 168,
+    this.sayiyor = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final t = (value / max).clamp(0.0, 1.0);
+    final isaret = level?.mark ?? K.ink4;
+    final murekkep = level?.ink ?? K.ink;
     return SizedBox(
       width: size,
       height: size * 0.82,
@@ -40,16 +50,20 @@ class ArcGauge extends StatelessWidget {
         duration: const Duration(milliseconds: 850),
         curve: Curves.easeOutCubic,
         builder: (context, v, _) => CustomPaint(
-          painter: _ArcPainter(v, level.mark),
+          painter: _ArcPainter(v, isaret),
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 10),
+                // Yay dolarken ortadaki sayı da onunla birlikte sayıyor:
+                // ikisi aynı hareketin parçası gibi okunuyor.
                 RichText(
                   text: TextSpan(
-                    text: display,
-                    style: K.hero.copyWith(color: level.ink, fontSize: size * 0.30),
+                    text: sayiyor
+                        ? (value * v / (t == 0 ? 1 : t)).toStringAsFixed(0)
+                        : display,
+                    style: K.hero.copyWith(color: murekkep, fontSize: size * 0.30),
                     children: [
                       if (unit != null)
                         TextSpan(text: unit, style: K.heroUnit),
@@ -63,7 +77,7 @@ class ArcGauge extends StatelessWidget {
                           fontSize: 10.5,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.8,
-                          color: level.ink)),
+                          color: murekkep)),
                 ],
               ],
             ),
@@ -109,15 +123,17 @@ class _ArcPainter extends CustomPainter {
       old.t != t || old.color != color;
 }
 
-/// Satir sonunda duran kucuk egilim cizgisi.
+/// Satır sonunda duran küçük eğilim çizgisi.
 class Sparkline extends StatelessWidget {
   final List<double> values;
-  final Color color;
+  /// null ise tema jetonundan alınır. Varsayılan olarak `K.ink3` yazılamaz:
+  /// tema renkleri artık sabit değil, gece moduna göre değişen getter.
+  final Color? color;
   final double width;
   final double height;
 
   const Sparkline(this.values,
-      {super.key, this.color = K.ink3, this.width = 54, this.height = 20});
+      {super.key, this.color, this.width = 54, this.height = 20});
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +141,7 @@ class Sparkline extends StatelessWidget {
     return SizedBox(
       width: width,
       height: height,
-      child: CustomPaint(painter: _SparkPainter(values, color)),
+      child: CustomPaint(painter: _SparkPainter(values, color ?? K.ink3)),
     );
   }
 }
@@ -161,8 +177,10 @@ class _SparkPainter extends CustomPainter {
   bool shouldRepaint(covariant _SparkPainter old) => true;
 }
 
-/// Ekran acilisinda yumusak giris. Icerik gorunur halde baslar, yalnizca
-/// hafifce yukselir — hicbir sey gizli kalmaz.
+/// Ekran açılışında kademeli giriş. İçerik görünür halde başlar, yalnızca
+/// aşağıdan yukarı süzülür: hiçbir şey gizli kalmaz, ekran da donuk durmaz.
+/// [index] büyüdükçe giriş biraz gecikir; gecikme 10. öğeden sonra sabitlenir
+/// ki uzun listelerin sonu geç gelmesin.
 class FadeUp extends StatelessWidget {
   final Widget child;
   final int index;
@@ -170,15 +188,17 @@ class FadeUp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final kademe = (index > 10 ? 10 : index) * 55;
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 340 + index * 45),
+      duration: Duration(milliseconds: 420 + kademe),
       curve: Curves.easeOutCubic,
       builder: (context, v, c) => Opacity(
-        opacity: 0.35 + 0.65 * v,
-        child: Transform.translate(offset: Offset(0, 8 * (1 - v)), child: c),
+        opacity: 0.25 + 0.75 * v,
+        child: Transform.translate(offset: Offset(0, 14 * (1 - v)), child: c),
       ),
       child: child,
     );
   }
 }
+

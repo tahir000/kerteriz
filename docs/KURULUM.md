@@ -25,8 +25,9 @@ o dosyayı yazıldığı Flutter sürümüne bağlar. Sürüm değişince
 Flutter'ın kendi ürettiği manifest, o sürümün beklediği embedding yapılandırmasını
 zaten doğru taşır; `patch_manifest.py` yalnızca Health Connect izinlerini,
 `queries` bloğunu ve izin gerekçesi ekranlarını ekler. `patch_mainactivity.py` de
-`FlutterActivity`'yi `FlutterFragmentActivity`'ye çevirir. İki betik de
-**idempotent**: aynı projede tekrar çalıştırmak zararsızdır.
+`FlutterActivity`'yi `FlutterFragmentActivity`'ye çevirir, `patch_native.py` ise
+su widget'ının Kotlin ve kaynak dosyalarını kopyalayıp gradle bağımlılıklarını
+ekler. Üç betik de **idempotent**: aynı projede tekrar çalıştırmak zararsızdır.
 
 Elle yapmak istersen:
 
@@ -36,6 +37,7 @@ cp -R lib ../kerteriz/lib
 cp pubspec.yaml analysis_options.yaml ../kerteriz/
 python3 patch_manifest.py ../kerteriz/android/app/src/main/AndroidManifest.xml
 python3 patch_mainactivity.py ../kerteriz
+python3 patch_native.py ../kerteriz
 # android/app/build.gradle.kts içinde  minSdk = 28
 cd ../kerteriz && flutter pub get
 ```
@@ -52,11 +54,35 @@ flutter run
 
 1. **Google Health** uygulamasında Fitbit Air'in bağlı olduğundan emin ol.
 2. Google Health → **Ayarlar → Health Connect** → Kerteriz'e okuma izni ver.
-   Uygulama ilk açılışta bu ekranı kendisi çağırır.
+   Uygulama ilk açılışta bu ekranı kendisi çağırır. Listede su alımı için bir
+   **yazma** izni de görünür; su widget'ı bunsuz çalışmaz, geri kalan her şey
+   çalışır.
 3. Google Health'in Health Connect'e **hangi tipleri yazdığını** aynı ekrandan
    kontrol et. Resmi listede adım, nabız, uyku evreleri, solunum hızı, cilt
    sıcaklığı ve VO2max var; **HRV ve SpO2 açıkça listelenmiyor.** Görünmüyorlarsa
-   uygulama yine çalışır — aşağıya bak.
+   uygulama yine çalışır; aşağıya bak.
+4. İzin listesinde **mesafe** ve **kalori** de var. Bunlar yalnızca özet
+   widget'ının halkaları için; uygulamanın kendi ekranları ve skorları onları
+   kullanmıyor, 90 günlük okumaya da girmiyorlar.
+
+### Honor / MagicOS cihazlarda ek adımlar
+
+MagicOS, arka planda çalışan uygulamaları Android'in standardından daha sert
+kesiyor. Widget'lar yayın alıcısıyla çalıştığı için bu doğrudan onları vuruyor:
+periyodik güncelleme atlanıyor, dokunuşlar bazen hiçbir şey yapmamış gibi
+görünüyor. Kurulumdan sonra şunları aç:
+
+1. **Optimizer** (Telefon Yöneticisi) > pil yüzdesine dokun > **Uygulama
+   başlatma**: Kerteriz'i bul, **Otomatik yönet**'i kapat, açılan üç anahtarı
+   da aç (otomatik başlat, ikincil başlatma, arka planda çalıştır).
+2. **Ayarlar** içinde **Pil optimizasyonu** ara, listeyi **Tüm uygulamalar**
+   yap, Kerteriz'i **İzin verme** olarak işaretle.
+3. **Ayarlar** içinde **Cihaz uyurken bağlı kal** ayarını aç.
+4. Pil tasarrufu modunu kapalı tut; açıkken widget güncellemeleri durur.
+
+Bunları yapsan bile MagicOS bazen 30 dakikalık güncellemeyi atlıyor. İki widget
+da bu yüzden elle yenilenebilir: su widget'ında düğmeye basmak, özet
+widget'ında halkalara dokunmak anında yeniler.
 
 ## 3. Eksik veriyle davranış
 
@@ -79,25 +105,89 @@ ama kendi içinde tutarlı olduğu için taban çizgi ve z-skoru doğru çalış
 - `historyDays` — kaç gün geriye okunacak (varsayılan 90).
 - `baselineWindow` — taban çizgi penceresi (varsayılan 14 gün).
 - `sleepNeedBaseMinutes` — uyku ihtiyacı taban değeri; üzerine dünkü yükün katkısı eklenir.
+- `dailyWaterGoalMl` — günlük su hedefi (varsayılan 2500 ml). Hem Bugün sekmesi hem widget bunu kullanır.
+- `waterServingMl` — widget'ın tek dokunuşta eklediği miktar (varsayılan 250 ml).
+- `dailyStepGoal`, `dailyCalorieGoal`, `dailyActiveCalorieGoal`,
+  `dailyDistanceTenthKm` — özet widget'ının halka hedefleri. Mesafe
+  kilometrenin onda biri cinsinden tutulur (70 = 7,0 km).
 
-## 5. Veriyi dışa aktarma
+## 5. Su widget'ı
+
+Ana ekran widget'ı tek dokunuşla `waterServingMl` kadar su ekler ve toplamı
+Health Connect'e `HydrationRecord` olarak yazar. Bugün sekmesi aynı kaydı
+oradan geri okur — yani widget ile uygulama arasında ayrı bir veritabanı yok,
+tek kaynak Health Connect.
+
+Bu, uygulamanın **tek yazma iznidir**. Geri alma düğmesi yalnızca
+`dataOrigin.packageName` bu uygulamaya ait olan son kaydı siler; başka bir
+uygulamanın yazdığı su kaydına dokunmaz.
+
+Widget'a ait dosyalar `native/` altında durur ve `patch_native.py` tarafından
+Flutter'ın ürettiği Android projesine kopyalanır:
+
+```
+native/
+  kotlin/SuWidgetProvider.kt   AppWidgetProvider, RemoteViews, ekle/geri al
+  kotlin/SuKaydedici.kt        Health Connect istemcisi, okuma/yazma/silme
+  res/layout/su_widget.xml     widget düzeni
+  res/drawable/                zemin, düğme, ilerleme çubuğu
+  res/values/                  renkler ve metinler
+  res/xml/su_widget_info.xml   widget tanımı
+```
+
+Su alımı **hazırlık skoruna ağırlıkla girmez.** Etkisi gerçek ama bir katsayı
+verecek kadar net değil; onun yerine Bugün sekmesinde
+`MetricsEngine.hydrationEffect` ile kendi verinden hesaplanan karşılaştırma
+gösterilir: hedefi tutturduğun günlerin ertesindeki hazırlık ortalaması ile
+hedefin altında kaldığın günlerinki. Her iki grupta da en az dörder gün yoksa
+hesap yapılmaz.
+
+## 6. Özet widget'ı
+
+Google Health'in kendi widget'ının karşılığı: solda üç halka (adım, kalori,
+mesafe), sağda sayıların kendisi, altta hazırlık, uyku ve dinlenme nabzı.
+
+Halkalar `Config` içindeki `dailyStepGoal`, `dailyCalorieGoal` ve
+`dailyDistanceTenthKm` hedeflerine göre dolar. Cihaz toplam kalori yazmıyorsa
+aktif kaloriye düşülür ve o zaman `dailyActiveCalorieGoal` kullanılır: aktif
+kalori toplamın yaklaşık onda biri kadardır, aynı hedefe vurulamaz.
+
+Halka renkleri aksan mavisinin üç tonudur. Yeşil, turuncu ve kırmızı bu
+uygulamada **seviye** anlamı taşıdığı için halkalarda süs olarak kullanılmıyor.
+
+**Adım, kalori ve mesafe** doğrudan Health Connect'ten okunur. **Hazırlık, uyku
+ve dinlenme nabzı** 14 günlük taban çizgiye dayanan türetilmiş değerlerdir;
+motor Dart tarafında çalıştığı için widget bunları hesaplayamaz. Uygulama her
+açılışta `kerteriz_ozet.json` dosyasına yazar (uygulamanın kendi özel alanı,
+dışarıdan erişilemez), widget oradan okur. Uygulama bir buçuk gündür açılmadıysa
+ya da dosyadaki gün bugün veya dün değilse o üç kutu `--` gösterir ve altta
+"Skorlar için uygulamayı aç" yazar.
+
+Her toplam ayrı bir Health Connect sorgusudur. Tek istekte sorulsaydı, izin
+verilmemiş tek bir tip bütün çağrıyı reddeder ve üç halka birden sıfır
+görünürdü.
+
+Halkalara dokunmak widget'ı yeniler, başka bir yere dokunmak uygulamayı açar.
+
+## 7. Veriyi dışa aktarma
 
 Sağ alttaki paylaş düğmesi, 90 günlük **ham + türetilmiş** veriyi tek bir JSON'a
 yazıp paylaşım menüsünü açar. Dosyanın yapısı: `config`, `summary` (kapsama
 oranları dahil) ve gün gün `days[]` — her günün ham alanları, uyku segmentleri,
 gece nabız serisi ve `derived` altında tüm skorlar.
 
-## 6. Dosya haritası
+## 8. Dosya haritası
 
 ```
 lib/
   config.dart                 kişisel sabitler
-  l10n.dart                   iki dil (tr, en), 197 anahtar
+  l10n.dart                   iki dil (tr, en), 204 anahtar
   theme.dart                  renkler, tipografi, seviye eşikleri
   data/
     day_record.dart           gün modeli + JSON
     health_repository.dart    Health Connect okuma ve günlük toplama
     exporter.dart             JSON dışa aktarım
+    ozet_yazici.dart          özet widget'ı için küçük JSON köprüsü
   metrics/
     engine.dart               taban çizgiler, z-skorları, bileşik metrikler
   ui/
@@ -107,9 +197,19 @@ lib/
     widgets/kit.dart          satır, ölçek, rozet
     widgets/gauge.dart        yay göstergesi, mini eğilim çizgisi
     widgets/charts.dart       CustomPainter grafikleri
+native/
+  kotlin/SuWidgetProvider.kt  su widget'ı
+  kotlin/SuKaydedici.kt       Health Connect'e su yazma / okuma / silme
+  kotlin/OzetWidgetProvider.kt  özet widget'ı
+  kotlin/OzetOkuyucu.kt       günlük toplamlar + özet JSON okuma
+  kotlin/HalkaCizer.kt        üç halkayı bitmap'e çizer
+  res/                        widget düzenleri, çizimleri, renk ve metinleri
+patch_manifest.py             izinler, queries ve widget alıcısı
+patch_mainactivity.py         FlutterFragmentActivity'ye çevirir
+patch_native.py               native/ içeriğini ve gradle bağımlılıklarını ekler
 ```
 
-## 7. Metrik formülleri
+## 9. Metrik formülleri
 
 | Metrik | Formül |
 |---|---|
@@ -123,7 +223,7 @@ lib/
 | Kardiyak toparlanma | `0.55·clamp(düşüş/0.16) + 0.45·clamp((0.72−f_dip)/0.42)` |
 | SRI | ardışık günlerde 10 dk'lık dilimlerde uyku/uyanık durumunun örtüşme yüzdesi |
 
-## 8. Bağımlılık kısıtları
+## 10. Bağımlılık kısıtları
 
 Bunlar acı çekilerek öğrenildi, değiştirilmemeli:
 
@@ -135,12 +235,14 @@ Bunlar acı çekilerek öğrenildi, değiştirilmemeli:
 | `minSdk = 28` | Health Connect daha eskisinde çalışmıyor |
 | `READ_HEALTH_DATA_HISTORY` | Olmadan 30 günden eski kayıt okunamaz; taban çizgiler buna bağlı |
 | `FlutterFragmentActivity` | `health` paketi Android 14 için bunu şart koşuyor |
-| Manifestte yalnızca READ | Hiçbir WRITE izni yok, bilinçli |
+| Gri zemin, beyaz kart | Tasarım dili MagicOS'un yüzey diline yaklaştırıldı; `K` içindeki jetonlar tek kaynak |
+| Widget düzeninde düz `View` yok | RemoteViews yalnızca `@RemoteView` işaretli sınıfları şişirebiliyor; `android.view.View` listede değil ve widget "eklenemedi" hatası veriyor. Ayraç için `FrameLayout` kullanılır |
+| Tek WRITE izni `WRITE_HYDRATION` | Su widget'ı için şart; başka hiçbir tipe yazılmaz, bilinçli |
 
 `share_plus 13`'te API değişti: `Share.shareXFiles(...)` yerine
 `SharePlus.instance.share(ShareParams(files: [...]))`.
 
-## 9. Dil
+## 11. Dil
 
 `lib/l10n.dart` içinde tek sınıf, iki harita (tr, en). Kod üretimi ya da ARB yok.
 Cihaz dili desteklenmiyorsa İngilizceye düşer. Arayüzde düz metin bırakma,
@@ -148,11 +250,15 @@ Cihaz dili desteklenmiyorsa İngilizceye düşer. Arayüzde düz metin bırakma,
 `t2('anahtar', {'x': değer})`. Yeni dil eklemek için bir harita daha yazıp
 `_all`'a koymak yeterli.
 
-## 10. Notlar
+## 12. Notlar
 
 - Uygulama **hiçbir teşhis ya da tıbbi tavsiye vermez**; kendi verini kendi
   taban çizgine göre gösterir.
 - Play Store'a çıkılacaksa gizlilik politikası URL'i ve `ViewPermissionUsageActivity`
   alias'ı zorunlu; alias'ı `patch_manifest.py` ekliyor.
+- Özet widget'ı Health Connect'e hiçbir şey yazmaz, yalnızca okur.
+- Widget'ın yazdığı su kayıtları Health Connect'te durur; uygulamayı silmek
+  onları silmez. Health Connect → **Veri ve erişim → Beslenme → Su** yolundan
+  temizlenebilir.
 - Para kazanma şu an yok. Sonradan eklenirse mevcut özellikler ödeme duvarının
   arkasına alınmayacak; yalnızca yeni özellikler premium olacak.

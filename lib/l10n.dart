@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
 
-/// Hafif coklu dil katmani.
+/// Hafif çoklu dil katmanı.
 ///
-/// Kod uretimi ya da ARB dosyalari yok: tek bir sinif, iki harita.
-/// Yeni dil eklemek icin `_en` gibi bir harita daha yazip `_all`'a koymak yeterli.
-/// Bilinmeyen bir dil gelirse Ingilizceye duser.
+/// Kod üretimi ya da ARB dosyaları yok: tek bir sınıf, iki harita.
+/// Yeni dil eklemek için `_en` gibi bir harita daha yazıp `_all`'a koymak yeterli.
+/// Bilinmeyen bir dil gelirse İngilizceye düşer.
 class S {
   final Map<String, String> _m;
   final String code;
@@ -39,9 +39,9 @@ class S {
     'app.name': 'Kerteriz',
 
     // sekmeler
-    'tab.today': 'Bugun',
+    'tab.today': 'Bugün',
     'tab.sleep': 'Uyku',
-    'tab.load': 'Yuk',
+    'tab.load': 'Yük',
     'tab.heart': 'Kalp',
     'tab.data': 'Veri',
 
@@ -49,16 +49,17 @@ class S {
     'unit.of100': '/100',
     'unit.of21': '/21',
     'unit.ms': ' ms',
-    'unit.bpm': ' atim',
+    'unit.bpm': ' atım',
     'unit.min': ' dk',
     'unit.night': ' gece',
-    'unit.day': ' gun',
-    'unit.record': ' kayit',
+    'unit.day': ' gün',
+    'unit.record': ' kayıt',
     'unit.perMin': '/dk',
     'unit.z': ' z',
+    'unit.ml': ' ml',
     'common.retry': 'Yeniden oku',
     'common.yes': 'evet',
-    'common.no': 'hayir',
+    'common.no': 'hayır',
     'common.none': 'yok',
     'common.hourShort': 's',
     'common.minShort': 'd',
@@ -66,229 +67,280 @@ class S {
     // seviyeler
     'lvl.good': 'iyi',
     'lvl.watch': 'izlenmeli',
-    'lvl.low': 'dusuk',
-    'lvl.ready': 'hazir',
+    'lvl.low': 'düşük',
+    'lvl.ready': 'hazır',
     'lvl.medium': 'orta',
     'lvl.normal': 'normal',
-    'lvl.below': 'altinda',
-    'lvl.wellBelow': 'belirgin altinda',
-    'lvl.inBand': 'bant ici',
-    'lvl.borderline': 'sinirda',
+    'lvl.below': 'altında',
+    'lvl.wellBelow': 'belirgin altında',
+    'lvl.inBand': 'bant içi',
+    'lvl.borderline': 'sınırda',
     'lvl.risky': 'riskli',
     'lvl.accumulating': 'birikiyor',
-    'lvl.high': 'yuksek',
+    'lvl.high': 'yüksek',
     'lvl.steady': 'sabit',
-    'lvl.drifting': 'kayiyor',
+    'lvl.drifting': 'kayıyor',
     'lvl.deviation': 'sapma',
-    'lvl.veryRegular': 'cok duzenli',
-    'lvl.variable': 'degisken',
-    'lvl.irregular': 'duzensiz',
-    'lvl.flowing': 'akiyor',
-    'lvl.derived': 'turetildi',
+    'lvl.veryRegular': 'çok düzenli',
+    'lvl.variable': 'değişken',
+    'lvl.irregular': 'düzensiz',
+    'lvl.flowing': 'akıyor',
+    'lvl.derived': 'türetildi',
     'lvl.present': 'var',
-    'lvl.empty': 'bos',
-    'lvl.on': 'acik',
-    'lvl.off': 'kapali',
-    'lvl.working': 'calisiyor',
+    'lvl.empty': 'boş',
+    'lvl.on': 'açık',
+    'lvl.off': 'kapalı',
+    'lvl.working': 'çalışıyor',
     'lvl.noData': 'veri yok',
     'lvl.full': 'tam',
-    'lvl.partial': 'kismi',
+    'lvl.partial': 'kısmi',
     'lvl.enough': 'yeterli',
     'lvl.building': 'biriktiriyor',
-    'lvl.tooFew': 'cok az',
+    'lvl.tooFew': 'çok az',
 
-    // durum ekranlari
+    // durum ekranları
     'state.reading': 'Health Connect okunuyor…',
-    'state.noRecords': 'Health Connect hic kayit dondurmedi.',
+    'state.noRecords': 'Health Connect hiç kayıt döndürmedi.',
     'state.noSdk': 'Bu cihazda Health Connect yok.',
-    'state.updateSdk': 'Health Connect guncellenmeli. Guncelledikten sonra tekrar dene.',
+    'state.updateSdk': 'Health Connect güncellenmeli. Güncelledikten sonra tekrar dene.',
     'state.noPermission': 'Health Connect izinleri verilmedi.',
-    'state.readError': 'Veri okunamadi',
-    'state.noSleep': 'Dun geceye ait uyku kaydi bulunamadi.',
+    'state.readError': 'Veri okunamadı',
+    'state.noSleep': 'Dün geceye ait uyku kaydı bulunamadı.',
+    'crash.eyebrow': 'Tanılama',
+    'crash.title': 'Geçen açılış yarıda kaldı',
+    'crash.body':
+        'Uygulama bir önceki açılışta kapandı. Bu sefer Health Connect\'e hiç '
+            'dokunmadan açıldı ki nerede durduğunu görebilesin. Aşağıdaki son '
+            'satır, kapanmadan önce ulaşılan adımı gösterir.',
+    'crash.copy': 'Kopyala',
+    'crash.share': 'Paylaş',
+    'crash.copied': 'İz panoya kopyalandı',
+    'crash.retry': 'Yine de oku',
+    'state.noScores':
+        'Health Connect\'ten gelen günlerde henüz uyku ya da nabız kaydı yok. '
+            'Hazırlık, uyku ve yük skorları bu ikisinden hesaplanıyor, o yüzden '
+            'burada sayı göstermiyoruz. Neyin geldiğini Veri sekmesi söyler.',
 
-    // bugun
-    'today.title': 'Bugun',
-    'today.today': 'bugun',
-    'today.readiness': 'Hazirlik',
-    'today.inputs': 'Hazirligi olusturan girdiler',
+    // bugün
+    'today.title': 'Bugün',
+    'today.today': 'bugün',
+    'today.readiness': 'Hazırlık',
+    'today.inputs': 'Hazırlığı oluşturan girdiler',
     'today.hrv': 'HRV',
-    'today.hrvSub': 'Gece ortalama RMSSD, 14 gunluk logaritmik taban cizgine gore',
-    'today.rhr': 'Dinlenme nabzi',
-    'today.rhrSub': 'Dusuk olmasi iyi; isaret ters cevrilmis',
-    'today.respTemp': 'Solunum + cilt sicakligi',
-    'today.respTempSub': 'Hastalik icin en erken iki sinyal',
+    'today.hrvSub': 'Gece ortalama RMSSD, 14 günlük logaritmik taban çizgine göre',
+    'today.rhr': 'Dinlenme nabzı',
+    'today.rhrSub': 'Düşük olması iyi; işaret ters çevrilmiş',
+    'today.respTemp': 'Solunum + cilt sıcaklığı',
+    'today.respTempSub': 'Hastalık için en erken iki sinyal',
     'today.sleepScore': 'Uyku skoru',
-    'today.weight25': 'Agirligi %25',
-    'today.forToday': 'Bugun icin',
-    'today.suggestedLoad': 'Onerilen yuk',
-    'today.suggestedLoadSub': 'Hazirliga gore hedef bant',
+    'today.weight25': 'Ağırlığı %25',
+    'today.forToday': 'Bugün için',
+    'today.suggestedLoad': 'Önerilen yük',
+    'today.suggestedLoadSub': 'Hazırlığa göre hedef bant',
     'today.debt': 'Uyku borcu',
-    'today.debtSub': 'Son 14 gun, sonumlenerek',
-    'today.loadRatio': 'Yuk orani',
+    'today.debtSub': 'Son 14 gün, sönümlenerek',
+    'today.loadRatio': 'Yük oranı',
     'today.loadRatioSub': 'Akut / kronik',
-    'today.last30': 'Son 30 gun hazirlik',
+    'today.last30': 'Son 30 gün hazırlık',
     'today.caption':
-        'Dun gece {sleep} uyudun (ihtiyac {need}). HRV {hrv} ms, dinlenme nabzi {rhr} atim.',
+        'Dün gece {sleep} uyudun (ihtiyaç {need}). HRV {hrv} ms, dinlenme nabzı {rhr} atım.',
     'today.captionNoSleep':
-        'Dun geceye ait uyku kaydi bulunamadi; hazirlik yalnizca kalp verisinden hesaplandi.',
+        'Dün geceye ait uyku kaydı bulunamadı; hazırlık yalnızca kalp verisinden hesaplandı.',
     'today.chartNote':
-        'Her sutun bir gun; renk o gunun seviyesi. Renk tek basina birakilmadi — '
-            'her yerde yaninda seviye etiketi ve sayinin kendisi var.',
+        'Her sütun bir gün; renk o günün seviyesi. Renk tek başına bırakılmadı — '
+            'her yerde yanında seviye etiketi ve sayının kendisi var.',
     'today.illness':
-        'Vucudun bir seyle ugrasiyor. Solunum hizi, cilt sicakligi ve dinlenme nabzi '
-            'ayni anda taban cizginin uzerinde. Bu ucluye birlikte bakmak, tek basina '
-            'nabza bakmaktan daha erken uyarir.',
+        'Vücudun bir şeyle uğraşıyor. Solunum hızı, cilt sıcaklığı ve dinlenme nabzı '
+            'aynı anda taban çizginin üzerinde. Bu üçlüye birlikte bakmak, tek başına '
+            'nabza bakmaktan daha erken uyarır.',
     'today.overload':
-        'Yuklenme birikiyor. Akut/kronik yuk orani {acwr} ve HRV uc gundur taban '
-            'cizginin altinda.',
+        'Yüklenme birikiyor. Akut/kronik yük oranı {acwr} ve HRV üç gündür taban '
+            'çizginin altında.',
+
+    // su
+    'today.water': 'Su',
+    'today.waterGoal': 'Hedef {goal} ml — ana ekran widget\'ından eklenir',
+    'today.waterNote':
+        'Su alımı hazırlık skoruna ağırlıkla katılmıyor. Etkisi gerçek ama bir '
+            'katsayı verecek kadar net değil; onun yerine kendi verinden hesaplanan '
+            'karşılaştırma aşağıda.',
+    'today.waterLink':
+        'Hedefi tutturduğun {atDays} günün ertesinde hazırlık ortalama {at}, '
+            'hedefin altında kaldığın {belowDays} günün ertesinde {below}. '
+            'Fark {delta} puan.',
+    'today.waterLinkNone':
+        'Karşılaştırma için hem hedefin üstünde hem altında en az dörder gün '
+            'gerekiyor. Su kaydı biriktikçe bu satır dolacak.',
 
     // uyku
     'sleep.title': 'Uyku',
-    'sleep.lastNight': 'Dun gece',
+    'sleep.lastNight': 'Dün gece',
     'sleep.score': 'Uyku skoru',
     'sleep.caption':
-        '{sleep} uyku, {bed} yatakta. Onarici evreler (derin + REM) gecenin %{pct}\'i '
+        '{sleep} uyku, {bed} yatakta. Onarıcı evreler (derin + REM) gecenin %{pct}\'i '
             '— hedef bant %38–46.',
     'sleep.throughNight': 'Gece boyunca',
-    'sleep.stages': 'Evre dagilimi',
-    'sleep.components': 'Bilesenler',
+    'sleep.stages': 'Evre dağılımı',
+    'sleep.components': 'Bileşenler',
     'sleep.deeper': 'Daha derin',
-    'sleep.last14': 'Son 14 gecenin suresi',
-    'sleep.windowMap': 'Uyku penceresi haritasi',
-    'sleep.need': 'ihtiyac',
+    'sleep.last14': 'Son 14 gecenin süresi',
+    'sleep.windowMap': 'Uyku penceresi haritası',
+    'sleep.need': 'ihtiyaç',
     'sleep.deep': 'Derin',
     'sleep.light': 'Hafif',
     'sleep.rem': 'REM',
-    'sleep.awake': 'Uyanik',
-    'sleep.duration': 'Sure',
+    'sleep.awake': 'Uyanık',
+    'sleep.duration': 'Süre',
     'sleep.efficiency': 'Verim',
-    'sleep.restoration': 'Onarim',
+    'sleep.restoration': 'Onarım',
     'sleep.continuity': 'Kesintisizlik',
     'sleep.timing': 'Zamanlama',
-    'sleep.weight': 'Agirlik %{w}',
+    'sleep.weight': 'Ağırlık %{w}',
     'sleep.debt': 'Uyku borcu',
-    'sleep.debtSub': 'Son 14 gun, eski gunler sonumlenerek',
-    'sleep.sri': 'Sirkadiyen duzenlilik',
-    'sleep.sriSub': 'Uyku penceren gunden gune ne kadar sabit',
+    'sleep.debtSub': 'Son 14 gün, eski günler sönümlenerek',
+    'sleep.sri': 'Sirkadiyen düzenlilik',
+    'sleep.sriSub': 'Uyku pencerem günden güne ne kadar sabit',
     'sleep.cardiac': 'Gece kardiyak toparlanma',
-    'sleep.cardiacSub': 'Nabzin ne kadar ve ne kadar erken dustugu',
+    'sleep.cardiacSub': 'Nabzın ne kadar ve ne kadar erken düştüğü',
     'sleep.eff': 'Uyku verimi',
-    'sleep.effSub': 'Yatakta gecen surenin uykuya donen kismi',
+    'sleep.effSub': 'Yatakta geçen sürenin uykuya dönen kısmı',
     'sleep.rasterNote':
-        'Her satir bir gece, bant uykuda gectigin sure; rengi o gecenin uyku skoru. '
-            'Bantlarin ust uste binmesi — saatlerin degil — sirkadiyen duzenliligin olcusudur.',
+        'Her satır bir gece, bant uykuda geçtiğin süre; rengi o gecenin uyku skoru. '
+            'Bantların üst üste binmesi — saatlerin değil — sirkadiyen düzenliliğin ölçüsüdür.',
 
-    // yuk
-    'load.title': 'Yuk',
-    'load.daily': 'Gunluk yuk',
+    // yük
+    'load.title': 'Yük',
+    'load.daily': 'Günlük yük',
     'load.caption':
-        'Bolge agirlikli nabiz dakikalarindan hesaplanir; olcek logaritmiktir. '
-            'Bugun {min} dakikan bolge 1 ustunde gecti.',
-    'load.balance': 'Yuk dengesi',
-    'load.acute': 'Akut yuk',
-    'load.acuteSub': 'Son 7 gun ortalamasi',
-    'load.chronic': 'Kronik yuk',
-    'load.chronicSub': 'Son 28 gun ortalamasi',
-    'load.ratio': 'Akut / kronik orani',
-    'load.ratioSub': '0.80–1.30 arasi surdurulebilir bant',
-    'load.last28': 'Son 28 gun',
-    'load.avg28': '28 gun ort.',
-    'load.zones': 'Bugunun nabiz bolgeleri',
-    'load.zone': 'Bolge {n}',
-    'load.steps': 'Adim',
+        'Bölge ağırlıklı nabız dakikalarından hesaplanır; ölçek logaritmiktir. '
+            'Bugün {min} dakikan bölge 1 üstünde geçti.',
+    'load.balance': 'Yük dengesi',
+    'load.acute': 'Akut yük',
+    'load.acuteSub': 'Son 7 gün ortalaması',
+    'load.chronic': 'Kronik yük',
+    'load.chronicSub': 'Son 28 gün ortalaması',
+    'load.ratio': 'Akut / kronik oranı',
+    'load.ratioSub': '0.80–1.30 arası sürdürülebilir bant',
+    'load.ratioWaiting':
+        '28 günlük kronik pencere henüz dolmadı; oran olduğundan büyük çıkar',
+    'load.last28': 'Son 28 gün',
+    'load.avg28': '28 gün ort.',
+    'load.zones': 'Bugünün nabız bölgeleri',
+    'load.zone': 'Bölge {n}',
+    'load.steps': 'Adım',
     'load.zoneNote':
-        'Sutunun rengi o gunun akut/kronik oranini gosterir: yesil, vucudunun alistigi '
-            'tempo; turuncu sinir; kirmizi, yuku alistigindan hizli artirdigin gunler.',
+        'Sütunun rengi o günün akut/kronik oranını gösterir: yeşil, vücudunun alıştığı '
+            'tempo; turuncu sınır; kırmızı, yükü alıştığından hızlı artırdığın günler.',
 
     // kalp
     'heart.title': 'Kalp ve solunum',
-    'heart.last45': 'Son 45 gun',
+    'heart.last45': 'Son 45 gün',
     'heart.hrvTag': 'Gece HRV (RMSSD)',
     'heart.hrvCaption':
-        'Gri serit, 14 gunluk taban cizginin ±1 standart sapmasi. Onemli olan tek '
-            'gecenin degeri degil, serideki konumun.',
+        'Gri şerit, 14 günlük taban çizginin ±1 standart sapması. Önemli olan tek '
+            'gecenin değeri değil, serideki konumun.',
     'heart.hrvMissing':
-        'Health Connect bu cihazda HRV yazmiyor gorunuyor. Hazirlik skoru, kalan '
-            'girdilerin agirliklari yeniden dagitilarak hesaplandi.',
-    'heart.measured': 'Olculen degerler',
-    'heart.hrv': 'Kalp hizi degiskenligi',
-    'heart.hrvSub': 'Taban cizgiye gore {z} z',
-    'heart.rhr': 'Dinlenme nabzi',
-    'heart.rhrSub': 'Uyku sirasindaki en dusuk kararli deger',
-    'heart.rhrDerivedSub': 'Gece nabiz serisinden turetildi',
+        'Health Connect bu cihazda HRV yazmıyor görünüyor. Hazırlık skoru, kalan '
+            'girdilerin ağırlıkları yeniden dağıtılarak hesaplandı.',
+    'heart.measured': 'Ölçülen değerler',
+    'heart.noValue': 'Bu cihazdan kayıt gelmiyor',
+    'heart.hrv': 'Kalp hızı değişkenliği',
+    'heart.hrvSub': 'Taban çizgiye göre {z} z',
+    'heart.rhr': 'Dinlenme nabzı',
+    'heart.rhrSub': 'Uyku sırasındaki en düşük kararlı değer',
+    'heart.rhrDerivedSub': 'Gece nabız serisinden türetildi',
     'heart.spo2': 'Gece SpO2',
-    'heart.spo2Sub': 'En dusuk {min}%',
-    'heart.resp': 'Solunum hizi',
-    'heart.respSub': 'Hastalikta genelde ilk kipirdayan sinyal',
-    'heart.temp': 'Cilt sicakligi sapmasi',
+    'heart.spo2Sub': 'En düşük {min}%',
+    'heart.resp': 'Solunum hızı',
+    'heart.respSub': 'Hastalıkta genelde ilk kıpırdayan sinyal',
+    'heart.temp': 'Cilt sıcaklığı sapması',
     'heart.tempSub': 'Kendi gece ortalamandan fark',
-    'heart.rhrHistory': 'Dinlenme nabzi · tum gecmis',
+    'heart.rhrHistory': 'Dinlenme nabzı · tüm geçmiş',
 
     // veri
-    'data.title': 'Veri kapsami',
+    'data.title': 'Veri kapsamı',
     'data.source': 'Health Connect',
-    'data.nightsWithSleep': 'Uyku kaydi olan gece',
-    'data.enoughCaption': 'Taban cizgiler icin yeterli gecmis var; skorlar anlamli.',
+    'data.nightsWithSleep': 'Uyku kaydı olan gece',
+    'data.enoughCaption': 'Taban çizgiler için yeterli geçmiş var; skorlar anlamlı.',
     'data.thinCaption':
-        'Taban cizgiler onceki 14 gecenin ortalamasindan kuruluyor. O sayiya '
-            'ulasana kadar z-skorlari sifira yakin kalir. Bekleyerek duzelir.',
-    'data.summary': 'Ozet',
-    'data.requested': 'Istenen aralik',
-    'data.requestedSub': 'Uygulamanin geriye dogru sordugu gun sayisi',
-    'data.range': 'Gelen kaydin tarih araligi',
-    'data.noRange': 'Hic kayit gelmedi',
+        'Taban çizgiler önceki 14 gecenin ortalamasından kuruluyor. O sayıya '
+            'ulaşana kadar z-skorları sıfıra yakın kalır. Bekleyerek düzelir.',
+    'settings.title': 'Ayarlar',
+    'settings.about': 'Hakkında',
+    'settings.dataTabSub':
+        'Health Connect\'ten gerçekte ne geldiğini görmek için Veri sekmesine bak: '
+        'hangi ölçüm kaç kayıt getirmiş, hangisi boş, orada yazıyor.',
+    'settings.appearance': 'Görünüm',
+    'settings.themeSystem': 'Sistem',
+    'settings.themeLight': 'Açık',
+    'settings.themeDark': 'Koyu',
+    'settings.themeSub':
+        'Sistem seçiliyse telefonun gece modu izlenir. Seçim kaydedilir.',
+    'data.summary': 'Özet',
+    'data.timedOut':
+        'Şu tipler zamanında yanıt vermedi ve beklemeyi kestik: {list}. '
+            'Health Connect bazen tek bir tipte takılıyor; yeniden okumayı dene.',
+    'data.version': 'Uygulama sürümü',
+    'data.versionSub': 'Telefonda çalışan yapı',
+    'data.requested': 'İstenen aralık',
+    'data.requestedSub': 'Uygulamanın geriye doğru sorduğu gün sayısı',
+    'data.range': 'Gelen kaydın tarih aralığı',
+    'data.noRange': 'Hiç kayıt gelmedi',
     'data.hrvNights': 'HRV olan gece',
-    'data.hrvNightsSub': 'Hazirlik skorunda agirligi %40',
-    'data.rhrDays': 'Dinlenme nabzi olan gun',
-    'data.rhrDaysSub': 'Agirligi %25',
-    'data.rhrDerivedSub': '{n} gunu gece nabiz serisinden turetildi',
+    'data.hrvNightsSub': 'Hazırlık skorunda ağırlığı %40',
+    'data.rhrDays': 'Dinlenme nabzı olan gün',
+    'data.rhrDaysSub': 'Ağırlığı %25',
+    'data.rhrDerivedSub': '{n} günü gece nabız serisinden türetildi',
     'data.capabilities': 'Hesaplanabilen metrikler',
-    'data.capReadiness': 'Hazirlik skoru',
-    'data.capReadinessSub': 'Gelen girdilerin agirliklari yeniden dagitilir',
+    'data.capReadiness': 'Hazırlık skoru',
+    'data.capReadinessSub': 'Gelen girdilerin ağırlıkları yeniden dağıtılır',
     'data.capSleep': 'Uyku skoru ve borcu',
-    'data.capSleepSub': 'Yalnizca uyku evrelerine bagli',
-    'data.capLoad': 'Gunluk yuk ve ACWR',
-    'data.capLoadSub': 'Nabiz bolgeleri ve adimdan',
-    'data.capIllness': 'Hastalik erken uyarisi',
-    'data.capIllnessSub': 'Solunum hizi ve cilt sicakligi gerekiyor',
+    'data.capSleepSub': 'Yalnızca uyku evrelerine bağlı',
+    'data.capLoad': 'Günlük yük ve ACWR',
+    'data.capLoadSub': 'Nabız bölgeleri ve adımdan',
+    'data.capIllness': 'Hastalık erken uyarısı',
+    'data.capIllnessSub': 'Solunum hızı ve cilt sıcaklığı gerekiyor',
     'data.capSpo2': 'Gece SpO2 takibi',
-    'data.capSpo2Sub': 'Kandaki oksijen kaydi gerekiyor',
-    'data.byType': 'Tip tip gelen kayit',
-    'data.usedInScores': 'Skorlarda dogrudan kullaniliyor',
+    'data.capSpo2Sub': 'Kandaki oksijen kaydı gerekiyor',
+    'data.byType': 'Tip tip gelen kayıt',
+    'data.usedInScores': 'Skorlarda doğrudan kullanılıyor',
     'data.derivedNote':
-        'Dinlenme nabzi kaydi gelmiyor ama gece nabiz serisi geliyor, bu yuzden deger '
-            'seriden turetiliyor: gecenin en dusuk 30 dakikalik kararli ortalamasi. '
-            'Cihazin yazdigi degerden biraz farkli cikabilir, ama kendi icinde tutarli '
-            'oldugu icin taban cizgi ve z-skoru dogru calisir.',
+        'Dinlenme nabzı kaydı gelmiyor ama gece nabız serisi geliyor, bu yüzden değer '
+            'seriden türetiliyor: gecenin en düşük 30 dakikalık kararlı ortalaması. '
+            'Cihazın yazdığı değerden biraz farklı çıkabilir, ama kendi içinde tutarlı '
+            'olduğu için taban çizgi ve z-skoru doğru çalışır.',
     'data.missingNote':
-        'Sifir gorunen tipler icin sirasiyla sunlara bak: Google Health uygulamasinda '
-            'cihaz bagli mi; Health Connect ekraninda Google Health bu tipi yazmaya '
+        'Sıfır görünen tipler için sırasıyla şunlara bak: Google Health uygulamasında '
+            'cihaz bağlı mı; Health Connect ekranında Google Health bu tipi yazmaya '
             'yetkili mi; bu uygulama o tipi okumaya yetkili mi.',
     'data.privacyNote':
-        'Butun okuma cihazda yapiliyor. Hicbir veri disari cikmiyor; bu ekran da '
-            'yalnizca telefonun kendi Health Connect deposundan ne geldigini gosteriyor.',
-    'data.export': 'Veriyi disa aktar',
-    'data.exportFailed': 'Disa aktarilamadi',
-    'data.exportSubject': 'Kerteriz veri disa aktarimi',
+        'Bütün okuma cihazda yapılıyor. Hiçbir veri dışarı çıkmıyor; bu ekran da '
+            'yalnızca telefonun kendi Health Connect deposundan ne geldiğini gösteriyor. '
+            'Uygulamanın yazdığı tek şey senin eklediğin su kaydı — o da yine '
+            'telefonun kendi deposuna yazılıyor.',
+    'data.export': 'Veriyi dışa aktar',
+    'data.exportFailed': 'Dışa aktarılamadı',
+    'data.exportSubject': 'Kerteriz veri dışa aktarımı',
 
     // veri tipleri
     'type.deepSleep': 'Derin uyku',
     'type.lightSleep': 'Hafif uyku',
     'type.remSleep': 'REM uykusu',
-    'type.awake': 'Uyanik donemler',
+    'type.awake': 'Uyanık dönemler',
     'type.sleepSession': 'Uyku oturumu',
-    'type.heartRate': 'Nabiz',
-    'type.restingHr': 'Dinlenme nabzi',
+    'type.heartRate': 'Nabız',
+    'type.restingHr': 'Dinlenme nabzı',
     'type.hrv': 'HRV (RMSSD)',
-    'type.respiratory': 'Solunum hizi',
+    'type.respiratory': 'Solunum hızı',
     'type.spo2': 'Kandaki oksijen',
-    'type.skinTemp': 'Cilt sicakligi',
-    'type.steps': 'Adim',
+    'type.skinTemp': 'Cilt sıcaklığı',
+    'type.steps': 'Adım',
+    'type.water': 'Su',
 
     // yasal
     'legal.disclaimer':
-        'Bu uygulama teshis koymaz ve tibbi tavsiye vermez. Kendi verini kendi taban '
-            'cizgine gore gosterir. Saglikla ilgili kararlar icin bir hekime danis.',
+        'Bu uygulama teşhis koymaz ve tıbbi tavsiye vermez. Kendi verini kendi taban '
+            'çizgine göre gösterir. Sağlıkla ilgili kararlar için bir hekime danış.',
   };
 
   // ---------------------------------------------------------------
@@ -311,6 +363,7 @@ class S {
     'unit.record': ' records',
     'unit.perMin': '/min',
     'unit.z': ' z',
+    'unit.ml': ' ml',
     'common.retry': 'Read again',
     'common.yes': 'yes',
     'common.no': 'no',
@@ -358,6 +411,20 @@ class S {
     'state.noPermission': 'Health Connect permissions were not granted.',
     'state.readError': 'Could not read data',
     'state.noSleep': 'No sleep record found for last night.',
+    'crash.eyebrow': 'Diagnostics',
+    'crash.title': 'The last start did not finish',
+    'crash.body':
+        'The app closed during its previous start. This time it opened without '
+            'touching Health Connect so you can see where it stopped. The last '
+            'line below is the step it reached before closing.',
+    'crash.copy': 'Copy',
+    'crash.share': 'Share',
+    'crash.copied': 'Trace copied to the clipboard',
+    'crash.retry': 'Read anyway',
+    'state.noScores':
+        'The days coming from Health Connect carry no sleep or heart rate records '
+            'yet. Readiness, sleep and load are computed from those two, so no '
+            'numbers are shown here. The Data tab shows what is arriving.',
 
     'today.title': 'Today',
     'today.today': 'today',
@@ -393,6 +460,21 @@ class S {
     'today.overload':
         'Load is accumulating. Acute-to-chronic ratio is {acwr} and HRV has been below '
             'baseline for three days.',
+
+    // hydration
+    'today.water': 'Hydration',
+    'today.waterGoal': 'Goal {goal} ml — added from the home screen widget',
+    'today.waterNote':
+        'Hydration carries no weight in the readiness score. The effect is real but '
+            'not sharp enough to justify a coefficient; what you see below is a '
+            'comparison computed from your own data instead.',
+    'today.waterLink':
+        'Readiness averages {at} the day after the {atDays} days you hit the goal, '
+            'and {below} the day after the {belowDays} days you fell short. '
+            'The gap is {delta} points.',
+    'today.waterLinkNone':
+        'The comparison needs at least four days on each side of the goal. '
+            'This line fills in as hydration records accumulate.',
 
     'sleep.title': 'Sleep',
     'sleep.lastNight': 'Last night',
@@ -441,6 +523,8 @@ class S {
     'load.chronicSub': 'Last 28 days, average',
     'load.ratio': 'Acute / chronic ratio',
     'load.ratioSub': '0.80–1.30 is the sustainable band',
+    'load.ratioWaiting':
+        'The 28-day chronic window is not full yet; the ratio would read too high',
     'load.last28': 'Last 28 days',
     'load.avg28': '28-day avg',
     'load.zones': 'Heart rate zones today',
@@ -461,6 +545,7 @@ class S {
         'Health Connect does not appear to write HRV on this device. Readiness was '
             'computed by redistributing the weights of the remaining inputs.',
     'heart.measured': 'Measured values',
+    'heart.noValue': 'No records arrive from this device',
     'heart.hrv': 'Heart rate variability',
     'heart.hrvSub': '{z} z against baseline',
     'heart.rhr': 'Resting heart rate',
@@ -482,7 +567,23 @@ class S {
     'data.thinCaption':
         'Baselines are built from the previous 14 nights. Until you reach that, '
             'z-scores stay near zero. Time fixes this.',
+    'settings.title': 'Settings',
+    'settings.about': 'About',
+    'settings.dataTabSub':
+        'To see what actually arrives from Health Connect, open the Data tab: '
+        'it lists how many records each metric returned and which ones are empty.',
+    'settings.appearance': 'Appearance',
+    'settings.themeSystem': 'System',
+    'settings.themeLight': 'Light',
+    'settings.themeDark': 'Dark',
+    'settings.themeSub':
+        'On system, the phone dark mode is followed. The choice is saved.',
     'data.summary': 'Summary',
+    'data.timedOut':
+        'These types did not answer in time and the read was cut short: {list}. '
+            'Health Connect sometimes stalls on a single type; try reloading.',
+    'data.version': 'App version',
+    'data.versionSub': 'The build running on this phone',
     'data.requested': 'Requested window',
     'data.requestedSub': 'How many days back the app asks for',
     'data.range': 'Date range of what arrived',
@@ -516,7 +617,9 @@ class S {
             'is this app allowed to read it.',
     'data.privacyNote':
         'All reading happens on the device. No data leaves it; this screen only shows '
-            'what came from the phone\'s own Health Connect store.',
+            'what came from the phone\'s own Health Connect store. The only thing the '
+            'app writes is the water you log yourself, and that goes back into the '
+            'phone\'s own store.',
     'data.export': 'Export data',
     'data.exportFailed': 'Export failed',
     'data.exportSubject': 'Kerteriz data export',
@@ -533,6 +636,7 @@ class S {
     'type.spo2': 'Blood oxygen',
     'type.skinTemp': 'Skin temperature',
     'type.steps': 'Steps',
+    'type.water': 'Water',
 
     'legal.disclaimer':
         'This app does not diagnose and does not give medical advice. It shows your own '

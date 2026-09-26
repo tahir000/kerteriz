@@ -2,7 +2,60 @@ import 'package:flutter/material.dart';
 
 import '../../l10n.dart';
 import '../../theme.dart';
+import '../ayarlar_ekrani.dart';
 import 'gauge.dart';
+
+/// Gri zemin üstünde duran beyaz kart. MagicOS'un baskın yüzey birimi.
+class Kart extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets padding;
+  final EdgeInsets margin;
+
+  const Kart({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.fromLTRB(16, 15, 16, 15),
+    this.margin = const EdgeInsets.fromLTRB(K.gutter, 4, K.gutter, 4),
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+        margin: margin,
+        padding: padding,
+        decoration: K.kartDekor,
+        child: child,
+      );
+}
+
+/// Dokunulduğunda hafifçe küçülen sarmalayıcı. Dalga efekti yerine ölçek
+/// kullanıyoruz: beyaz kartta dalga kirli görünüyor, ölçek temiz.
+class Basilabilir extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+  const Basilabilir({super.key, required this.child, required this.onTap});
+
+  @override
+  State<Basilabilir> createState() => _BasilabilirState();
+}
+
+class _BasilabilirState extends State<Basilabilir> {
+  bool _basili = false;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _basili = true),
+        onTapCancel: () => setState(() => _basili = false),
+        onTapUp: (_) => setState(() => _basili = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _basili ? 0.975 : 1,
+          duration: const Duration(milliseconds: 110),
+          curve: Curves.easeOut,
+          child: widget.child,
+        ),
+      );
+}
 
 class Eyebrow extends StatelessWidget {
   final String text;
@@ -15,14 +68,29 @@ class Eyebrow extends StatelessWidget {
 class ScreenHead extends StatelessWidget {
   final String eyebrow;
   final String title;
-  const ScreenHead(this.eyebrow, this.title, {super.key});
+
+  /// Başlığın sağındaki ayar düğmesi. Ayarlar ekranının kendi başlığında
+  /// kapatılıyor: oradan yine ayarlara gitmenin anlamı yok.
+  final bool ayarlar;
+
+  const ScreenHead(this.eyebrow, this.title, {super.key, this.ayarlar = true});
+
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(K.gutter, 26, K.gutter, 16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Eyebrow(eyebrow),
-          const SizedBox(height: 5),
-          Text(title, style: K.title),
+        padding: const EdgeInsets.fromLTRB(K.gutter, 24, K.gutter, 14),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Eyebrow(eyebrow),
+              const SizedBox(height: 5),
+              Text(title, style: K.title),
+            ]),
+          ),
+          if (ayarlar) ...[
+            const SizedBox(width: 10),
+            const AyarDugmesi(),
+          ],
         ]),
       );
 }
@@ -32,7 +100,8 @@ class SectionLabel extends StatelessWidget {
   const SectionLabel(this.text, {super.key});
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(K.gutter, K.sectionGap, K.gutter, 10),
+        padding:
+            const EdgeInsets.fromLTRB(K.gutter + 4, K.sectionGap, K.gutter, 8),
         child: Eyebrow(text),
       );
 }
@@ -44,9 +113,9 @@ class StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.only(right: 7),
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
         decoration: BoxDecoration(
-            color: level.tint, borderRadius: BorderRadius.circular(5)),
+            color: level.tint, borderRadius: BorderRadius.circular(K.kapsul)),
         child: Text(text.toUpperCase(),
             style: TextStyle(
                 fontSize: 10.5,
@@ -56,10 +125,10 @@ class StatusChip extends StatelessWidget {
       );
 }
 
-/// Uc bolgeli olcek: kirmizi / turuncu / yesil zemin, siyah igne.
+/// Üç bölgeli ölçek: kırmızı / turuncu / yeşil zemin, siyah iğne.
 class ZoneMeter extends StatelessWidget {
   final double value, min, max;
-  final List<MapEntry<double, Level>> zones; // ust sinir -> seviye
+  final List<MapEntry<double, Level>> zones; // üst sınır -> seviye
   final String leftLabel, rightLabel;
 
   const ZoneMeter({
@@ -98,6 +167,24 @@ class ZoneMeter extends StatelessWidget {
         rightLabel: '100',
       );
 
+  /// Su ölçeği: 0 -> hedefin 1.4 katı. Hedefin %70'i altı kırmızı.
+  factory ZoneMeter.water(double v, double goal) {
+    // Hedef sıfır ya da negatif girilirse ölçek NaN üretir; güvenli tabana çek.
+    final g = goal > 0 ? goal : 1.0;
+    return ZoneMeter(
+      value: v,
+      min: 0,
+      max: g * 1.4,
+      zones: [
+        MapEntry(g * 0.7, Level.bad),
+        MapEntry(g, Level.warn),
+        MapEntry(g * 1.4, Level.good),
+      ],
+      leftLabel: '0',
+      rightLabel: '${(g * 1.4).round()} ml',
+    );
+  }
+
   factory ZoneMeter.acwr(double v) => ZoneMeter(
         value: v,
         min: 0.4,
@@ -120,6 +207,9 @@ class ZoneMeter extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         LayoutBuilder(builder: (context, c) {
           final w = c.maxWidth;
+          // num.clamp alt sinir ust siniri gecerse hata firlatir; olcek
+          // cizilemeyecek kadar darsa hic cizme.
+          if (w < 3) return const SizedBox(height: 13);
           double p(double x) => ((x - min) / (max - min)).clamp(0.0, 1.0) * w;
           final bars = <Widget>[];
           var prev = min;
@@ -142,7 +232,7 @@ class ZoneMeter extends StatelessWidget {
                 right: 0,
                 top: 4,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
+                  borderRadius: BorderRadius.circular(K.kapsul),
                   child: SizedBox(
                       height: 5,
                       child: Stack(children: [
@@ -160,7 +250,9 @@ class ZoneMeter extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: K.ink,
                       borderRadius: BorderRadius.circular(2),
-                      border: Border.all(color: Colors.white, width: 1.2)),
+                      // Çerçeve kart zemininde: iki temada da işaretçiyi
+                      // altındaki bantlardan ayırıyor.
+                      border: Border.all(color: K.card, width: 1.2)),
                 ),
               ),
             ]),
@@ -207,14 +299,14 @@ class MetricRow extends StatelessWidget {
       sub.add(StatusChip(level!, levelText!));
     }
     if (subtitle != null) {
-      // Wrap icinde Flexible kullanilamaz; Wrap zaten genisligi kisitliyor.
+      // Wrap içinde Flexible kullanılamaz; Wrap zaten genişliği kısıtlıyor.
       sub.add(Text(subtitle!, style: K.rowSub));
     }
 
     final content = Container(
-      padding: const EdgeInsets.symmetric(horizontal: K.gutter, vertical: 14),
-      decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: K.line2, width: 1))),
+      margin: const EdgeInsets.fromLTRB(K.gutter, 3, K.gutter, 3),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: K.kartDekor,
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -244,21 +336,21 @@ class MetricRow extends StatelessWidget {
                   if (unit != null)
                     TextSpan(
                         text: unit,
-                        style: const TextStyle(fontSize: 12, color: K.ink3)),
+                        style: TextStyle(fontSize: 12, color: K.ink3)),
                 ],
               ),
             ),
           ),
         if (onTap != null)
-          const Padding(
-            padding: EdgeInsets.only(left: 8),
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
             child: Icon(Icons.chevron_right, size: 18, color: K.ink3),
           ),
       ]),
     );
 
     if (onTap == null) return content;
-    return InkWell(onTap: onTap, child: content);
+    return Basilabilir(onTap: onTap!, child: content);
   }
 }
 
@@ -267,11 +359,23 @@ class NoteBlock extends StatelessWidget {
   const NoteBlock(this.text, {super.key});
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.fromLTRB(K.gutter, 18, K.gutter, 0),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        margin: const EdgeInsets.fromLTRB(K.gutter, 10, K.gutter, 4),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(
-            color: K.fill, borderRadius: BorderRadius.circular(14)),
-        child: Text(text, style: K.note),
+          color: K.card,
+          borderRadius: BorderRadius.circular(K.rKart),
+          boxShadow: K.golge,
+        ),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(
+            width: 3,
+            height: 34,
+            margin: const EdgeInsets.only(right: 12, top: 2),
+            decoration: BoxDecoration(
+                color: K.line, borderRadius: BorderRadius.circular(K.rIc)),
+          ),
+          Expanded(child: Text(text, style: K.note)),
+        ]),
       );
 }
 
@@ -281,7 +385,7 @@ class LevelScale extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = S.of(context);
     return Padding(
-        padding: const EdgeInsets.fromLTRB(K.gutter, 12, K.gutter, 0),
+        padding: const EdgeInsets.fromLTRB(K.gutter + 4, 10, K.gutter, 0),
         child: Wrap(spacing: 14, runSpacing: 6, children: [
           for (final e in [
             MapEntry(Level.good, s.t('lvl.good')),
@@ -293,10 +397,92 @@ class LevelScale extends StatelessWidget {
                   width: 9,
                   height: 9,
                   decoration: BoxDecoration(
-                      color: e.key.mark, borderRadius: BorderRadius.circular(2))),
+                      color: e.key.mark,
+                      borderRadius: BorderRadius.circular(K.kapsul))),
               const SizedBox(width: 5),
-              Text(e.value, style: const TextStyle(fontSize: 11, color: K.ink2)),
+              Text(e.value, style: TextStyle(fontSize: 11, color: K.ink2)),
             ]),
         ]));
+  }
+}
+
+/// Bölmeli seçici: kapsül bir hattın içinde kayan bir gösterge.
+///
+/// Seçenek sayısı azken (iki ya da üç) açılır menüden daha okunur:
+/// bütün seçenekler aynı anda görünüyor, seçili olan da hareketle
+/// belli oluyor. Gösterge [AnimatedAlign] ile kayıyor.
+class SegmentliSecici extends StatelessWidget {
+  final List<String> etiketler;
+  final int secili;
+  final ValueChanged<int> onChanged;
+
+  const SegmentliSecici({
+    super.key,
+    required this.etiketler,
+    required this.secili,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final n = etiketler.length;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(K.gutter, 4, K.gutter, 4),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: K.fill,
+        borderRadius: BorderRadius.circular(K.rDugme),
+      ),
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final w = (c.maxWidth) / n;
+          return SizedBox(
+            height: 38,
+            child: Stack(children: [
+              // Kayan gösterge. Hizalama -1..1 aralığında olduğu için
+              // bölme ortalarını o aralığa eşliyoruz.
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
+                // Tek seçenek varsa bölme tam ortada; yoksa seçili bölmenin
+                // ortası -1..1 hizalama aralığına taşınıyor.
+                alignment: Alignment(
+                    n == 1 ? 0.0 : (secili / (n - 1)) * 2 - 1, 0),
+                child: Container(
+                  width: w,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: K.card,
+                    borderRadius: BorderRadius.circular(K.rDugme - 3),
+                    boxShadow: K.cubukGolge,
+                  ),
+                ),
+              ),
+              Row(children: [
+                for (var i = 0; i < n; i++)
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => onChanged(i),
+                      child: Center(
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 240),
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight:
+                                i == secili ? FontWeight.w600 : FontWeight.w500,
+                            color: i == secili ? K.ink : K.ink2,
+                          ),
+                          child: Text(etiketler[i]),
+                        ),
+                      ),
+                    ),
+                  ),
+              ]),
+            ]),
+          );
+        },
+      ),
+    );
   }
 }
