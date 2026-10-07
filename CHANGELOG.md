@@ -15,7 +15,7 @@
 - **Koyu tema:** telefon gece moduna geçince widget'lar da koyulaşıyor;
   renkler uygulamanın paletiyle aynı
 - **Damla dalgası:** su eklenince halkanın içinden merkeze yayılıp sönen iki
-  dalga, ardından düğmede birkaç saniye "✓ +250 ml". Başlatıcının kendi dokunma
+  yumuşak ışıltı (16 kare, ~0,9 sn, yavaşlayarak), ardından düğmede birkaç saniye "✓ +250 ml". Başlatıcının kendi dokunma
   dalgası her telefonda görünmediği için (Honor'da görünmüyor) efekt kare kare
   bizim tarafımızda çiziliyor; yalnızca dokunuşta çalışıyor. Su ve Bugün widget'ları
   aynı suyu gösteriyor, biri değişince öteki de tazeleniyor

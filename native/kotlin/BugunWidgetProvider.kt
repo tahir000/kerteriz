@@ -99,10 +99,10 @@ class BugunWidgetProvider : AppWidgetProvider() {
                     )
                 ),
                 izRenk = WidgetOrtak.renk(context, R.color.kerteriz_halka_iz),
-                boyutPx = WidgetOrtak.HALKA_PX,
+                boyutPx = if (dalga != null) SuAnimasyon.KARE_PX else WidgetOrtak.HALKA_PX,
                 // Dört halka ortada hazırlık yazısına yer bırakmalı: daha ince.
-                kalinlikPx = WidgetOrtak.HALKA_PX * 0.078f,
-                araPx = WidgetOrtak.HALKA_PX * 0.032f,
+                kalinlikPx = (if (dalga != null) SuAnimasyon.KARE_PX else WidgetOrtak.HALKA_PX) * 0.078f,
+                araPx = (if (dalga != null) SuAnimasyon.KARE_PX else WidgetOrtak.HALKA_PX) * 0.032f,
                 dalga = dalga
             )
 

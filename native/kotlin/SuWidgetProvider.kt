@@ -89,8 +89,8 @@ class SuWidgetProvider : AppWidgetProvider() {
                     HalkaCizer.Halka(oran, WidgetOrtak.renk(context, R.color.kerteriz_halka_su))
                 ),
                 izRenk = WidgetOrtak.renk(context, R.color.kerteriz_halka_iz),
-                boyutPx = WidgetOrtak.HALKA_PX,
-                kalinlikPx = WidgetOrtak.HALKA_PX * 0.105f,
+                boyutPx = if (dalga != null) SuAnimasyon.KARE_PX else WidgetOrtak.HALKA_PX,
+                kalinlikPx = (if (dalga != null) SuAnimasyon.KARE_PX else WidgetOrtak.HALKA_PX) * 0.105f,
                 araPx = 0f,
                 dalga = dalga
             )
@@ -211,23 +211,27 @@ class SuWidgetProvider : AppWidgetProvider() {
  * gönderiliyor. Yalnızca dokunuşta çalışıyor, pil açısından önemsiz.
  */
 object SuAnimasyon {
-    private val KARELER = floatArrayOf(0.12f, 0.3f, 0.48f, 0.66f, 0.84f, 1.05f, 1.3f)
-    private const val KARE_MS = 110L
+    private const val KARE = 16
+    private const val KARE_MS = 55L
+
+    /** Animasyon karelerinin bitmap kenarı: aktarım yetişsin diye küçük. */
+    const val KARE_PX = 200
 
     suspend fun oynat(context: Context, ml: Int) {
         val toplam = SuKaydedici.bugunkuToplam(context)
         val bugunVar = BugunWidgetProvider.idler(context).isNotEmpty()
         val ozet = if (bugunVar) OzetOkuyucu.oku(context) else null
 
-        for (p in KARELER) {
+        for (i in 1..KARE) {
+            val p = i / KARE.toFloat()
             SuWidgetProvider.cizHepsi(context, toplam, ml, p)
             if (ozet != null) BugunWidgetProvider.cizHepsi(context, ozet, toplam, ml, p)
             delay(KARE_MS)
         }
-        // Onay biraz daha kalsın, sonra normale dön.
+        // Son kare tam kalitede ve dalgasız; onay biraz daha kalsın.
         SuWidgetProvider.cizHepsi(context, toplam, ml, null)
         if (ozet != null) BugunWidgetProvider.cizHepsi(context, ozet, toplam, ml, null)
-        delay(SuWidgetProvider.ONAY_MS - KARELER.size * KARE_MS)
+        delay((SuWidgetProvider.ONAY_MS - KARE * KARE_MS).coerceAtLeast(600L))
         SuWidgetProvider.cizHepsi(context, toplam, null, null)
         if (ozet != null) BugunWidgetProvider.cizHepsi(context, ozet, toplam, null, null)
     }
