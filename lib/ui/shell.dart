@@ -6,10 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:health/health.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../config.dart';
 import '../data/ayarlar.dart';
 import '../data/day_record.dart';
 import '../data/exporter.dart';
 import '../data/health_repository.dart';
+import '../data/onbellek.dart';
 import '../data/ozet_yazici.dart';
 import '../data/tani.dart';
 import '../l10n.dart';
@@ -50,6 +52,30 @@ class _ShellState extends State<Shell> {
   /// Ayar değişiminden sonra yeniden okumayı geciktiren sayaç.
   Timer? _ayarZaman;
 
+  /// Ekranda önbellekten gelen veri var ve arka planda tazeleme sürüyor.
+  /// Üstteki ince çizgi buna bakıyor.
+  bool _tazeleniyor = false;
+
+  /// Okuma nesli. Her yeni okuma bunu artırıyor; uçmakta olan eski bir
+  /// okuma sonucunu yazmadan önce neslini kontrol ediyor ve kendi neslini
+  /// geçmiş bulursa sessizce çekiliyor.
+  ///
+  /// Gerekçesi tek bir [HealthRepository] örneği olması: `load()` her
+  /// çağrıda kapsama alanlarını sıfırlayıp aynı haritalara yazıyor. İç içe
+  /// iki okuma hem o sayıları hem de önbelleği birbirine karıştırırdı.
+  int _nesil = 0;
+
+  /// Bir okuma uçuyor mu. Nesil sayacı sonucun yazılmasını engelliyor ama
+  /// iki `load()` çağrısının aynı anda aynı depo nesnesine yazmasını
+  /// engellemiyor; bu bayrak ikinci okumanın hiç başlamamasını sağlıyor.
+  /// Düşen istek kaybolmuyor: ayar değişiminin sayacı kendini erteliyor.
+  bool _okumaSuruyor = false;
+
+  /// Tazeleme sürerken Veri sekmesinden tam okuma istendiyse burada
+  /// bekliyor; tazeleme biter bitmez çalıştırılıyor. Yoksa düğmeye basmak
+  /// sessizce hiçbir şey yapmıyordu.
+  bool _bekleyenTam = false;
+
   @override
   void dispose() {
     Ayarlar.yenidenOku.removeListener(_ayarDegisti);
@@ -71,8 +97,8 @@ class _ShellState extends State<Shell> {
       if (!mounted) return;
       // Okuma sürüyorsa iptal etmek yerine erteliyoruz: ilk açılışta yaşını
       // düzelten biri, okuma bitince eski hrMax ile hesaplanmış sayılarla
-      // kalmamalı.
-      if (_loading) {
+      // kalmamalı. Arka plandaki tazeleme de okuma sayılıyor.
+      if (_loading || _tazeleniyor) {
         _ayarDegisti();
         return;
       }
@@ -107,6 +133,11 @@ class _ShellState extends State<Shell> {
     if (Tani.cokmeIzi != null) {
       _guvenliMod = true;
       _loading = false;
+      // Çökme ekranı açıldı: bu açılış başarılı sayılıyor. İzi burada
+      // kapatmazsak güvenli mod kendini besliyor (bu oturum da BITTI
+      // yazmadan bitiyor) ve üstelik gerçek çökme izinin üstüne bu
+      // oturumun üç satırı yazılıyordu.
+      unawaited(Tani.bitti());
     } else {
       _boot();
     }
@@ -186,11 +217,227 @@ class _ShellState extends State<Shell> {
     );
   }
 
-  Future<void> _boot() async {
+  /// Açılış.
+  ///
+  /// Hızlı yol: diskteki önbellek. Geçmiş günler bir daha değişmiyor, o
+  /// yüzden 90 günün tamamını her açılışta Health Connect'ten okumanın
+  /// anlamı yok. Önbellek varsa ekran anında geliyor, tazeleme arkada
+  /// yalnızca son birkaç günü okuyor.
+  ///
+  /// [tam] true ise önbellek atlanır ve 90 gün baştan okunur: Veri
+  /// sekmesindeki yeniden okuma düğmesi bunu yapıyor.
+  Future<void> _boot({bool tam = false}) async {
+    if (_okumaSuruyor) {
+      if (tam) _bekleyenTam = true;
+      return;
+    }
+    final nesil = ++_nesil;
+    if (!tam) {
+      final o = await Onbellek.oku();
+      // Dosya okuması asenkron bir boşluk: bu sırada başka bir açılış
+      // başlamış olabilir. Bayrak henüz kurulmadığı için tek koruma bu.
+      if (nesil != _nesil) return;
+      if (o != null && o.gunler.isNotEmpty) {
+        await Tani.iz('onbellek: ${o.gunler.length} gun, bosluk ${o.bosluk}');
+        MetricsEngine.run(o.gunler);
+        final withData =
+            o.gunler.where((d) => d.hasSleep || d.rhr != null).toList();
+        _repo.kapsamaYukle(
+          sayilar: o.sayilar,
+          ilk: o.ilkKayit,
+          son: o.sonKayit,
+          istenenGun: o.istenenGun,
+          zaman: o.tamOkuma,
+        );
+        if (!mounted) return;
+        setState(() {
+          _days = withData;
+          _allDays = o.gunler;
+          _loading = false;
+          _errorKey = null;
+          _errorDetail = null;
+          _tazeleniyor = true;
+        });
+        // Ekran geldi: açılış izi burada kapanıyor. Tazeleme arkada sürse de
+        // uygulama kullanılabilir durumda, güvenli mod tetiklenmemeli.
+        await Tani.bitti();
+        unawaited(_tazele(o, nesil));
+        return;
+      }
+    }
+    await _tamOkuma();
+  }
+
+  /// Önbellekten açıldıktan sonra arka planda çalışan tazeleme.
+  ///
+  /// Yalnızca boşluk kadar günü okuyor. Hata olursa sessizce bırakıyor:
+  /// ekranda zaten önbellekten gelen veri duruyor, onu silmek kullanıcıya
+  /// bir şey kazandırmaz.
+  Future<void> _tazele(OnbellekIcerik o, int nesil) async {
+    _okumaSuruyor = true;
+    try {
+      await _repo.configure().timeout(const Duration(seconds: 15));
+      final status =
+          await _repo.sdkStatus().timeout(const Duration(seconds: 15));
+      if (status != HealthConnectSdkStatus.sdkAvailable) return;
+
+      // İzin kalkmışsa sessiz kalmak tuzak olurdu: ekranda önbellekten
+      // gelen eski veri durur, kullanıcı da sebebini hiç öğrenemez.
+      // Normal okumaya düşüyoruz, o izni istiyor.
+      final izin = await _repo
+          .hasPermissions()
+          .timeout(const Duration(seconds: 20), onTimeout: () => false);
+      if (!izin) {
+        await Tani.iz('tazeleme: izin yok, tam okumaya dusuluyor');
+        await _tamOkuma();
+        return;
+      }
+
+      // Kapsama tablosu bayatladıysa tazeleme yetmez, hepsini oku.
+      if (o.tamOkumaGerek) {
+        await Tani.iz('onbellek bayat, tam okuma');
+        await _tamOkuma(sessiz: true);
+        return;
+      }
+
+      // Pencere: en az 3 gün (bileklik geç eşitleyebilir), uygulamayı uzun
+      // süre açmadıysan boşluk kadar.
+      var pencere = o.bosluk + 2;
+      if (pencere < 3) pencere = 3;
+      if (pencere > Config.historyDays) pencere = Config.historyDays;
+      await Tani.iz('tazeleme: $pencere gun');
+
+      final yeni =
+          await _repo.load(days: pencere).timeout(const Duration(seconds: 120));
+      if (nesil != _nesil) return; // araya yeni bir okuma girdi
+      // Okuma sağlam mı: bir tip zaman aşımına uğradıysa o pencerenin
+      // günleri boş iskelet olarak dönüyor. Onları önbellekteki dolu
+      // günlerin üstüne yazmak veriyi silmek olur.
+      final saglam = _repo.timedOut.isEmpty && _repo.rawCounts.isNotEmpty;
+      final sonKayit = _repo.lastPoint;
+      if (!saglam) {
+        await Tani.iz('tazeleme eksik dondu, onbellek korunuyor');
+        _repo.kapsamaYukle(
+          sayilar: o.sayilar,
+          ilk: o.ilkKayit,
+          son: o.sonKayit,
+          istenenGun: o.istenenGun,
+          zaman: o.tamOkuma,
+        );
+        return;
+      }
+
+      final birlesik = _birlestir(o.gunler, yeni);
+      MetricsEngine.run(birlesik);
+
+      // Kapsama tablosu son TAM okumadan geliyor: tazelemenin küçük
+      // pencereli sayılarını yazmak "90 günde 12 kayıt" demek olurdu.
+      _repo.kapsamaYukle(
+        sayilar: o.sayilar,
+        ilk: o.ilkKayit,
+        son: sonKayit ?? o.sonKayit,
+        istenenGun: o.istenenGun,
+        zaman: o.tamOkuma,
+      );
+
+      final withData =
+          birlesik.where((d) => d.hasSleep || d.rhr != null).toList();
+      try {
+        await OzetYazici.yaz(withData);
+      } catch (_) {}
+
+      if (nesil != _nesil) return;
+      await Onbellek.yaz(OnbellekIcerik(
+        gunler: birlesik,
+        sayilar: o.sayilar,
+        ilkKayit: o.ilkKayit,
+        sonKayit: sonKayit ?? o.sonKayit,
+        tamOkuma: o.tamOkuma,
+        istenenGun: o.istenenGun,
+      ));
+
+      if (!mounted || nesil != _nesil) return;
+      setState(() {
+        _days = withData;
+        _allDays = birlesik;
+      });
+      await Tani.iz('tazeleme bitti');
+    } catch (e) {
+      // Kapsama alanları küçük pencereli okumayla doldu; geri yüklenmezse
+      // Veri sekmesi 3 günün sayılarını 90 gün diye gösterir.
+      _repo.kapsamaYukle(
+        sayilar: o.sayilar,
+        ilk: o.ilkKayit,
+        son: o.sonKayit,
+        istenenGun: o.istenenGun,
+        zaman: o.tamOkuma,
+      );
+      await Tani.iz('TAZELEME HATASI: $e');
+    } finally {
+      _okumaSuruyor = false;
+      if (mounted) setState(() => _tazeleniyor = false);
+      if (_bekleyenTam) {
+        _bekleyenTam = false;
+        unawaited(_boot(tam: true));
+      }
+    }
+  }
+
+  /// Okuma başarısız oldu. Sessiz modda ekranda önbellekten gelen veri
+  /// duruyor: onu hata ekranıyla değiştirmek kullanıcıya bir şey kazandırmaz,
+  /// yalnızca ince çizgiyi kapatıyoruz.
+  void _hata(int nesil, bool sessiz, String anahtar, [String? ayrinti]) {
+    // Araya yeni bir okuma girdiyse ekran artık onun: eski okumanın hatası
+    // taze veriyi hata ekranıyla değiştirmemeli.
+    if (!mounted || nesil != _nesil) return;
     setState(() {
-      _loading = true;
-      _errorKey = null;
-      _errorDetail = null;
+      _tazeleniyor = false;
+      if (!sessiz) {
+        _loading = false;
+        _errorKey = anahtar;
+        _errorDetail = ayrinti;
+      }
+    });
+  }
+
+  /// Eski günlerin üstüne taze okunanları yazar.
+  ///
+  /// Taze liste pencere kadar günü kapsıyor ve o günlerin hepsi önbellektekini
+  /// geçersiz kılıyor. Pencere dışındaki günler olduğu gibi kalıyor; sonunda
+  /// liste [Config.historyDays] gün ile sınırlanıyor.
+  List<DayRecord> _birlestir(List<DayRecord> eski, List<DayRecord> yeni) {
+    String anahtar(DateTime d) =>
+        '${d.year}-${d.month.toString().padLeft(2, '0')}-'
+        '${d.day.toString().padLeft(2, '0')}';
+    final harita = {for (final d in eski) anahtar(d.date): d};
+    for (final d in yeni) {
+      harita[anahtar(d.date)] = d;
+    }
+    final bugun = DateTime.now();
+    final sinir = DateTime(bugun.year, bugun.month, bugun.day - Config.historyDays);
+    final liste = harita.values.where((d) => !d.date.isBefore(sinir)).toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    return liste;
+  }
+
+  /// Health Connect'ten 90 günün tamamını okuyan yol.
+  ///
+  /// [sessiz] true ise ekranda zaten önbellekten gelen veri var: yükleme
+  /// ekranına dönmüyoruz ve hata olursa ekranı bozmuyoruz.
+  Future<void> _tamOkuma({bool sessiz = false}) async {
+    final nesil = ++_nesil;
+    _okumaSuruyor = true;
+    if (!mounted) {
+      _okumaSuruyor = false;
+      return;
+    }
+    setState(() {
+      if (!sessiz) {
+        _loading = true;
+        _errorKey = null;
+        _errorDetail = null;
+      }
+      _tazeleniyor = sessiz;
     });
     try {
       // Platform çağrılarının hepsinde zaman aşımı var: biri yanıt vermezse
@@ -202,19 +449,13 @@ class _ShellState extends State<Shell> {
           await _repo.sdkStatus().timeout(const Duration(seconds: 15));
       await Tani.iz('sdkStatus = $status');
       if (status == HealthConnectSdkStatus.sdkUnavailable) {
-        setState(() {
-          _loading = false;
-          _errorKey = 'state.noSdk';
-        });
+        _hata(nesil, sessiz, 'state.noSdk');
         return;
       }
       if (status ==
           HealthConnectSdkStatus.sdkUnavailableProviderUpdateRequired) {
         await _repo.installHealthConnect();
-        setState(() {
-          _loading = false;
-          _errorKey = 'state.updateSdk';
-        });
+        _hata(nesil, sessiz, 'state.updateSdk');
         return;
       }
 
@@ -223,16 +464,14 @@ class _ShellState extends State<Shell> {
           .hasPermissions()
           .timeout(const Duration(seconds: 20), onTimeout: () => false);
       // İzin isteğine zaman aşımı koymuyoruz: ekranda kullanıcı bekliyor.
-      if (!ok) {
+      // Sessiz okumada hiç istemiyoruz: arka planda izin ekranı açmak kaba.
+      if (!ok && !sessiz) {
         await Tani.iz('izin istegi');
         ok = await _repo.requestPermissions();
       }
       await Tani.iz('izin = $ok');
       if (!ok) {
-        setState(() {
-          _loading = false;
-          _errorKey = 'state.noPermission';
-        });
+        _hata(nesil, sessiz, 'state.noPermission');
         return;
       }
 
@@ -249,7 +488,40 @@ class _ShellState extends State<Shell> {
         await OzetYazici.yaz(withData);
       } catch (_) {}
       await Tani.iz('ozet yazildi');
+
+      // Önbellek: bir sonraki açılış bu dosyadan gelecek. Hiç kayıt
+      // dönmediyse yazmıyoruz: `load()` hata yutup boş iskelet günlerle
+      // başarıyla dönebiliyor ve onu yazmak, kullanıcıyı bir sonraki tam
+      // okumaya kadar boş bir uygulamayla bırakmak olur.
+      //
+      // Zaman aşımına uğramış tipe takılmıyoruz: bazı cihazlarda bir tip
+      // her seferinde zaman aşımına uğruyor ve o yüzden önbelleği hiç
+      // yazmamak, hızlanmadan tamamen vazgeçmek demek olurdu.
+      final saglam = _repo.rawCounts.isNotEmpty;
+      if (nesil != _nesil) return;
+      if (saglam) {
+        await Onbellek.yaz(OnbellekIcerik(
+          gunler: days,
+          sayilar: _repo.kapsamaAdlari,
+          ilkKayit: _repo.firstPoint,
+          sonKayit: _repo.lastPoint,
+          tamOkuma: DateTime.now(),
+          istenenGun: _repo.requestedDays,
+        ));
+        await Tani.iz('onbellek yazildi');
+      } else {
+        await Tani.iz('okuma bos dondu, onbellek yazilmadi');
+      }
+
       final thin = withData.length < 3;
+      if (!mounted) return;
+      // Sessiz okuma boş döndü: ekranda önbellekten gelen dolu veri var,
+      // onu boş iskeletlerle değiştirmek kullanıcıyı sebepsiz yere boş
+      // ekrana düşürür. Disk önbelleği zaten yukarıda korundu.
+      if (!saglam && sessiz) {
+        setState(() => _tazeleniyor = false);
+        return;
+      }
       setState(() {
         // Uyku ya da nabız kaydı olmayan günlerle skor ekranı çizilmez.
         // Eskiden boş listede bütün günlere düşülüyordu ve hazırlık "0 düşük"
@@ -257,13 +529,15 @@ class _ShellState extends State<Shell> {
         _days = withData;
         _allDays = days;
         _loading = false;
+        _tazeleniyor = false;
         // Veri henüz azken skor ekranlarını açmak yanıltıcı olur;
-        // önce Health Connect'ten ne geldiğini göster.
-        if (thin) _tab = 4;
+        // önce Health Connect'ten ne geldiğini göster. Sessiz okumada
+        // sekmeyi değiştirmiyoruz: kullanıcı o sırada bir yere bakıyor.
+        if (thin && !sessiz) _tab = 4;
       });
       // PageView henüz kurulmadığı için doğrudan atlayamıyoruz; ilk
       // çerçeveden sonra sayfa da doğru yere gidiyor.
-      if (thin) {
+      if (thin && !sessiz) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _pc.hasClients) _pc.jumpToPage(4);
         });
@@ -271,11 +545,9 @@ class _ShellState extends State<Shell> {
       await Tani.bitti();
     } catch (e) {
       await Tani.iz('BOOT HATASI: $e');
-      setState(() {
-        _loading = false;
-        _errorKey = 'state.readError';
-        _errorDetail = '$e';
-      });
+      _hata(nesil, sessiz, 'state.readError', '$e');
+    } finally {
+      _okumaSuruyor = false;
     }
   }
 
@@ -383,7 +655,8 @@ class _ShellState extends State<Shell> {
         _skorYok(s),
         _skorYok(s),
         _skorYok(s),
-        CoverageScreen(repo: _repo, days: _allDays, onReload: _boot),
+        CoverageScreen(
+            repo: _repo, days: _allDays, onReload: () => _boot(tam: true)),
       ]);
     } else {
       body = _sayfalar([
@@ -393,7 +666,8 @@ class _ShellState extends State<Shell> {
         HeartScreen(_days),
         // Tanı ekranı filtrelenmemiş listeyi görmeli: uyku ya da nabız
         // olmayan bir günde solunum veya SpO2 gelmiş olabilir.
-        CoverageScreen(repo: _repo, days: _allDays, onReload: _boot),
+        CoverageScreen(
+            repo: _repo, days: _allDays, onReload: () => _boot(tam: true)),
       ]);
     }
 
@@ -451,6 +725,22 @@ class _ShellState extends State<Shell> {
               child: KeyedSubtree(key: ValueKey<String>(durum), child: body),
             ),
           ),
+          // Arka planda tazeleme sürerken üstte ince bir çizgi. Metin yok:
+          // ekranda zaten veri var, bu yalnızca "daha yenisi geliyor" demek.
+          if (_tazeleniyor)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SizedBox(
+                height: 2,
+                child: LinearProgressIndicator(
+                  minHeight: 2,
+                  backgroundColor: Colors.transparent,
+                  color: K.accent,
+                ),
+              ),
+            ),
           // Kaydırınca beliren kompakt üst çubuk: derinlik hissi ve bağlam.
           if (!_guvenliMod && !_loading && _errorKey == null)
             // Konumlandırılmamış bir Stack çocuğu gevşek kısıtla ölçülür ve

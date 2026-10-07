@@ -1,5 +1,13 @@
 # Değişiklik günlüğü
 
+## 0.9.0 — Ekim 2026
+
+- **Hızlı açılış:** okunan günler `kerteriz_onbellek.json` dosyasına yazılıyor.
+  Açılışta ekran önce bu dosyadan anında geliyor, arka planda yalnızca son
+  günler Health Connect'ten tazeleniyor. Hesabı etkileyen bir şey değişirse
+  (sürüm, yaş, pencere) önbellek reddediliyor; boş okuma önbelleğin üstüne
+  yazılmıyor
+
 ## 0.8.0 — Eylül 2026
 
 Yayına hazırlık sürümü. Kişisel sabitler koddan çıktı, kullanıcının seçimi

@@ -48,6 +48,17 @@ class CoverageScreen extends StatelessWidget {
 
   int _n(HealthDataType t) => repo.rawCounts[t] ?? 0;
 
+  /// Kısa tarih. Bugünse saat gösteriyor: "bugün okundu" ile "üç gün önce
+  /// okundu" arasındaki fark burada önemli.
+  static String _gun(DateTime d) {
+    final n = DateTime.now();
+    if (d.year == n.year && d.month == n.month && d.day == n.day) {
+      return '${d.hour.toString().padLeft(2, '0')}:'
+          '${d.minute.toString().padLeft(2, '0')}';
+    }
+    return '${d.day}.${d.month}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
@@ -123,6 +134,12 @@ class CoverageScreen extends StatelessWidget {
           subtitle: s.t('data.requestedSub'),
           value: '${repo.requestedDays}',
           unit: s.t('unit.day')),
+      MetricRow(
+          title: s.t('data.lastFullRead'),
+          subtitle: s.t('data.lastFullReadSub'),
+          value: repo.kapsamaZamani == null
+              ? s.t('common.none')
+              : _gun(repo.kapsamaZamani!)),
       MetricRow(
           title: s.t('data.range'),
           subtitle: range(),
@@ -204,7 +221,7 @@ class CoverageScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(K.rDugme))),
           onPressed: onReload,
-          child: Text(s.t('common.retry'),
+          child: Text(s.t('data.fullRead'),
               style: const TextStyle(fontWeight: FontWeight.w500)),
         ),
       ),

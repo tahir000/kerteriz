@@ -20,6 +20,15 @@ class Tani {
   static Directory? _dir;
   static bool _hazir = false;
 
+  /// İz kapandı mı. [bitti] çağrıldıktan sonra hiçbir şey yazılmıyor.
+  ///
+  /// Bu bayrak olmadan şöyle oluyordu: uygulama önbellekten açılıyor, iz
+  /// `BITTI` ile kapanıyor, sonra arka plandaki tazeleme ize yazmaya devam
+  /// ediyor ve dosyanın son satırı artık `BITTI` olmuyor. Bir sonraki
+  /// açılış bunu çökme sanıp güvenli moda düşüyordu; güvenli mod oturumunda
+  /// da `BITTI` yazılmadığı için uygulama bir daha normal açılmıyordu.
+  static bool _kapandi = false;
+
   /// Bir önceki çalışma yarıda kaldıysa onun izi; kalmadıysa null.
   static String? cokmeIzi;
 
@@ -42,6 +51,7 @@ class Tani {
         }
       }
       await a.writeAsString('');
+      _kapandi = false;
       _hazir = true;
     } catch (_) {
       _hazir = false;
@@ -51,7 +61,7 @@ class Tani {
   /// Bir adımı ize yazar. Hata verirse yutulur: tanılama hiçbir zaman
   /// uygulamanın önüne geçmemeli.
   static Future<void> iz(String adim) async {
-    if (!_hazir) return;
+    if (!_hazir || _kapandi) return;
     try {
       final d = await _klasor();
       final zaman = DateTime.now().toIso8601String().substring(11, 23);
@@ -60,8 +70,12 @@ class Tani {
     } catch (_) {}
   }
 
-  /// Açılış başarıyla bittiğinde çağrılır; bundan sonra çökme sayılmaz.
-  static Future<void> bitti() => iz(bittiIsareti);
+  /// Açılış başarıyla bittiğinde çağrılır; bundan sonra çökme sayılmaz ve
+  /// ize başka hiçbir şey yazılmaz.
+  static Future<void> bitti() async {
+    await iz(bittiIsareti);
+    _kapandi = true;
+  }
 
   /// Çökme izini temizler (kullanıcı "anladım" dedikten sonra).
   static Future<void> temizle() async {

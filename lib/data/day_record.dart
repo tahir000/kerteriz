@@ -5,6 +5,8 @@ class HrSample {
   final double bpm;
   const HrSample(this.minute, this.bpm);
   Map<String, dynamic> toJson() => {'m': minute, 'v': bpm};
+  factory HrSample.fromJson(Map<String, dynamic> j) =>
+      HrSample((j['m'] as num).toInt(), (j['v'] as num).toDouble());
 }
 
 class SleepSegment {
@@ -18,6 +20,11 @@ class SleepSegment {
         'start': start.toIso8601String(),
         'end': end.toIso8601String(),
       };
+  factory SleepSegment.fromJson(Map<String, dynamic> j) => SleepSegment(
+        j['stage'] as String,
+        DateTime.parse(j['start'] as String),
+        DateTime.parse(j['end'] as String),
+      );
 }
 
 /// Bir "gün" = o sabah biten gece + o günün aktivitesi.
@@ -89,7 +96,13 @@ class DayRecord {
 
   String get label => DateFormat('d MMM', locale).format(date);
 
-  Map<String, dynamic> toJson() => {
+  /// [geceNabzi] false ise dakikalık gece nabız serisi yazılmaz.
+  ///
+  /// Önbellek bunu kullanıyor: seri gün başına ~700 örnek, 90 gün için
+  /// megabaytlara çıkıyor ve yalnızca kardiyak toparlanma ile türetilmiş
+  /// dinlenme nabzı için okunuyor. İkisi de zaten hesaplanıp kaydın içine
+  /// yazıldığı için eski günlerde seriyi saklamanın anlamı yok.
+  Map<String, dynamic> toJson({bool geceNabzi = true}) => {
         'date': DateFormat('yyyy-MM-dd').format(date),
         'bedStart': bedStart?.toIso8601String(),
         'wakeEnd': wakeEnd?.toIso8601String(),
@@ -111,7 +124,8 @@ class DayRecord {
         'hydrationMl': hydrationMl,
         'zoneMinutes': zoneMinutes,
         'segments': segments.map((s) => s.toJson()).toList(),
-        'nightHr': nightHr.map((s) => s.toJson()).toList(),
+        'nightHr':
+            geceNabzi ? nightHr.map((s) => s.toJson()).toList() : const [],
         'derived': {
           'hrvZ': hrvZ,
           'rhrZ': rhrZ,
@@ -132,4 +146,73 @@ class DayRecord {
           'nadirMinute': nadirMinute,
         },
       };
+
+  /// [toJson] çıktısından kaydı geri kurar. Önbellek için; türetilmiş
+  /// alanlar da geri yükleniyor çünkü motor onları yeniden hesaplarken
+  /// elindeki ham veriye bakıyor ve gece nabzı önbellekte tutulmuyor.
+  factory DayRecord.fromJson(Map<String, dynamic> j) {
+    double? say(String k) => (j[k] as num?)?.toDouble();
+    final d = DayRecord(DateTime.parse(j['date'] as String));
+    final bs = j['bedStart'], we = j['wakeEnd'];
+    d.bedStart = bs is String ? DateTime.parse(bs) : null;
+    d.wakeEnd = we is String ? DateTime.parse(we) : null;
+    d.timeInBed = (j['timeInBed'] as num?)?.toInt() ?? 0;
+    d.asleep = (j['asleep'] as num?)?.toInt() ?? 0;
+    d.deep = (j['deep'] as num?)?.toInt() ?? 0;
+    d.rem = (j['rem'] as num?)?.toInt() ?? 0;
+    d.light = (j['light'] as num?)?.toInt() ?? 0;
+    d.awakeMinutes = (j['awakeMinutes'] as num?)?.toInt() ?? 0;
+    d.awakenings = (j['awakenings'] as num?)?.toInt() ?? 0;
+    d.hrv = say('hrv');
+    d.rhr = say('rhr');
+    d.rhrDerived = j['rhrDerived'] == true;
+    d.respiratory = say('respiratory');
+    d.skinTempDelta = say('skinTempDelta');
+    d.spo2Avg = say('spo2Avg');
+    d.spo2Min = say('spo2Min');
+    d.steps = (j['steps'] as num?)?.toInt() ?? 0;
+    d.hydrationMl = (j['hydrationMl'] as num?)?.toInt() ?? 0;
+
+    final zm = j['zoneMinutes'];
+    if (zm is List && zm.length == 5) {
+      d.zoneMinutes = zm.map((e) => (e as num).toDouble()).toList();
+    }
+    final sg = j['segments'];
+    if (sg is List) {
+      d.segments = sg
+          .map((e) => SleepSegment.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    final nh = j['nightHr'];
+    if (nh is List) {
+      d.nightHr =
+          nh.map((e) => HrSample.fromJson(e as Map<String, dynamic>)).toList();
+    }
+
+    final t = j['derived'];
+    if (t is Map<String, dynamic>) {
+      double tur(String k) => (t[k] as num?)?.toDouble() ?? 0;
+      d.hrvZ = tur('hrvZ');
+      d.rhrZ = tur('rhrZ');
+      d.respZ = tur('respZ');
+      d.tempZ = tur('tempZ');
+      d.strain = tur('strain');
+      d.need = (t['need'] as num?)?.toInt() ?? 0;
+      d.sleepScore = (t['sleepScore'] as num?)?.toInt() ?? 0;
+      final sp = t['sleepParts'];
+      if (sp is Map) {
+        d.sleepParts = sp.map((k, v) => MapEntry('$k', (v as num).toDouble()));
+      }
+      d.readiness = (t['readiness'] as num?)?.toInt() ?? 0;
+      d.debtMinutes = (t['debtMinutes'] as num?)?.toInt() ?? 0;
+      d.acute = tur('acute');
+      d.chronic = tur('chronic');
+      d.acwr = (t['acwr'] as num?)?.toDouble() ?? 1;
+      d.acwrReady = t['acwrReady'] == true;
+      d.cardiac = (t['cardiac'] as num?)?.toInt() ?? 0;
+      d.nadirBpm = (t['nadirBpm'] as num?)?.toDouble();
+      d.nadirMinute = (t['nadirMinute'] as num?)?.toInt();
+    }
+    return d;
+  }
 }

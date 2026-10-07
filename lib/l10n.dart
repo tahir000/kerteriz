@@ -310,6 +310,11 @@ class S {
     'data.versionSub': 'Telefonda çalışan yapı',
     'data.requested': 'İstenen aralık',
     'data.requestedSub': 'Uygulamanın geriye doğru sorduğu gün sayısı',
+    'data.lastFullRead': 'Son tam okuma',
+    'data.lastFullReadSub':
+        'Aşağıdaki sayılar o okumadan geliyor. Açılışta yalnızca son birkaç '
+        'gün tazeleniyor, gerisi önbellekten okunuyor.',
+    'data.fullRead': '90 günü baştan oku',
     'data.range': 'Gelen kaydın tarih aralığı',
     'data.noRange': 'Hiç kayıt gelmedi',
     'data.hrvNights': 'HRV olan gece',
@@ -638,6 +643,11 @@ class S {
     'data.versionSub': 'The build running on this phone',
     'data.requested': 'Requested window',
     'data.requestedSub': 'How many days back the app asks for',
+    'data.lastFullRead': 'Last full read',
+    'data.lastFullReadSub':
+        'The counts below come from that read. On launch only the last few '
+        'days are refreshed; the rest is loaded from the cache.',
+    'data.fullRead': 'Read all 90 days again',
     'data.range': 'Date range of what arrived',
     'data.noRange': 'No records arrived',
     'data.hrvNights': 'Nights with HRV',

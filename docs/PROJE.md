@@ -166,10 +166,11 @@ Aynı dilimde aynı durumda (uyku/uyanık) olma yüzdesi, 30 gün üzerinden ort
 ```
 lib/
   config.dart                 motor sabitleri + tercih varsayılanları
-  l10n.dart                   iki dil (tr, en), 246 anahtar
+  l10n.dart                   iki dil (tr, en), 249 anahtar
   theme.dart                  iki palet (açık/koyu), tipografi, seviye eşikleri
   data/
     ayarlar.dart              tema, yaş, günlük hedefler (küçük JSON dosyası)
+    onbellek.dart             gün önbelleği: açılışta diskten, tazeleme arkada
     day_record.dart           gün modeli + JSON serileştirme
     health_repository.dart    Health Connect okuma, günlük toplama, kapsama takibi
     exporter.dart             90 günlük ham+türetilmiş veriyi JSON'a yazıp paylaşır
@@ -215,6 +216,18 @@ seçimler [Ayarlar] içinde, `kerteriz_ayarlar.json` dosyasında; hedefler ayrı
 `kerteriz_ozet.json` içindeki `hedefler` nesnesiyle Kotlin tarafına taşınıyor.
 Gömülü sabitler yedek olarak duruyor: uygulama hiç açılmadan widget eklenirse
 widget onlara düşüyor.
+
+**Açılış neden hızlı.** 90 günün tamamını her açılışta Health Connect'ten
+okumak dakikalar sürüyordu ve neredeyse tamamı boşa gidiyordu: altmış gün
+önceki bir gece bir daha değişmiyor. `onbellek.dart` okunan günleri diske
+yazıyor; açılışta önce o dosya okunuyor (ekran anında geliyor), sonra arka
+planda yalnızca boşluk kadar gün tazeleniyor. Taban çizgiler ve bütün
+türetilmiş ölçüler her açılışta tam listeden yeniden hesaplanıyor, yani
+önbellek yalnızca ham okumayı atlıyor, hesabı değil.
+
+Güvenilirliği iki şey sağlıyor: parmak izi (hesabı etkileyen bir şey
+değişirse önbellek reddediliyor) ve boş okumayı yazmama kuralı
+(`load()` hata yutup boş iskelet günlerle başarıyla dönebiliyor).
 
 **Önemli tasarım kararı:** günler "uyanılan takvim günü"ne yazılır. Sabah 18:00'dan
 önce biten uyku o güne, sonra bitenler ertesi güne. `HealthRepository._sleepDay()`.

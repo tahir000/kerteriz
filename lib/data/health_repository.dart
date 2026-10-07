@@ -25,6 +25,39 @@ class HealthRepository {
   DateTime? lastPoint;
   int requestedDays = 0;
 
+  /// Kapsama sayılarının ne zamanki **tam** okumadan geldiği. Önbellekten
+  /// gelen bir oturumda bu geçmiş bir tarih olur; Veri sekmesi onu yazıyor
+  /// ki tablo bayatken sayılara olduğundan fazla güvenilmesin.
+  DateTime? kapsamaZamani;
+
+  /// Önbellekten gelen kapsama bilgisini geri yükler.
+  ///
+  /// Tazeleme okuması yalnızca son birkaç günü kapsıyor; onun sayılarını
+  /// tabloya yazmak "90 günde 12 uyku kaydı var" demek olurdu. Bu yüzden
+  /// tablo son tam okumanın sayılarını gösteriyor.
+  void kapsamaYukle({
+    required Map<String, int> sayilar,
+    DateTime? ilk,
+    DateTime? son,
+    required int istenenGun,
+    required DateTime zaman,
+  }) {
+    final adlar = {for (final t in HealthDataType.values) t.name: t};
+    rawCounts = {};
+    sayilar.forEach((ad, adet) {
+      final t = adlar[ad];
+      if (t != null) rawCounts[t] = adet;
+    });
+    firstPoint = ilk;
+    lastPoint = son;
+    requestedDays = istenenGun;
+    kapsamaZamani = zaman;
+  }
+
+  /// Kapsama sayılarını ada göre verir: önbelleğe böyle yazılıyor.
+  Map<String, int> get kapsamaAdlari =>
+      {for (final e in rawCounts.entries) e.key.name: e.value};
+
   /// Okumak istediğimiz tipler. Cihaz ya da Google Health bir tipi
   /// yazmıyorsa o tip boş döner; uygulama eksik tiple de çalışır.
   static const List<HealthDataType> types = [
@@ -150,6 +183,7 @@ class HealthRepository {
     rawCounts = {};
     firstPoint = null;
     lastPoint = null;
+    kapsamaZamani = DateTime.now();
     for (final p in points) {
       rawCounts[p.type] = (rawCounts[p.type] ?? 0) + 1;
       if (firstPoint == null || p.dateFrom.isBefore(firstPoint!)) firstPoint = p.dateFrom;
