@@ -41,6 +41,10 @@ class DayRecord {
   int light = 0;
   int awakeMinutes = 0;
   int awakenings = 0;
+
+  /// Gece uykusu dışındaki bloklarda (şekerleme) uyunan dakika. Uyku
+  /// skoruna girmez, uyku borcunu azaltır.
+  int napMinutes = 0;
   List<SleepSegment> segments = [];
   List<HrSample> nightHr = [];
 
@@ -122,6 +126,7 @@ class DayRecord {
         'light': light,
         'awakeMinutes': awakeMinutes,
         'awakenings': awakenings,
+        'napMinutes': napMinutes,
         'hrv': hrv,
         'rhr': rhr,
         'rhrDerived': rhrDerived,
@@ -172,6 +177,7 @@ class DayRecord {
     d.light = (j['light'] as num?)?.toInt() ?? 0;
     d.awakeMinutes = (j['awakeMinutes'] as num?)?.toInt() ?? 0;
     d.awakenings = (j['awakenings'] as num?)?.toInt() ?? 0;
+    d.napMinutes = (j['napMinutes'] as num?)?.toInt() ?? 0;
     d.hrv = say('hrv');
     d.rhr = say('rhr');
     d.rhrDerived = j['rhrDerived'] == true;

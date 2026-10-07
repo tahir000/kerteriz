@@ -138,6 +138,41 @@ void main() {
       expect(days[14].debtMinutes, 0);
     });
 
+    test('verim bileşeni 0.85 altında 0, 0.98 üstünde 100', () {
+      final days = gunler(3, f: (date, i) => [
+            gun(date, asleep: 400, timeInBed: 480), // 0.83
+            gun(date, asleep: 490, timeInBed: 500), // 0.98
+            gun(date, asleep: 460, timeInBed: 500), // 0.92
+          ][i]);
+      MetricsEngine.run(days);
+      expect(days[0].sleepParts['Verim'], 0);
+      expect(days[1].sleepParts['Verim'], 100);
+      expect(days[2].sleepParts['Verim'], closeTo(100 * 0.07 / 0.13, 0.5));
+    });
+
+    test('zamanlama: 15 dk tolerans, 2 saatte 0', () {
+      expect(MetricsEngine.zamanlamaPuani(10), 100);
+      expect(MetricsEngine.zamanlamaPuani(120), 0);
+      expect(MetricsEngine.zamanlamaPuani(67.5), closeTo(50, 1e-9));
+    });
+
+    test('zamanlama referansı medyan: tek uç gece sonrakileri cezalandırmaz', () {
+      // 10 normal gece, bir gece 6 saat kaymış, sonra yine normal.
+      final days = gunler(14, f: (date, i) => gun(date, bedHour: i == 10 ? 17 : 23));
+      MetricsEngine.run(days);
+      expect(days[10].sleepParts['Zamanlama'], 0);
+      expect(days[11].sleepParts['Zamanlama'], 100);
+    });
+
+    test('şekerleme uyku borcunu azaltır', () {
+      final days = gunler(2, f: (date, i) => gun(date, asleep: 300, timeInBed: 330));
+      days[1].napMinutes = 60;
+      MetricsEngine.run(days);
+      final acik0 = days[0].need - 300;
+      final acik1 = days[1].need - 300 - 60;
+      expect(days[1].debtMinutes, (acik0 * 0.93 + acik1).round());
+    });
+
     test('aynı saatte uyunan geceler için SRI 100', () {
       final days = gunler(10);
       MetricsEngine.run(days);
@@ -193,6 +228,22 @@ void main() {
   group('sinyaller', () {
     test('solunum ve sıcaklık yokken eski hastalık sinyali tetiklenmez', () {
       final days = gunler(20, f: (date, i) => gun(date, rhr: i > 16 ? 70 : 55));
+      MetricsEngine.run(days);
+      expect(MetricsEngine.illnessSignal(days), isFalse);
+    });
+
+    test('sıcaklık yokken solunum + nabız ikilisi hastalık sinyali verir', () {
+      final days = gunler(20, f: (date, i) {
+        final g = gun(date, rhr: i > 17 ? 66 : 55 + (i % 3) * 1.0);
+        g.respiratory = i > 17 ? 19 : 15 + (i % 3) * 0.2;
+        return g;
+      });
+      MetricsEngine.run(days);
+      expect(MetricsEngine.illnessSignal(days), isTrue);
+      // Yalnızca nabız yükselmişse tetiklenmez.
+      for (final d in days) {
+        d.respiratory = 15 + (days.indexOf(d) % 3) * 0.2;
+      }
       MetricsEngine.run(days);
       expect(MetricsEngine.illnessSignal(days), isFalse);
     });

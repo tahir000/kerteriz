@@ -30,6 +30,8 @@ void main() {
       // Bu haftanın bir gecesi belirgin daha iyi.
       days[10].deep = 130;
       days[10].rem = 140;
+      days[10].awakenings = 0;
+      days[10].awakeMinutes = 0;
       MetricsEngine.run(days);
       final w = Insights.weekly(days)!;
       expect(w.asleepMinutes, 480);

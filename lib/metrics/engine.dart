@@ -66,6 +66,36 @@ class MetricsEngine {
     return (clamp((x - mean(prev)) / s, -3.5, 3.5), prev.length);
   }
 
+  static double median(List<double> a) {
+    if (a.isEmpty) return 0;
+    final s = [...a]..sort();
+    final n = s.length;
+    return n.isOdd ? s[n ~/ 2] : (s[n ~/ 2 - 1] + s[n ~/ 2]) / 2;
+  }
+
+  // ---- uyku skoru eşikleri (0.11.0'da gerçek veriyle ayarlandı) ----
+
+  /// Verim bileşeni bu oranda 0, [verimUst]'te 100. Eskiden 0.78..0.95
+  /// idi; bileklik verimi yüksek ölçtüğü için gecelerin yarısından fazlası
+  /// 100 alıyor, bileşen %20 ağırlığına rağmen bilgi taşımıyordu. 0.85
+  /// klinikte "iyi uyku verimi" için kullanılan alt sınır.
+  static const double verimAlt = 0.85;
+  static const double verimUst = 0.98;
+
+  /// Zamanlama: orta noktanın son 21 gecenin medyanından sapması.
+  /// [zamanlamaTolerans] dakikaya kadar tam puan, [zamanlamaSifir]
+  /// dakikada 0. Eskiden her dakika 1.05 puandı (95 dk = 0) ve referans
+  /// ortalamaydı; tek bir uç gece ortalamayı kaydırıp sonraki üç haftayı
+  /// cezalandırıyordu. İki saatlik kayma "sosyal jet lag" literatüründe
+  /// belirgin bozulma eşiği.
+  static const double zamanlamaTolerans = 15;
+  static const double zamanlamaSifir = 120;
+
+  static double zamanlamaPuani(double sapmaDk) => clamp(
+      100 * (zamanlamaSifir - sapmaDk) / (zamanlamaSifir - zamanlamaTolerans),
+      0,
+      100);
+
   /// Gece nabız serisinin başlangıç değeri: ilk [kova] örneğin medyanı.
   static double baslangicNabzi(List<HrSample> seri, {int kova = 3}) {
     if (seri.isEmpty) return 0;
@@ -128,7 +158,8 @@ class MetricsEngine {
       if (d.hasSleep) {
         final cSure = clamp(d.asleep / d.need, 0, 1) * 100;
         final eff = d.timeInBed == 0 ? 0.0 : d.asleep / d.timeInBed;
-        final cVerim = clamp((eff - 0.78) / 0.17, 0, 1) * 100;
+        final cVerim =
+            clamp((eff - verimAlt) / (verimUst - verimAlt), 0, 1) * 100;
         final restorative = d.asleep == 0 ? 0.0 : (d.deep + d.rem) / d.asleep;
         final cOnarim = clamp(restorative / 0.42, 0, 1) * 100;
         final cKesinti =
@@ -142,7 +173,7 @@ class MetricsEngine {
         final mid = d.sleepMidpoint;
         final cZaman = (mid == null || mids.isEmpty)
             ? 100.0
-            : clamp(100 - (mid - mean(mids)).abs() * 1.05, 0, 100);
+            : zamanlamaPuani((mid - median(mids)).abs());
 
         d.sleepParts = {
           'Sure': cSure,
@@ -223,7 +254,8 @@ class MetricsEngine {
     for (var i = 0; i < days.length; i++) {
       var debt = 0.0;
       for (var j = math.max(0, i - 13); j <= i; j++) {
-        final gap = days[j].need - days[j].asleep;
+        // Şekerleme borcu öder; gecenin kalitesine (uyku skoru) girmez.
+        final gap = days[j].need - days[j].asleep - days[j].napMinutes;
         if (gap > 0 && days[j].hasSleep) {
           debt += gap * math.pow(0.93, i - j).toDouble();
         }
@@ -280,9 +312,18 @@ class MetricsEngine {
   }
 
   /// Hastalık erken uyarısı: solunum + cilt sıcaklığı + nabız birlikte yükselmiş mi.
+  ///
+  /// Cilt sıcaklığı hiç gelmiyorsa (Fitbit Air solunumu yazıyor, sıcaklığı
+  /// yazmıyor) solunum + nabız ikilisine bakılır. Yoksa sinyal hiçbir zaman
+  /// tetiklenemiyordu.
   static bool illnessSignal(List<DayRecord> days) {
     final w = days.length < 3 ? days : days.sublist(days.length - 3);
-    final hit = w.where((d) => d.respZ > 1.2 && d.tempZ > 1.0 && d.rhrZ > 0.8).length;
+    final sicaklikVar = w.any((d) => d.skinTempDelta != null);
+    final hit = w.where((d) {
+      if (d.respiratory == null || d.rhr == null) return false;
+      if (d.respZ <= 1.2 || d.rhrZ <= 0.8) return false;
+      return !sicaklikVar || d.tempZ > 1.0;
+    }).length;
     return hit >= 2;
   }
 

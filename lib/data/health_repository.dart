@@ -6,6 +6,7 @@ import 'package:health/health.dart';
 import '../config.dart';
 import 'ayarlar.dart';
 import 'day_record.dart';
+import 'uyku_bloklari.dart';
 import 'tani.dart';
 
 /// Health Connect'ten okuyup günlük kayıtlara çeviren katman.
@@ -229,32 +230,9 @@ class HealthRepository {
       }
     }
 
+    // Gece uykusu ile şekerlemeleri ayır (bkz. uyku_bloklari.dart).
     for (final rec in byDate.values) {
-      if (rec.segments.isEmpty) continue;
-      rec.segments.sort((a, b) => a.start.compareTo(b.start));
-      rec.bedStart = rec.segments.first.start;
-      rec.wakeEnd = rec.segments.last.end;
-      rec.timeInBed = rec.wakeEnd!.difference(rec.bedStart!).inMinutes;
-      for (final s in rec.segments) {
-        switch (s.stage) {
-          case 'deep':
-            rec.deep += s.minutes;
-            break;
-          case 'rem':
-            rec.rem += s.minutes;
-            break;
-          case 'light':
-            rec.light += s.minutes;
-            break;
-          case 'awake':
-            rec.awakeMinutes += s.minutes;
-            rec.awakenings += 1;
-            break;
-        }
-      }
-      rec.asleep = rec.deep + rec.rem + rec.light;
-      if (rec.asleep == 0) rec.asleep = rec.timeInBed - rec.awakeMinutes;
-      if (rec.timeInBed < rec.asleep) rec.timeInBed = rec.asleep + rec.awakeMinutes;
+      uykuyuTopla(rec);
     }
 
     // --- gece pencereli ölçümler ---

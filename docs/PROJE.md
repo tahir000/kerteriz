@@ -42,14 +42,21 @@ telefondan çıkmıyor, offline çalışıyor. İlerde yayına çıkılırsa B'y
 
 ## 3. Bilinen veri kapsamı
 
-Fitbit Air + Google Health birleşiminde **dinlenme nabzı, solunum hızı ve SpO2**
-kaydı Health Connect'e yazılmıyor. Nabız serisi, uyku evreleri ve adım yazılıyor.
+**Gerçek veriyle doğrulandı (7 Ekim 2026, 32 gün):** HRV 31 gece, dinlenme
+nabzı 32 gece (cihazın kendi kaydı, türetilmiş değil), solunum hızı 29 gece
+geliyor. **Cilt sıcaklığı ve SpO2 hiç gelmiyor.** Nabız serisi, uyku evreleri ve
+adım da yazılıyor. (Bu bölüm eskiden dinlenme nabzı ve solunumun gelmediğini
+söylüyordu; yanlıştı.)
 
-- **Dinlenme nabzı türetiliyor:** gecenin en düşük 30 dakikalık kararlı ortalaması.
-  Cihazın yazacağı değerden biraz farklı çıkabilir ama kendi içinde tutarlı olduğu
-  için taban çizgi ve z-skoru doğru çalışır.
-- **Solunum ve SpO2 türetilemez.** Kaybedilen tek özellik hastalık erken uyarısı.
-- **HRV** durumu doğrulanmalı — hazırlık skorunun %40'ı.
+- **Dinlenme nabzı kaydı yoksa türetiliyor:** gecenin en düşük 30 dakikalık
+  kararlı ortalaması. Şu an gerek kalmadı ama başka cihazlar için duruyor.
+- **SpO2 ve cilt sıcaklığı türetilemez.** Hastalık uyarısı sıcaklık yokken
+  solunum + nabız ikilisine bakıyor.
+- **Şekerlemeler:** Google Health gündüz kestirmelerini de uyku evresi olarak
+  yazıyor. Aynı uyku gününe düşen parçalar 60 dakikadan uzun boşlukla ayrı
+  bloklara bölünüyor (`data/uyku_bloklari.dart`); en uzun blok gece, ötekiler
+  yalnızca borca sayılan şekerleme. 0.11.0'dan önce hepsi tek oturumdu ve 32
+  gecenin 6'sında yatakta süresi 10–20 saat görünüyordu.
 - **Su alımı uygulamanın kendi ürettiği tek veridir.** Ana ekran widget'ı
   Health Connect'e yazar, uygulama aynı yerden geri okur; ayrı bir veritabanı yok.
 - **Mesafe ve kalori yalnızca özet widget'ı için okunur.** Skorlara girmezler,
@@ -101,10 +108,11 @@ ortalamaya girmez.
 **Uyku skoru (0–100)** — beş bileşenin ağırlıklı toplamı
 ```
 süre          = clamp(uyku / ihtiyaç, 0, 1) * 100                    # %35
-verim         = clamp((uyku/yatakta - 0.78) / 0.17, 0, 1) * 100      # %20
+verim         = clamp((uyku/yatakta - 0.85) / 0.13, 0, 1) * 100      # %20
 onarım        = clamp(((derin+rem)/uyku) / 0.42, 0, 1) * 100         # %25
 kesintisizlik = clamp(100 - 4.5*uyanma - 0.55*uyanık_dk, 0, 100)     # %10
-zamanlama     = clamp(100 - 1.05*|orta_nokta - 21g_ortalama|, 0, 100)# %10
+zamanlama     = 15 dk sapmaya kadar 100, 120 dk'da 0 (doğrusal)       # %10
+                # sapma: orta nokta - son 21 gecenin MEDYANI
 ```
 
 **Uyku ihtiyacı** — sabit değil, dünkü yüke göre kayar:
@@ -203,6 +211,7 @@ lib/
     etiketler.dart            etiket günlüğü: akşam başına etiketler (küçük JSON dosyası)
     onbellek.dart             gün önbelleği: açılışta diskten, tazeleme arkada
     day_record.dart           gün modeli + JSON serileştirme
+    uyku_bloklari.dart        gece uykusunu şekerlemelerden ayırır
     health_repository.dart    Health Connect okuma, günlük toplama, kapsama takibi
     exporter.dart             90 günlük ham+türetilmiş veriyi JSON'a yazıp paylaşır
     ozet_yazici.dart          widget köprüsü: türetilmiş skorlar + hedefler
@@ -213,7 +222,10 @@ lib/
 test/
   engine_test.dart            motor formülleri (hazırlık, kalibrasyon, borç, yük, kardiyak)
   insights_test.dart          içgörüler ve etiket günlüğü
+  uyku_bloklari_test.dart     şekerleme ayrımı
   today_screen_test.dart      ekranlar sentetik veriyle hatasız ve taşmasız çiziliyor mu
+tool/
+  kalibre.dart                dışa aktarılan veriyle bileşen dağılımları (eşik ayarı için)
   ui/
     shell.dart                izin akışı, yükleme, 5 sekme (PageView), alt menü
     ayarlar_ekrani.dart       görünüm, yaş, günlük hedefler, sürüm
@@ -351,7 +363,16 @@ karşılığı olan özet widget'ı eklendi: üç halka (adım, kalori, mesafe) 
 hazırlık, uyku, dinlenme nabzı. Gizlilik politikası, Play sağlık beyanı ve
 README buna göre güncellendi.
 
-**Testler:** `flutter test` (40 test). Formüllere dokunan her değişiklikten
+**Eşik ayarı (0.11.0):** `dart run tool/kalibre.dart <dışa-aktarım.json>`
+bileşen dağılımlarını yazar. İlk ayar 32 günlük gerçek veriyle yapıldı: verim
+bileşeni gecelerin yarısında 100'deydi (bileklik verimi %94–97 ölçüyor),
+zamanlama dörtte birinde 0'daydı; ikisi de değişti. **Bilerek değişmeyenler:**
+uyku ihtiyacı tabanı (kişinin mevcut alışkanlığından ihtiyaç çıkarılamaz; az
+uyuyan birine göre ayarlamak az uykuyu normal sayar), onarıcı evre hedefi
+(%42 literatürdeki ortalama, kullanıcının medyanı %41), borç ve hazırlık
+seviye sınırları (hazırlık zaten kişinin kendi taban çizgisine göre).
+
+**Testler:** `flutter test` (48 test). Formüllere dokunan her değişiklikten
 sonra çalıştırılmalı.
 
 **Sıradaki adımlar:**

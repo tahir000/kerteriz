@@ -1,5 +1,28 @@
 # Değişiklik günlüğü
 
+## 0.11.0 — Ekim 2026
+
+32 günlük gerçek veriyle ayar.
+
+**Düzeltmeler**
+
+- **Şekerlemeler gece uykusuyla birleşiyordu.** Öğleden sonra kestirilen bir
+  saat, geceyi 20 saat "yatakta" gösteriyor, verimi %50'ye düşürüp uyku skorunu
+  haksız yere kırıyordu (32 gecenin 6'sı, skorlar 5–28 puan düşük). Artık
+  60 dakikadan uzun boşlukla ayrılan bloklar ayrı; en uzunu gece, ötekiler
+  yalnızca uyku borcunu azaltıyor
+- **Hastalık uyarısı** cilt sıcaklığı gelmeyen cihazlarda hiç çalışmıyordu.
+  Sıcaklık yoksa solunum + dinlenme nabzı ikilisine bakıyor
+
+**Eşikler**
+
+- **Verim** bileşeni %85'te 0, %98'de 100 (eskiden %78–95). Gecelerin yarısı
+  tam puan alıyor, bileşen bilgi taşımıyordu
+- **Zamanlama** 15 dakikaya kadar tam puan, 2 saatlik kaymada 0 (eskiden 95
+  dakikada 0). Referans son 21 gecenin ortalaması yerine medyanı: tek bir uç
+  gece sonraki üç haftayı cezalandırmıyor
+- `tool/kalibre.dart`: dışa aktarılan veriyle bileşen dağılımlarını gösteren araç
+
 ## 0.10.0 — Ekim 2026
 
 **Yeni**
