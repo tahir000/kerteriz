@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Özet, küçük (2x2): üç halka, ortada adım yüzdesi. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ozet_kok"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_vertical"
+    android:background="@drawable/kerteriz_kart_dokunma"
+    android:padding="10dp">
+    <!-- Halka kalan yüksekliği doldurur; kare kalması için ImageView
+         fitCenter ile ölçekleniyor. -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_gravity="center">
+        <ImageView
+            android:id="@+id/ozet_halka"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/halka_onizleme_ozet"
+            android:contentDescription="@string/ozet_halka_aciklama"/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/ozet_merkez"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--"
+                android:textSize="20sp"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
+                android:textColor="@color/kerteriz_ink"/>
+            <TextView
+                android:id="@+id/ozet_merkez_etiket"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/ozet_adim"
+                android:textSize="10sp"
+                android:textColor="@color/kerteriz_ink3"/>
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

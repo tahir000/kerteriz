@@ -90,6 +90,22 @@ WIDGET_OZET = """
         </receiver>
 """
 
+WIDGET_BUGUN = """
+        <!-- Ana ekran Bugun widget'i (hazirlik + dort halka + su) -->
+        <receiver
+            android:name=".BugunWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.kerteriz.kerteriz.BUGUN_SU_EKLE" />
+                <action android:name="com.kerteriz.kerteriz.BUGUN_YENILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/bugun_widget_info" />
+        </receiver>
+"""
+
 BILDIRIM = """
         <!-- Akşam hatırlatması (flutter_local_notifications) -->
         <receiver
@@ -180,6 +196,8 @@ def main(path):
         eklenecek += WIDGET_SU
     if ".OzetWidgetProvider" not in src:
         eklenecek += WIDGET_OZET
+    if ".BugunWidgetProvider" not in src:
+        eklenecek += WIDGET_BUGUN
     if "ScheduledNotificationReceiver" not in src:
         eklenecek += BILDIRIM
     if eklenecek:

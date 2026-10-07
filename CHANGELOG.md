@@ -1,5 +1,29 @@
 # Değişiklik günlüğü
 
+## 0.13.0 — Ekim 2026
+
+**Widget'lar**
+
+- **Yeni "Bugün" widget'ı:** ortada hazırlık, çevresinde dört halka (adım,
+  kalori, mesafe, su) ve tek dokunuşla su düğmesi. Büyük boyutta uyku, dinlenme
+  nabzı, hedef yatış ve günün cümlesi de var
+- **Üç boyut:** üç widget da küçük (2x2), orta ve büyük boyutta farklı düzen
+  gösteriyor; ana ekranda büyütüp küçültmek yeterli. Android 12+ düzeni kendisi
+  seçiyor, eski sürümlerde boyut değişince yeniden çiziliyor
+- **Halkalar:** baştan sona gradyan; hedef aşılınca ikinci tur, ucunda gölge.
+  Su artık ilerleme çubuğu değil, camgöbeği bir halka
+- **Koyu tema:** telefon gece moduna geçince widget'lar da koyulaşıyor;
+  renkler uygulamanın paletiyle aynı
+- **Dokunma efektleri:** su düğmesi ve dokunulabilir alanlarda dalga; su
+  eklenince düğme birkaç saniye "✓ +250 ml" gösteriyor. Su ve Bugün widget'ları
+  aynı suyu gösteriyor, biri değişince öteki de tazeleniyor
+- **Widget seçicisinde önizleme:** boş kutu yerine gerçek görünüm
+- **Uygulama kapanınca widget'lar tazeleniyor.** Eskiden uygulama özet
+  dosyasını yazıyor ama widget'lara haber vermiyordu; skorlar 30 dakikalık
+  periyodu bekliyordu
+- Özet dosyasına günün cümlesi ve yatış saati eklendi; widget uygulamayla aynı
+  cümleyi gösteriyor
+
 ## 0.12.0 — Ekim 2026
 
 **Bugün ekranı sadeleşti**

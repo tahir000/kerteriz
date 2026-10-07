@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamamı dokunulabilir küçük widget'ların kartı: zemin + dalga. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/kerteriz_dalga_kart">
+    <item android:drawable="@drawable/su_widget_zemin"/>
+</ripple>

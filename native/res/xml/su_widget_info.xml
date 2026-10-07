@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Su widget'ı. Varsayılan 3x2.
+     minResize* 2x2'ye kadar küçültmeye izin veriyor; düzen boyuta göre
+     değişiyor (WidgetBoyut.kt). previewLayout Android 12+ widget listesinde
+     gerçek görünümü gösteriyor. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="180dp"
     android:minHeight="110dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="110dp"
     android:targetCellWidth="3"
     android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
-    android:initialLayout="@layout/su_widget"
+    android:initialLayout="@layout/su_orta"
+    android:previewLayout="@layout/su_orta"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:description="@string/su_widget_aciklama"/>

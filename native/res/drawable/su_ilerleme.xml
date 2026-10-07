@@ -2,14 +2,14 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@android:id/background">
         <shape android:shape="rectangle">
-            <solid android:color="@color/kerteriz_line2"/>
+            <solid android:color="@color/kerteriz_halka_iz"/>
             <corners android:radius="3dp"/>
         </shape>
     </item>
     <item android:id="@android:id/progress">
         <clip>
             <shape android:shape="rectangle">
-                <solid android:color="@color/kerteriz_green"/>
+                <solid android:color="@color/kerteriz_halka_su"/>
                 <corners android:radius="3dp"/>
             </shape>
         </clip>

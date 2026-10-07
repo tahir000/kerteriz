@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Koyu tema: uygulamanın koyu paletiyle aynı. Halka renkleri koyu zeminde
+     okunabilsin diye açıldı. -->
+<resources>
+    <color name="kerteriz_kart">#1A1C21</color>
+    <color name="kerteriz_ink">#F1F2F5</color>
+    <color name="kerteriz_ink2">#A4A9B3</color>
+    <color name="kerteriz_ink3">#7D838D</color>
+    <color name="kerteriz_line">#353942</color>
+    <color name="kerteriz_line2">#2A2E36</color>
+    <color name="kerteriz_green">#5FD79A</color>
+    <color name="kerteriz_accent">#6EA6FF</color>
+
+    <color name="kerteriz_halka_dis">#5B9BFF</color>
+    <color name="kerteriz_halka_orta">#82B4FF</color>
+    <color name="kerteriz_halka_ic">#B3CEFF</color>
+    <color name="kerteriz_halka_su">#3DD3DF</color>
+    <color name="kerteriz_halka_iz">#2A2E36</color>
+
+    <color name="kerteriz_buton">#3DD3DF</color>
+    <color name="kerteriz_buton_yazi">#0E0F12</color>
+    <color name="kerteriz_dalga">#33000000</color>
+    <color name="kerteriz_dalga_kart">#1FFFFFFF</color>
+</resources>

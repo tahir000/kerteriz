@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="su_widget_aciklama">Tek dokunuşla su ekle, günlük toplamı gör</string>
+    <string name="su_baslik">Su</string>
     <string name="su_geri_al">geri al</string>
+    <string name="su_halka_aciklama">Günlük su hedefine göre ilerleme</string>
+    <string name="su_hedef_tamam">Hedef tamam ✓</string>
+    <string name="su_kalan">Hedefe %1$d ml</string>
+    <string name="su_eklendi">✓ +%1$d ml</string>
 
     <string name="ozet_widget_aciklama">Günün adımı, kalorisi, mesafesi ve Kerteriz skorları</string>
     <string name="ozet_halka_aciklama">Adım, kalori ve mesafe halkaları</string>
@@ -13,4 +18,7 @@
     <string name="ozet_nabiz_etiket">Dinlenme nabzı</string>
     <string name="ozet_yenile">Halkaya dokun: yenile</string>
     <string name="ozet_bayat">Skorlar için uygulamayı aç</string>
+
+    <string name="bugun_widget_aciklama">Hazırlık, dört halka ve tek dokunuşla su: günün tamamı tek kartta</string>
+    <string name="bugun_yatis_etiket">Hedef yatış</string>
 </resources>

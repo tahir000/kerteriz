@@ -3,6 +3,9 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+import '../l10n.dart';
+import '../metinler.dart';
+import '../metrics/insights.dart';
 import 'ayarlar.dart';
 import 'day_record.dart';
 
@@ -27,7 +30,11 @@ class OzetYazici {
   ///
   /// Gün listesi boş olsa bile dosya yazılır: hedefler skorlardan bağımsız,
   /// widget'ın onlara her durumda ihtiyacı var.
-  static Future<void> yaz(List<DayRecord> days) async {
+  ///
+  /// [allDays] filtrelenmemiş liste: bu geceki yatış saati bugünkü yükten
+  /// hesaplanıyor ve bugün, uyku kaydı düşmediyse filtreli listede yok.
+  static Future<void> yaz(List<DayRecord> days,
+      {List<DayRecord>? allDays}) async {
     final dir = await getApplicationSupportDirectory();
     final f = File('${dir.path}${Platform.pathSeparator}$dosyaAdi');
     final d = days.isEmpty ? null : days.last;
@@ -35,6 +42,21 @@ class OzetYazici {
     // Skorlar hesaplanamadıysa sıfır yazmak yerine null yazıyoruz: widget
     // "0 hazırlık" ile "hazırlık yok" arasındaki farkı ancak böyle görebilir.
     final hesaplandi = d != null && d.readiness > 0;
+
+    // Günün cümlesi ve yatış saati: widget'lar uygulamayla aynı metni
+    // göstersin. Metin cihaz dilinde kuruluyor.
+    String? cumle, yatis;
+    if (d != null) {
+      try {
+        final plan = Gunluk.planFor(days,
+            allDays: allDays, wakeMinute: Ayarlar.kalkisDk);
+        cumle = gununCumlesiMetni(
+            S.forCode(DayRecord.locale), Gunluk.headline(days, plan));
+        yatis = saatDakika(plan.bedMinute);
+      } catch (_) {
+        // Cümle kurulamazsa widget o satırı boş bırakır.
+      }
+    }
     await f.writeAsString(jsonEncode({
       'schema': 2,
       'updatedAtMs': DateTime.now().millisecondsSinceEpoch,
@@ -43,6 +65,8 @@ class OzetYazici {
       'sleepScore': (d != null && d.sleepScore > 0) ? d.sleepScore : null,
       'sleepMinutes': (d != null && d.asleep > 0) ? d.asleep.round() : null,
       'rhr': d?.rhr,
+      'headline': cumle,
+      'bedtime': yatis,
       'hedefler': {
         'su': Ayarlar.suHedefiMl,
         'suPorsiyon': Ayarlar.suPorsiyonMl,

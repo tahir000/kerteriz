@@ -243,11 +243,14 @@ native/
   kotlin/SuKaydedici.kt       Health Connect'e su yazma / okuma / son kaydı silme
   kotlin/OzetWidgetProvider.kt  ana ekran özet widget'ı (Google Health karşılığı)
   kotlin/OzetOkuyucu.kt       günlük adım/kalori/mesafe toplamı + özet JSON
-  kotlin/HalkaCizer.kt        üç eş merkezli halkayı bitmap'e çizer
+  kotlin/HalkaCizer.kt        eş merkezli halkalar: gradyan, ikinci tur, uç gölgesi
+  kotlin/BugunWidgetProvider.kt  Bugün widget'ı: hazırlık + dört halka + su düğmesi
+  kotlin/WidgetBoyut.kt       üç boyut sınıfı (küçük/orta/büyük); WidgetYenileyici
+  kotlin/WidgetOrtak.kt       widget'ların ortak renk, niyet ve biçim yardımcıları
   kotlin/AyarOkuyucu.kt       widget hedeflerini özet dosyasından okur
   res/                        widget düzenleri, çizimleri, renkleri, metinleri
 patch_manifest.py             izinler, queries, izin gerekçesi alias'ı, widget alıcısı
-patch_mainactivity.py         FlutterActivity -> FlutterFragmentActivity
+patch_mainactivity.py         FlutterActivity -> FlutterFragmentActivity; onStop'ta widget'ları tazeler
 patch_native.py               native/ kopyalar, paketi ve config değerlerini yazar
 ```
 
@@ -380,6 +383,15 @@ göstergesi, uyarılar, "Bugün için", "Bu gece" (yatış + etiketler + su), "K
 verin" girişi, açılır bölümler (girdiler, haftalık özet) ve 30 günlük grafik.
 Ekran 20 karta yaklaşmıştı; ilke: her gün bakılan üstte, ara sıra bakılan
 açılırda, açıklamalar alt sayfada.
+
+**Widget'lar (0.13.0):** üç widget × üç boyut = dokuz düzen
+(`native/res/layout/{su,ozet,bugun}_{kucuk,orta,buyuk}.xml`). Bir boyutta
+olmayan görünüme yapılan `setTextViewText` RemoteViews tarafından sessizce
+atlanıyor; kod bu yüzden her boyutta bütün kimlikleri yazıyor. Halka
+bitmap'i üç düzen arasında paylaşılıyor (320 px, ~400 KB): Binder aktarımı
+1 MB ile sınırlı. Koyu tema `values-night/kerteriz_renkler.xml`; bitmap
+renkleri de `context.getColor` ile oradan geliyor. Gerçek animasyon yok:
+RemoteViews desteklemiyor; efektler dokunma dalgası ve su düğmesinin kısa onayı.
 
 **Testler:** `flutter test` (59 test). Formüllere dokunan her değişiklikten
 sonra çalıştırılmalı.

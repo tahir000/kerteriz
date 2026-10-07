@@ -112,7 +112,7 @@ class _ShellState extends State<Shell> {
   /// yeniden okumaya gerek yok; ama ana ekran widget'ları hedefi özet
   /// dosyasından okuyor, o dosyanın tazelenmesi lazım.
   void _hedefDegisti() {
-    OzetYazici.yaz(_days).catchError((_) {});
+    OzetYazici.yaz(_days, allDays: _allDays).catchError((_) {});
     // Kalkış saati ya da hatırlatma tercihi değişmiş olabilir.
     unawaited(Hatirlatici.planla(_days, allDays: _allDays));
   }
@@ -377,7 +377,7 @@ class _ShellState extends State<Shell> {
       final withData =
           birlesik.where((d) => d.hasSleep || d.rhr != null).toList();
       try {
-        await OzetYazici.yaz(withData);
+        await OzetYazici.yaz(withData, allDays: birlesik);
       } catch (_) {}
       unawaited(Hatirlatici.planla(withData, allDays: birlesik));
 
@@ -520,7 +520,7 @@ class _ShellState extends State<Shell> {
       // Ana ekran özet widget'ının okuyacağı dosya. Başarısız olursa
       // yalnızca widget eksik kalır, uygulama normal çalışır.
       try {
-        await OzetYazici.yaz(withData);
+        await OzetYazici.yaz(withData, allDays: days);
       } catch (_) {}
       unawaited(Hatirlatici.planla(withData, allDays: days));
       await Tani.iz('ozet yazildi');

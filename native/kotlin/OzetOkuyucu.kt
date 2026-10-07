@@ -49,7 +49,11 @@ object OzetOkuyucu {
         val uykuSkoru: Int?,
         val uykuDakika: Int?,
         val dinlenmeNabzi: Int?,
-        val bayat: Boolean
+        val bayat: Boolean,
+        /** Bugün ekranının en üstündeki cümle; uygulama yazıyor. */
+        val cumle: String? = null,
+        /** Bu gecenin hedef yatış saati, "22:45" biçiminde. */
+        val yatis: String? = null
     )
 
     private fun istemci(context: Context): HealthConnectClient? =
@@ -142,6 +146,8 @@ object OzetOkuyucu {
         var uykuDakika: Int? = null
         var nabiz: Int? = null
         var bayat = true
+        var cumle: String? = null
+        var yatis: String? = null
 
         try {
             val dosya = File(context.filesDir, "kerteriz_ozet.json")
@@ -151,6 +157,8 @@ object OzetOkuyucu {
                 if (!j.isNull("sleepScore")) uykuSkoru = j.getInt("sleepScore")
                 if (!j.isNull("sleepMinutes")) uykuDakika = j.getInt("sleepMinutes")
                 if (!j.isNull("rhr")) nabiz = j.getDouble("rhr").toInt()
+                cumle = j.optString("headline", "").ifBlank { null }
+                yatis = j.optString("bedtime", "").ifBlank { null }
 
                 val yazilma = j.optLong("updatedAtMs", 0L)
                 val tazeYazilmis =
@@ -179,7 +187,9 @@ object OzetOkuyucu {
 
         return Ozet(
             adim, kalori, kaloriAktif, mesafe,
-            hazirlik, uykuSkoru, uykuDakika, nabiz, bayat
+            hazirlik, uykuSkoru, uykuDakika, nabiz, bayat,
+            cumle = if (bayat) null else cumle,
+            yatis = if (bayat) null else yatis
         )
     }
 }

@@ -1,19 +1,28 @@
 package com.kerteriz.kerteriz
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import android.widget.RemoteViews
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * Ana ekran widget'ı: tek dokunuşla su ekler, üstünde günlük toplam ve hedefe
- * göre ilerleme gösterir.
+ * Ana ekran su widget'ı: tek dokunuşla su ekler, hedefe göre halka gösterir.
+ *
+ * Üç boyut ([WidgetBoyut]):
+ *  - küçük: halka ve toplam; widget'ın tamamı bir porsiyon ekleyen düğme
+ *  - orta: halka, toplam, geri al ve düğme
+ *  - büyük: büyük halka, durum satırı ve düğme
+ *
+ * Su eklenince düğme birkaç saniye "✓ +250 ml" gösterip normale dönüyor.
+ * Widget'larda animasyon yok; yapılabilen geri bildirim bu ve düğmenin
+ * dokunma dalgası.
  *
  * Widget uygulamanın kendi süreci içinde çalışır, dolayısıyla uygulamaya verilen
  * Health Connect izinlerini kullanır. Ayrı bir izin akışı yoktur.
@@ -35,11 +44,90 @@ class SuWidgetProvider : AppWidgetProvider() {
         private const val VARSAYILAN_PORSIYON = 250
         private const val VARSAYILAN_HEDEF = 2500
 
+        /** Onay yazısının ekranda kalma süresi. */
+        const val ONAY_MS = 2500L
+
         fun porsiyon(context: Context): Int =
             AyarOkuyucu.say(context, "suPorsiyon", VARSAYILAN_PORSIYON)
 
         fun hedef(context: Context): Int =
             AyarOkuyucu.say(context, "su", VARSAYILAN_HEDEF)
+
+        /** Su değişti: bu widget'ın bütün kopyalarını çiz. */
+        suspend fun hepsiniCiz(context: Context, onayMl: Int? = null) {
+            val manager = AppWidgetManager.getInstance(context)
+            val ids = manager.getAppWidgetIds(
+                ComponentName(context, SuWidgetProvider::class.java)
+            )
+            if (ids.isEmpty()) return
+            val toplam = SuKaydedici.bugunkuToplam(context)
+            ids.forEach { ciz(context, manager, it, toplam, onayMl) }
+        }
+
+        private fun ciz(
+            context: Context,
+            manager: AppWidgetManager,
+            id: Int,
+            toplam: Int,
+            onayMl: Int?
+        ) {
+            val hedef = hedef(context)
+            val porsiyon = porsiyon(context)
+            val oran = WidgetOrtak.oran(toplam, hedef)
+
+            // Tek bitmap, üç düzen paylaşıyor.
+            val halka = HalkaCizer.ciz(
+                halkalar = listOf(
+                    HalkaCizer.Halka(oran, WidgetOrtak.renk(context, R.color.kerteriz_halka_su))
+                ),
+                izRenk = WidgetOrtak.renk(context, R.color.kerteriz_halka_iz),
+                boyutPx = WidgetOrtak.HALKA_PX,
+                kalinlikPx = WidgetOrtak.HALKA_PX * 0.105f,
+                araPx = 0f
+            )
+            val durum = when {
+                toplam >= hedef -> context.getString(R.string.su_hedef_tamam)
+                else -> context.getString(R.string.su_kalan, hedef - toplam)
+            }
+            val dugme = if (onayMl != null) {
+                context.getString(R.string.su_eklendi, onayMl)
+            } else {
+                "+ $porsiyon ml"
+            }
+
+            WidgetBoyut.guncelle(context, manager, id) { boyut ->
+                val layout = when (boyut) {
+                    Boyut.KUCUK -> R.layout.su_kucuk
+                    Boyut.ORTA -> R.layout.su_orta
+                    Boyut.BUYUK -> R.layout.su_buyuk
+                }
+                RemoteViews(context.packageName, layout).apply {
+                    setImageViewBitmap(R.id.su_halka, halka)
+                    setTextViewText(R.id.su_toplam, WidgetOrtak.bin(toplam))
+                    setTextViewText(R.id.su_hedef, "/ ${WidgetOrtak.bin(hedef)} ml")
+                    setTextViewText(R.id.su_yuzde, WidgetOrtak.yuzde(oran))
+                    setTextViewText(R.id.su_durum, if (boyut == Boyut.ORTA) "" else durum)
+                    setTextViewText(R.id.su_buton, dugme)
+
+                    val ekle = WidgetOrtak.yayin(
+                        context, SuWidgetProvider::class.java, ACTION_EKLE, id
+                    )
+                    if (boyut == Boyut.KUCUK) {
+                        // Küçük boyutta bütün kart düğme.
+                        setOnClickPendingIntent(R.id.su_kok, ekle)
+                    } else {
+                        setOnClickPendingIntent(R.id.su_buton, ekle)
+                        setOnClickPendingIntent(
+                            R.id.su_geri_al,
+                            WidgetOrtak.yayin(
+                                context, SuWidgetProvider::class.java, ACTION_GERI_AL, id
+                            )
+                        )
+                        WidgetOrtak.uygulamayiAc(this, context, R.id.su_halka, id)
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -55,11 +143,22 @@ class SuWidgetProvider : AppWidgetProvider() {
         val bekleyen = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                ids.forEach { ciz(context, manager, it) }
+                val toplam = SuKaydedici.bugunkuToplam(context)
+                ids.forEach { ciz(context, manager, it, toplam, null) }
             } finally {
                 bekleyen.finish()
             }
         }
+    }
+
+    /** Eski Android'de boyut değişince düzeni yeniden seç. */
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        manager: AppWidgetManager,
+        id: Int,
+        yeni: Bundle
+    ) {
+        onUpdate(context, manager, intArrayOf(id))
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -72,61 +171,21 @@ class SuWidgetProvider : AppWidgetProvider() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 if (eylem == ACTION_EKLE) {
-                    SuKaydedici.ekle(context, porsiyon(context))
+                    val ml = porsiyon(context)
+                    SuKaydedici.ekle(context, ml)
+                    // Önce onaylı, sonra normal. Bugün widget'ı da aynı suyu
+                    // gösteriyor, o da tazeleniyor.
+                    hepsiniCiz(context, onayMl = ml)
+                    BugunWidgetProvider.hepsiniCiz(context, onayMl = ml)
+                    delay(ONAY_MS)
                 } else {
                     SuKaydedici.sonKaydiSil(context)
                 }
-                hepsiniYenile(context)
+                hepsiniCiz(context)
+                BugunWidgetProvider.hepsiniCiz(context)
             } finally {
                 bekleyen.finish()
             }
         }
-    }
-
-    private suspend fun hepsiniYenile(context: Context) {
-        val manager = AppWidgetManager.getInstance(context)
-        val ids = manager.getAppWidgetIds(
-            ComponentName(context, SuWidgetProvider::class.java)
-        )
-        ids.forEach { ciz(context, manager, it) }
-    }
-
-    private suspend fun ciz(context: Context, manager: AppWidgetManager, id: Int) {
-        val views = RemoteViews(context.packageName, R.layout.su_widget)
-
-        val toplam = SuKaydedici.bugunkuToplam(context)
-        val hedef = hedef(context)
-        val yuzde = if (hedef > 0) (toplam * 100 / hedef).coerceIn(0, 100) else 0
-
-        views.setTextViewText(R.id.su_toplam, "$toplam")
-        views.setTextViewText(R.id.su_hedef, "/ $hedef ml")
-        views.setProgressBar(R.id.su_ilerleme, 100, yuzde, false)
-        views.setTextViewText(R.id.su_buton, "+ ${porsiyon(context)} ml")
-
-        // Butona dokunma
-        views.setOnClickPendingIntent(
-            R.id.su_buton,
-            yayinIntent(context, ACTION_EKLE, id)
-        )
-        // Sayıya dokunmak uygulamanın yazdığı son kaydı geri alır
-        views.setOnClickPendingIntent(
-            R.id.su_geri_al,
-            yayinIntent(context, ACTION_GERI_AL, id)
-        )
-
-        manager.updateAppWidget(id, views)
-    }
-
-    private fun yayinIntent(context: Context, action: String, id: Int): PendingIntent {
-        val intent = Intent(context, SuWidgetProvider::class.java).apply {
-            this.action = action
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
-        }
-        return PendingIntent.getBroadcast(
-            context,
-            action.hashCode() + id,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
     }
 }

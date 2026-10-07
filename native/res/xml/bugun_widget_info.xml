@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Özet widget'ı. Varsayılan 4x3.
+<!-- Bugün widget'ı: hazırlık, dört halka, su. Varsayılan 4x2.
      minResize* 2x2'ye kadar küçültmeye izin veriyor; düzen boyuta göre
      değişiyor (WidgetBoyut.kt). previewLayout Android 12+ widget listesinde
      gerçek görünümü gösteriyor. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="250dp"
-    android:minHeight="180dp"
+    android:minHeight="110dp"
     android:minResizeWidth="110dp"
     android:minResizeHeight="110dp"
     android:targetCellWidth="4"
-    android:targetCellHeight="3"
+    android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
-    android:initialLayout="@layout/ozet_buyuk"
-    android:previewLayout="@layout/ozet_buyuk"
+    android:initialLayout="@layout/bugun_orta"
+    android:previewLayout="@layout/bugun_orta"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:description="@string/ozet_widget_aciklama"/>
+    android:description="@string/bugun_widget_aciklama"/>

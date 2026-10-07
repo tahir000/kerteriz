@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Su widget'ının önizleme halkası.
+     Çalışma anında yerine kodda çizilen bitmap geçiyor (HalkaCizer). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:pathData="M50.00,6.50 A43.50,43.50 0 1 1 50.00,93.50 A43.50,43.50 0 1 1 50.00,6.50"
+        android:strokeColor="@color/kerteriz_halka_iz" android:strokeWidth="11"/>
+    <path android:pathData="M50.00,6.50 A43.50,43.50 0 1 1 20.22,81.71"
+        android:strokeColor="@color/kerteriz_halka_su" android:strokeWidth="11"
+        android:strokeLineCap="round"/>
+</vector>

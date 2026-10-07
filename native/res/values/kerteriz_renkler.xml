@@ -1,18 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Uygulamanın tasarım diliyle aynı renkler -->
+<!-- Widget renkleri: uygulamanın açık paletiyle aynı (lib/theme.dart).
+     Koyu karşılıkları values-night/ içinde; telefon gece moduna geçince
+     başlatıcı onları kullanıyor. -->
 <resources>
-    <color name="kerteriz_ink">#1D1D1F</color>
-    <color name="kerteriz_ink2">#6E6E73</color>
-    <color name="kerteriz_ink3">#8E8E93</color>
-    <color name="kerteriz_line">#D2D2D7</color>
-    <color name="kerteriz_line2">#E8E8ED</color>
-    <color name="kerteriz_green">#34A853</color>
-    <color name="kerteriz_accent">#0066CC</color>
+    <color name="kerteriz_kart">#FFFFFF</color>
+    <color name="kerteriz_ink">#17181C</color>
+    <color name="kerteriz_ink2">#63666E</color>
+    <color name="kerteriz_ink3">#93979F</color>
+    <color name="kerteriz_line">#DDE0E5</color>
+    <color name="kerteriz_line2">#E9EBEF</color>
+    <color name="kerteriz_green">#1B7F49</color>
+    <color name="kerteriz_accent">#1668E3</color>
 
-    <!-- Özet widget'ının halkaları: aksan mavisinin üç tonu.
+    <!-- Halkalar. Adım/kalori/mesafe aksan mavisinin üç tonu, su camgöbeği.
          Yeşil/turuncu/kırmızı bu uygulamada seviye anlamı taşıdığı için
          halkalarda süs olarak kullanılmıyor. -->
-    <color name="kerteriz_halka_dis">#0066CC</color>
-    <color name="kerteriz_halka_orta">#4D94DB</color>
-    <color name="kerteriz_halka_ic">#99C2EB</color>
+    <color name="kerteriz_halka_dis">#1668E3</color>
+    <color name="kerteriz_halka_orta">#4F8EF0</color>
+    <color name="kerteriz_halka_ic">#8DB6F7</color>
+    <color name="kerteriz_halka_su">#0E9FAE</color>
+    <color name="kerteriz_halka_iz">#ECEEF2</color>
+
+    <!-- Su düğmesi ve dokunma dalgası -->
+    <color name="kerteriz_buton">#0E9FAE</color>
+    <color name="kerteriz_buton_yazi">#FFFFFF</color>
+    <color name="kerteriz_dalga">#33FFFFFF</color>
+    <color name="kerteriz_dalga_kart">#1417181C</color>
 </resources>

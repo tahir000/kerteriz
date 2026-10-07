@@ -3,34 +3,42 @@ package com.kerteriz.kerteriz
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.SweepGradient
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
 
 /**
- * Üç eş merkezli halka çizip bitmap döndürür.
+ * Eş merkezli ilerleme halkalarını bitmap olarak çizer.
  *
  * Ana ekran widget'ları yay çizemez (RemoteViews yalnızca hazır görünümleri
  * tanır), bu yüzden halkayı biz çizip `setImageViewBitmap` ile veriyoruz.
  *
- * Renkler aksan mavisinin üç tonu: yeşil/turuncu/kırmızı bu uygulamada
- * "seviye" anlamı taşıyor, halkalarda süs olarak kullanılmıyor.
+ * Görünüm:
+ *  - Her halka başından sonuna açık tondan tam tona bir gradyanla dolar.
+ *  - Hedef aşılınca halka ikinci tur atar: ilk tur tam daire, ikinci tur
+ *    halkanın tam renginde üstüne biner ve ucunda küçük bir gölge olur,
+ *    böylece tur başlangıcının üstüne bindiği yer okunur. En çok iki tur.
+ *  - İz (boş kısım) soluk bir halkadır; renkleri çağıran verir, koyu temada
+ *    farklı geliyor.
+ *
+ * Renk tek başına anlam taşımıyor: widget'lar her halkanın yanında sayıyı
+ * da yazıyor.
  */
 object HalkaCizer {
 
-    const val RENK_DIS = 0xFF0066CC.toInt()   // adım
-    const val RENK_ORTA = 0xFF4D94DB.toInt()  // kalori
-    const val RENK_IC = 0xFF99C2EB.toInt()    // mesafe
-
-    private const val RENK_IZ = 0xFFE8E8ED.toInt()
+    data class Halka(val oran: Float, val renk: Int)
 
     /**
-     * [oranlar] dıştan içe doğru üç doluluk oranı (0..1 arası kırpılır).
-     * [boyutPx] kare kenarı, [kalinlikPx] tek bir halkanın kalınlığı,
-     * [araPx] iki halka arasındaki boşluk.
+     * [halkalar] dıştan içe. [boyutPx] kare kenarı, [kalinlikPx] tek halkanın
+     * kalınlığı, [araPx] iki halka arası boşluk, [izRenk] boş kısmın rengi.
      */
     fun ciz(
-        oranlar: List<Float>,
-        renkler: List<Int> = listOf(RENK_DIS, RENK_ORTA, RENK_IC),
+        halkalar: List<Halka>,
+        izRenk: Int,
         boyutPx: Int,
         kalinlikPx: Float,
         araPx: Float
@@ -38,6 +46,7 @@ object HalkaCizer {
         val bmp = Bitmap.createBitmap(boyutPx, boyutPx, Bitmap.Config.ARGB_8888)
         val tuval = Canvas(bmp)
         tuval.drawColor(Color.TRANSPARENT)
+        val merkez = boyutPx / 2f
 
         val boya = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -45,21 +54,92 @@ object HalkaCizer {
             strokeWidth = kalinlikPx
         }
 
-        for (i in oranlar.indices) {
-            // +1: dis halkanin yumusatilmis kenari bitmap sinirina tasmasin.
-            val ic = kalinlikPx / 2f + 1f + i * (kalinlikPx + araPx)
+        halkalar.forEachIndexed { i, h ->
+            // Gölge payı: dış halkanın gölgesi bitmap sınırına taşmasın.
+            val pay = kalinlikPx * 0.35f
+            val ic = kalinlikPx / 2f + pay + i * (kalinlikPx + araPx)
             val kutu = RectF(ic, ic, boyutPx - ic, boyutPx - ic)
+            val yaricap = merkez - ic
 
-            // İz: her zaman tam daire, soluk.
-            boya.color = RENK_IZ
+            boya.shader = null
+            boya.clearShadowLayer()
+            boya.color = izRenk
             tuval.drawArc(kutu, 0f, 360f, false, boya)
 
-            val oran = oranlar[i].coerceIn(0f, 1f)
-            if (oran <= 0f) continue
-            boya.color = renkler.getOrElse(i) { RENK_DIS }
-            // Saat 12'den başla, saat yönünde dön.
-            tuval.drawArc(kutu, -90f, 360f * oran, false, boya)
+            val oran = h.oran.coerceIn(0f, 2f)
+            if (oran <= 0f) return@forEachIndexed
+
+            // Yuvarlak uç, yayın başından yarım kalınlık kadar geriye taşar.
+            // Gradyanı o kadar geri döndürüyoruz ki uç da açık tonda kalsın,
+            // yoksa saat 12'de koyu bir dikiş görünür.
+            val ucDerece = Math.toDegrees((kalinlikPx / 2f / yaricap).toDouble()).toFloat()
+            val ilkTur = min(oran, 1f)
+            boya.shader = gradyan(
+                merkez, acik(h.renk), h.renk,
+                bitisOrani = ilkTur, ucDerece = ucDerece
+            )
+            boya.color = Color.WHITE
+            tuval.drawArc(kutu, -90f, 360f * ilkTur, false, boya)
+
+            if (oran > 1f) {
+                // İkinci tur: halkanın tam rengi, ucunda gölge. Koyu ton
+                // koyu temada griye dönüp leke gibi görünüyordu.
+                val ikinci = oran - 1f
+                boya.shader = null
+                boya.color = h.renk
+
+                // Gölgeyi yalnızca uca koymak için önce gölgeli küçük bir yay,
+                // sonra gölgesiz tam yay çiziliyor; gölge yayın gövdesine
+                // değil, başlangıcın üstüne binen uca düşüyor.
+                val sonAci = -90f + 360f * ikinci
+                boya.setShadowLayer(kalinlikPx * 0.3f, 0f, 0f, 0x66000000)
+                tuval.drawArc(kutu, sonAci - 2f, 2f, false, boya)
+                boya.clearShadowLayer()
+                tuval.drawArc(kutu, -90f, 360f * ikinci, false, boya)
+            } else if (oran >= 0.999f) {
+                // Tam tur: başlangıç noktasına küçük bir koyu nokta, halkanın
+                // kapandığı yer belli olsun.
+                val a = Math.toRadians(-90.0)
+                val nokta = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = koyu(h.renk) }
+                tuval.drawCircle(
+                    merkez + (yaricap * cos(a)).toFloat(),
+                    merkez + (yaricap * sin(a)).toFloat(),
+                    kalinlikPx * 0.18f, nokta
+                )
+            }
         }
         return bmp
     }
+
+    private fun gradyan(
+        merkez: Float,
+        bas: Int,
+        son: Int,
+        bitisOrani: Float,
+        ucDerece: Float
+    ): SweepGradient {
+        val basKonum = 0f
+        val sonKonum = (bitisOrani + ucDerece / 360f).coerceAtMost(1f)
+        val g = SweepGradient(
+            merkez, merkez,
+            intArrayOf(bas, bas, son, son),
+            floatArrayOf(basKonum, ucDerece / 360f, sonKonum, 1f)
+        )
+        // SweepGradient saat 3'ten başlar; saat 12'ye ve ucun gerisine çevir.
+        g.setLocalMatrix(Matrix().apply { setRotate(-90f - ucDerece, merkez, merkez) })
+        return g
+    }
+
+    /** Rengin beyaza doğru %45 açılmış hali. */
+    fun acik(renk: Int): Int = karistir(renk, Color.WHITE, 0.45f)
+
+    /** Rengin siyaha doğru %22 koyulaşmış hali. */
+    fun koyu(renk: Int): Int = karistir(renk, Color.BLACK, 0.22f)
+
+    private fun karistir(a: Int, b: Int, t: Float): Int = Color.argb(
+        Color.alpha(a),
+        (Color.red(a) + (Color.red(b) - Color.red(a)) * t).toInt(),
+        (Color.green(a) + (Color.green(b) - Color.green(a)) * t).toInt(),
+        (Color.blue(a) + (Color.blue(b) - Color.blue(a)) * t).toInt()
+    )
 }

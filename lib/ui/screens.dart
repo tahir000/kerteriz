@@ -8,6 +8,7 @@ import '../data/day_record.dart';
 import '../data/etiketler.dart';
 import '../data/hatirlatici.dart';
 import '../l10n.dart';
+import '../metinler.dart';
 import '../metrics/engine.dart';
 import '../metrics/insights.dart';
 import '../theme.dart';
@@ -358,27 +359,6 @@ class _GununCumlesi extends StatelessWidget {
   final Headline h;
   const _GununCumlesi(this.h);
 
-  static String metin(S s, Headline h) {
-    final ton = s.t('headline.tone.${h.ton.name}');
-    final dk = fmtDur(h.deger, h: s.t('common.hourShort'), m: s.t('common.minShort'));
-    final sebep = switch (h.sebep) {
-      GunSebebi.hastalik => s.t('headline.why.hastalik'),
-      GunSebebi.geceNabzi => s.t2('headline.why.geceNabzi',
-          {'v': h.deger.toStringAsFixed(0)}),
-      GunSebebi.yuklenme => s.t2('headline.why.yuklenme',
-          {'v': h.deger.toStringAsFixed(2)}),
-      GunSebebi.kisaUyku => s.t2('headline.why.kisaUyku', {'v': dk}),
-      GunSebebi.buyukBorc => s.t2('headline.why.buyukBorc', {'v': dk}),
-      GunSebebi.dusukHrv => s.t('headline.why.dusukHrv'),
-      GunSebebi.yuksekHrv => s.t('headline.why.yuksekHrv'),
-      GunSebebi.iyiUyku => s.t2('headline.why.iyiUyku',
-          {'v': h.deger.toStringAsFixed(0)}),
-      GunSebebi.yok => null,
-    };
-    final yatis = s.t2('headline.bed', {'bed': saatDakika(h.plan.bedMinute)});
-    return sebep == null ? '$ton. $yatis' : '$ton: $sebep. $yatis';
-  }
-
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
@@ -387,7 +367,7 @@ class _GununCumlesi extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 8),
       child: Semantics(
         liveRegion: true,
-        child: Text(metin(s, h),
+        child: Text(gununCumlesiMetni(s, h),
             style: K.rowTitle.copyWith(fontSize: 17, height: 1.35)),
       ),
     );

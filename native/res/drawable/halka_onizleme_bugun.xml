@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bugün widget'ının önizleme halkaları.
+     Çalışma anında yerine kodda çizilen bitmap geçiyor (HalkaCizer). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <path android:pathData="M50.00,5.00 A45.00,45.00 0 1 1 50.00,95.00 A45.00,45.00 0 1 1 50.00,5.00"
+        android:strokeColor="@color/kerteriz_halka_iz" android:strokeWidth="8"/>
+    <path android:pathData="M50.00,5.00 A45.00,45.00 0 1 1 5.80,58.43"
+        android:strokeColor="@color/kerteriz_halka_dis" android:strokeWidth="8"
+        android:strokeLineCap="round"/>
+    <path android:pathData="M50.00,16.50 A33.50,33.50 0 1 1 50.00,83.50 A33.50,33.50 0 1 1 50.00,16.50"
+        android:strokeColor="@color/kerteriz_halka_iz" android:strokeWidth="8"/>
+    <path android:pathData="M50.00,16.50 A33.50,33.50 0 1 1 39.65,81.86"
+        android:strokeColor="@color/kerteriz_halka_orta" android:strokeWidth="8"
+        android:strokeLineCap="round"/>
+    <path android:pathData="M50.00,28.00 A22.00,22.00 0 1 1 50.00,72.00 A22.00,22.00 0 1 1 50.00,28.00"
+        android:strokeColor="@color/kerteriz_halka_iz" android:strokeWidth="8"/>
+    <path android:pathData="M50.00,28.00 A22.00,22.00 0 0 1 65.06,66.04"
+        android:strokeColor="@color/kerteriz_halka_ic" android:strokeWidth="8"
+        android:strokeLineCap="round"/>
+    <path android:pathData="M50.00,39.50 A10.50,10.50 0 1 1 50.00,60.50 A10.50,10.50 0 1 1 50.00,39.50"
+        android:strokeColor="@color/kerteriz_halka_iz" android:strokeWidth="8"/>
+    <path android:pathData="M50.00,39.50 A10.50,10.50 0 1 1 43.83,58.49"
+        android:strokeColor="@color/kerteriz_halka_su" android:strokeWidth="8"
+        android:strokeLineCap="round"/>
+</vector>
