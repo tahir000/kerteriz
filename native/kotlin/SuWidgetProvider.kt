@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.RemoteViews
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,15 +54,21 @@ class SuWidgetProvider : AppWidgetProvider() {
         fun hedef(context: Context): Int =
             AyarOkuyucu.say(context, "su", VARSAYILAN_HEDEF)
 
-        /** Su değişti: bu widget'ın bütün kopyalarını çiz. */
-        suspend fun hepsiniCiz(context: Context, onayMl: Int? = null) {
-            val manager = AppWidgetManager.getInstance(context)
-            val ids = manager.getAppWidgetIds(
+        fun idler(context: Context): IntArray =
+            AppWidgetManager.getInstance(context).getAppWidgetIds(
                 ComponentName(context, SuWidgetProvider::class.java)
             )
-            if (ids.isEmpty()) return
-            val toplam = SuKaydedici.bugunkuToplam(context)
-            ids.forEach { ciz(context, manager, it, toplam, onayMl) }
+
+        /** Su değişti: bu widget'ın bütün kopyalarını çiz. */
+        suspend fun hepsiniCiz(context: Context, onayMl: Int? = null) {
+            if (idler(context).isEmpty()) return
+            cizHepsi(context, SuKaydedici.bugunkuToplam(context), onayMl, null)
+        }
+
+        /** Okunmuş toplamla çizer; animasyon kareleri bunu kullanıyor. */
+        fun cizHepsi(context: Context, toplam: Int, onayMl: Int?, dalga: Float?) {
+            val manager = AppWidgetManager.getInstance(context)
+            idler(context).forEach { ciz(context, manager, it, toplam, onayMl, dalga) }
         }
 
         private fun ciz(
@@ -69,7 +76,8 @@ class SuWidgetProvider : AppWidgetProvider() {
             manager: AppWidgetManager,
             id: Int,
             toplam: Int,
-            onayMl: Int?
+            onayMl: Int?,
+            dalga: Float? = null
         ) {
             val hedef = hedef(context)
             val porsiyon = porsiyon(context)
@@ -83,7 +91,8 @@ class SuWidgetProvider : AppWidgetProvider() {
                 izRenk = WidgetOrtak.renk(context, R.color.kerteriz_halka_iz),
                 boyutPx = WidgetOrtak.HALKA_PX,
                 kalinlikPx = WidgetOrtak.HALKA_PX * 0.105f,
-                araPx = 0f
+                araPx = 0f,
+                dalga = dalga
             )
             val durum = when {
                 toplam >= hedef -> context.getString(R.string.su_hedef_tamam)
@@ -106,7 +115,13 @@ class SuWidgetProvider : AppWidgetProvider() {
                     setTextViewText(R.id.su_toplam, WidgetOrtak.bin(toplam))
                     setTextViewText(R.id.su_hedef, "/ ${WidgetOrtak.bin(hedef)} ml")
                     setTextViewText(R.id.su_yuzde, WidgetOrtak.yuzde(oran))
-                    setTextViewText(R.id.su_durum, if (boyut == Boyut.ORTA) "" else durum)
+                    // Orta boyutta durum satırı yok: boş satır yer kaplayıp
+                    // halkanın ortasındaki yüzdeyi yukarı itiyordu.
+                    setTextViewText(R.id.su_durum, durum)
+                    setViewVisibility(
+                        R.id.su_durum,
+                        if (boyut == Boyut.ORTA) View.GONE else View.VISIBLE
+                    )
                     setTextViewText(R.id.su_buton, dugme)
 
                     val ekle = WidgetOrtak.yayin(
@@ -173,19 +188,47 @@ class SuWidgetProvider : AppWidgetProvider() {
                 if (eylem == ACTION_EKLE) {
                     val ml = porsiyon(context)
                     SuKaydedici.ekle(context, ml)
-                    // Önce onaylı, sonra normal. Bugün widget'ı da aynı suyu
-                    // gösteriyor, o da tazeleniyor.
-                    hepsiniCiz(context, onayMl = ml)
-                    BugunWidgetProvider.hepsiniCiz(context, onayMl = ml)
-                    delay(ONAY_MS)
+                    SuAnimasyon.oynat(context, ml)
                 } else {
                     SuKaydedici.sonKaydiSil(context)
+                    hepsiniCiz(context)
+                    BugunWidgetProvider.hepsiniCiz(context)
                 }
-                hepsiniCiz(context)
-                BugunWidgetProvider.hepsiniCiz(context)
             } finally {
                 bekleyen.finish()
             }
         }
+    }
+}
+
+/**
+ * Su eklenince oynayan efekt: halkanın içinden merkeze yayılan damla dalgası
+ * ve düğmede kısa bir onay.
+ *
+ * Widget'lar animasyon oynatamıyor; başlatıcının dokunma dalgası da her
+ * başlatıcıda görünmüyor (Honor'da görünmüyordu). Bu yüzden efekti biz
+ * çiziyoruz: veri bir kez okunuyor, sonra altı kare ~110 ms arayla
+ * gönderiliyor. Yalnızca dokunuşta çalışıyor, pil açısından önemsiz.
+ */
+object SuAnimasyon {
+    private val KARELER = floatArrayOf(0.12f, 0.3f, 0.48f, 0.66f, 0.84f, 1.05f, 1.3f)
+    private const val KARE_MS = 110L
+
+    suspend fun oynat(context: Context, ml: Int) {
+        val toplam = SuKaydedici.bugunkuToplam(context)
+        val bugunVar = BugunWidgetProvider.idler(context).isNotEmpty()
+        val ozet = if (bugunVar) OzetOkuyucu.oku(context) else null
+
+        for (p in KARELER) {
+            SuWidgetProvider.cizHepsi(context, toplam, ml, p)
+            if (ozet != null) BugunWidgetProvider.cizHepsi(context, ozet, toplam, ml, p)
+            delay(KARE_MS)
+        }
+        // Onay biraz daha kalsın, sonra normale dön.
+        SuWidgetProvider.cizHepsi(context, toplam, ml, null)
+        if (ozet != null) BugunWidgetProvider.cizHepsi(context, ozet, toplam, ml, null)
+        delay(SuWidgetProvider.ONAY_MS - KARELER.size * KARE_MS)
+        SuWidgetProvider.cizHepsi(context, toplam, null, null)
+        if (ozet != null) BugunWidgetProvider.cizHepsi(context, ozet, toplam, null, null)
     }
 }

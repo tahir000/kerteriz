@@ -14,8 +14,10 @@
   Su artık ilerleme çubuğu değil, camgöbeği bir halka
 - **Koyu tema:** telefon gece moduna geçince widget'lar da koyulaşıyor;
   renkler uygulamanın paletiyle aynı
-- **Dokunma efektleri:** su düğmesi ve dokunulabilir alanlarda dalga; su
-  eklenince düğme birkaç saniye "✓ +250 ml" gösteriyor. Su ve Bugün widget'ları
+- **Damla dalgası:** su eklenince halkanın içinden merkeze yayılıp sönen iki
+  dalga, ardından düğmede birkaç saniye "✓ +250 ml". Başlatıcının kendi dokunma
+  dalgası her telefonda görünmediği için (Honor'da görünmüyor) efekt kare kare
+  bizim tarafımızda çiziliyor; yalnızca dokunuşta çalışıyor. Su ve Bugün widget'ları
   aynı suyu gösteriyor, biri değişince öteki de tazeleniyor
 - **Widget seçicisinde önizleme:** boş kutu yerine gerçek görünüm
 - **Uygulama kapanınca widget'lar tazeleniyor.** Eskiden uygulama özet

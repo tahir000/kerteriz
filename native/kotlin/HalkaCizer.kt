@@ -41,7 +41,8 @@ object HalkaCizer {
         izRenk: Int,
         boyutPx: Int,
         kalinlikPx: Float,
-        araPx: Float
+        araPx: Float,
+        dalga: Float? = null
     ): Bitmap {
         val bmp = Bitmap.createBitmap(boyutPx, boyutPx, Bitmap.Config.ARGB_8888)
         val tuval = Canvas(bmp)
@@ -106,6 +107,23 @@ object HalkaCizer {
                     merkez + (yaricap * sin(a)).toFloat(),
                     kalinlikPx * 0.18f, nokta
                 )
+            }
+        }
+        // Damla dalgası: su eklenince en içteki halkanın iç kenarından merkeze
+        // doğru yayılıp sönen iki halka. Widget'larda animasyon olmadığı
+        // için çağıran birkaç kareyi arka arkaya çiziyor (SuAnimasyon).
+        if (dalga != null && halkalar.isNotEmpty()) {
+            val son = halkalar.last()
+            val icKenar = merkez - (kalinlikPx / 2f + kalinlikPx * 0.35f +
+                (halkalar.size - 1) * (kalinlikPx + araPx)) - kalinlikPx / 2f
+            val dalgaBoya = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+            for (k in 0..1) {
+                val p = (dalga - k * 0.3f).coerceIn(0f, 1f)
+                if (p <= 0f || p >= 1f) continue
+                dalgaBoya.color = son.renk
+                dalgaBoya.alpha = ((1f - p) * 150).toInt()
+                dalgaBoya.strokeWidth = kalinlikPx * (0.55f - 0.35f * p)
+                tuval.drawCircle(merkez, merkez, icKenar * (1f - 0.75f * p), dalgaBoya)
             }
         }
         return bmp

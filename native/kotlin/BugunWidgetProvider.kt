@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.widget.RemoteViews
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -33,15 +32,29 @@ class BugunWidgetProvider : AppWidgetProvider() {
         const val ACTION_YENILE = "com.kerteriz.kerteriz.BUGUN_YENILE"
 
         /** Su değişti ya da uygulama yeni skor yazdı: bütün kopyaları çiz. */
-        suspend fun hepsiniCiz(context: Context, onayMl: Int? = null) {
-            val manager = AppWidgetManager.getInstance(context)
-            val ids = manager.getAppWidgetIds(
+        fun idler(context: Context): IntArray =
+            AppWidgetManager.getInstance(context).getAppWidgetIds(
                 ComponentName(context, BugunWidgetProvider::class.java)
             )
-            if (ids.isEmpty()) return
-            val o = OzetOkuyucu.oku(context)
-            val su = SuKaydedici.bugunkuToplam(context)
-            ids.forEach { ciz(context, manager, it, o, su, onayMl) }
+
+        suspend fun hepsiniCiz(context: Context, onayMl: Int? = null) {
+            if (idler(context).isEmpty()) return
+            cizHepsi(
+                context, OzetOkuyucu.oku(context), SuKaydedici.bugunkuToplam(context),
+                onayMl, null
+            )
+        }
+
+        /** Okunmuş veriyle çizer; su animasyonunun kareleri bunu kullanıyor. */
+        fun cizHepsi(
+            context: Context,
+            o: OzetOkuyucu.Ozet,
+            su: Int,
+            onayMl: Int?,
+            dalga: Float?
+        ) {
+            val manager = AppWidgetManager.getInstance(context)
+            idler(context).forEach { ciz(context, manager, it, o, su, onayMl, dalga) }
         }
 
         private fun ciz(
@@ -50,7 +63,8 @@ class BugunWidgetProvider : AppWidgetProvider() {
             id: Int,
             o: OzetOkuyucu.Ozet,
             su: Int,
-            onayMl: Int?
+            onayMl: Int?,
+            dalga: Float? = null
         ) {
             val yerel = Locale.getDefault()
             val h = AyarOkuyucu.hedefler(context)
@@ -88,7 +102,8 @@ class BugunWidgetProvider : AppWidgetProvider() {
                 boyutPx = WidgetOrtak.HALKA_PX,
                 // Dört halka ortada hazırlık yazısına yer bırakmalı: daha ince.
                 kalinlikPx = WidgetOrtak.HALKA_PX * 0.078f,
-                araPx = WidgetOrtak.HALKA_PX * 0.032f
+                araPx = WidgetOrtak.HALKA_PX * 0.032f,
+                dalga = dalga
             )
 
             val skorlarVar = !o.bayat && o.hazirlik != null && o.hazirlik > 0
@@ -197,12 +212,10 @@ class BugunWidgetProvider : AppWidgetProvider() {
                 if (eylem == ACTION_SU) {
                     val ml = SuWidgetProvider.porsiyon(context)
                     SuKaydedici.ekle(context, ml)
-                    hepsiniCiz(context, onayMl = ml)
-                    SuWidgetProvider.hepsiniCiz(context, onayMl = ml)
-                    delay(SuWidgetProvider.ONAY_MS)
-                    SuWidgetProvider.hepsiniCiz(context)
+                    SuAnimasyon.oynat(context, ml)
+                } else {
+                    hepsiniCiz(context)
                 }
-                hepsiniCiz(context)
             } finally {
                 bekleyen.finish()
             }
