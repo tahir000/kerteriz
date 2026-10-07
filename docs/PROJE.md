@@ -209,6 +209,7 @@ lib/
   data/
     ayarlar.dart              tema, yaş, kalkış saati, günlük hedefler (küçük JSON dosyası)
     etiketler.dart            etiket günlüğü: akşam başına etiketler (küçük JSON dosyası)
+    hatirlatici.dart          akşam bildirimi (flutter_local_notifications), her açılışta yeniden kurulur
     onbellek.dart             gün önbelleği: açılışta diskten, tazeleme arkada
     day_record.dart           gün modeli + JSON serileştirme
     uyku_bloklari.dart        gece uykusunu şekerlemelerden ayırır
@@ -218,7 +219,8 @@ lib/
     tani.dart                 açılış izi (diske yazılır), güvenli mod
   metrics/
     engine.dart               taban çizgiler, z-skorları, bütün bileşik metrikler
-    insights.dart             haftalık özet, yatma saati, etiket etkisi, gece nabzı uyarısı
+    insights.dart             haftalık özet, yatma saati, etiket etkisi, gece nabzı uyarısı,
+                              günün cümlesi (Gunluk), otomatik karşılaştırmalar (Deneyler)
 test/
   engine_test.dart            motor formülleri (hazırlık, kalibrasyon, borç, yük, kardiyak)
   insights_test.dart          içgörüler ve etiket günlüğü
@@ -231,6 +233,7 @@ tool/
     ayarlar_ekrani.dart       görünüm, yaş, günlük hedefler, sürüm
     screens.dart              Bugün / Uyku / Yük / Kalp
     coverage_screen.dart      Veri — Health Connect tanı ekranı
+    verin_ekrani.dart         "Senin verin ne diyor": etiket, su ve otomatik karşılaştırmalar
     widgets/kit.dart          satır, bölgeli ölçek, rozet, bölmeli seçici
     widgets/gauge.dart        yay göstergesi, mini eğilim çizgisi, giriş animasyonu
     widgets/charts.dart       CustomPainter grafikleri (harici grafik kütüphanesi yok)
@@ -372,7 +375,13 @@ uyuyan birine göre ayarlamak az uykuyu normal sayar), onarıcı evre hedefi
 (%42 literatürdeki ortalama, kullanıcının medyanı %41), borç ve hazırlık
 seviye sınırları (hazırlık zaten kişinin kendi taban çizgisine göre).
 
-**Testler:** `flutter test` (48 test). Formüllere dokunan her değişiklikten
+**Bugün ekranının düzeni (0.12.0):** en üstte günün cümlesi, sonra hazırlık
+göstergesi, uyarılar, "Bugün için", "Bu gece" (yatış + etiketler + su), "Kendi
+verin" girişi, açılır bölümler (girdiler, haftalık özet) ve 30 günlük grafik.
+Ekran 20 karta yaklaşmıştı; ilke: her gün bakılan üstte, ara sıra bakılan
+açılırda, açıklamalar alt sayfada.
+
+**Testler:** `flutter test` (59 test). Formüllere dokunan her değişiklikten
 sonra çalıştırılmalı.
 
 **Sıradaki adımlar:**

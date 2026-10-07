@@ -311,3 +311,217 @@ class Insights {
     return NightHrAlert((fa + fb) / 2, 2);
   }
 }
+
+// =====================================================================
+// Günün cümlesi
+// =====================================================================
+
+/// Günün tonu: hazırlığa göre.
+enum GunTonu { kalibrasyon, dinlen, olculu, hazir }
+
+/// Tonun gerekçesi. Sıra öncelik sırasıdır; ilk tutan seçilir.
+enum GunSebebi {
+  hastalik,
+  geceNabzi,
+  yuklenme,
+  kisaUyku,
+  buyukBorc,
+  dusukHrv,
+  yuksekHrv,
+  iyiUyku,
+  yok,
+}
+
+class Headline {
+  final GunTonu ton;
+  final GunSebebi sebep;
+
+  /// Sebebin sayısı: atım farkı, dakika, z-skoru... Metin bunu kullanır.
+  final double deger;
+  final BedtimePlan plan;
+  const Headline(this.ton, this.sebep, this.deger, this.plan);
+}
+
+class Gunluk {
+  /// Bugün ekranının en üstündeki tek cümlenin içeriği. Metni arayüz
+  /// kuruyor; burası yalnızca neyin söyleneceğine karar veriyor ki
+  /// öncelik sırası test edilebilsin.
+  static Headline headline(List<DayRecord> days, BedtimePlan plan) {
+    final d = days.last;
+    final ton = d.baselineNights < Config.minBaselineNights
+        ? GunTonu.kalibrasyon
+        : (d.readiness >= 67
+            ? GunTonu.hazir
+            : (d.readiness >= 34 ? GunTonu.olculu : GunTonu.dinlen));
+
+    if (MetricsEngine.illnessSignal(days)) {
+      return Headline(ton, GunSebebi.hastalik, 0, plan);
+    }
+    final gn = Insights.elevatedNightHr(days);
+    if (gn != null) return Headline(ton, GunSebebi.geceNabzi, gn.deltaBpm, plan);
+    if (MetricsEngine.overloadSignal(days)) {
+      return Headline(ton, GunSebebi.yuklenme, d.acwr, plan);
+    }
+    if (d.hasSleep && d.need - d.asleep >= 90) {
+      return Headline(ton, GunSebebi.kisaUyku, d.asleep.toDouble(), plan);
+    }
+    if (d.debtMinutes >= 480) {
+      return Headline(ton, GunSebebi.buyukBorc, d.debtMinutes.toDouble(), plan);
+    }
+    final hrvHazir = d.hrv != null && d.hrvBaselineN >= Config.minBaselineNights;
+    if (hrvHazir && d.hrvZ <= -1) {
+      return Headline(ton, GunSebebi.dusukHrv, d.hrvZ, plan);
+    }
+    if (hrvHazir && d.hrvZ >= 1) {
+      return Headline(ton, GunSebebi.yuksekHrv, d.hrvZ, plan);
+    }
+    if (d.hasSleep && d.sleepScore >= 85) {
+      return Headline(ton, GunSebebi.iyiUyku, d.sleepScore.toDouble(), plan);
+    }
+    return Headline(ton, GunSebebi.yok, 0, plan);
+  }
+
+  /// Bu gecenin planı. Bugün ekranı ve akşam hatırlatması aynı sayıyı
+  /// göstersin diye tek yerde.
+  ///
+  /// Bugünkü yük filtrelenmemiş listenin son gününden gelir: uyku ya da
+  /// nabız kaydı henüz düşmemiş bugün, filtreli listede hiç yok.
+  static BedtimePlan planFor(
+    List<DayRecord> days, {
+    List<DayRecord>? allDays,
+    required int wakeMinute,
+  }) {
+    final hepsi = allDays ?? days;
+    final bugun = hepsi.isEmpty ? days.last : hepsi.last;
+    return Insights.bedtime(
+      days: days,
+      todayStrain: bugun.strain,
+      debtMinutes: days.last.debtMinutes,
+      wakeMinute: wakeMinute,
+    );
+  }
+}
+
+// =====================================================================
+// Senin verin ne diyor: otomatik karşılaştırmalar
+// =====================================================================
+
+/// İki grup günün bir sonuca göre karşılaştırması.
+class Comparison {
+  final String key;
+  final int nA;
+  final double a;
+  final int nB;
+  final double b;
+
+  /// Grupları ayıran eşik (kullanıcının kendi medyanı); metinde gösterilir.
+  final double esik;
+
+  const Comparison({
+    required this.key,
+    required this.nA,
+    required this.a,
+    required this.nB,
+    required this.b,
+    required this.esik,
+  });
+
+  double get delta => a - b;
+}
+
+class Deneyler {
+  /// Her grupta en az bu kadar gün yoksa karşılaştırma gösterilmez.
+  static const int minPerGroup = 4;
+
+  /// [kosul] null dönen gün sayılmaz; true A grubu, false B grubu.
+  /// [sonuc] [gecikme] gün sonraki kayıttan okunur (0: aynı gün).
+  /// Gecikmeli eşleşme takvime göre: liste filtrelenmiş olabilir.
+  static Comparison? karsilastir(
+    String key,
+    List<DayRecord> days, {
+    required bool? Function(DayRecord) kosul,
+    required double? Function(DayRecord) sonuc,
+    required double esik,
+    int gecikme = 0,
+  }) {
+    final tarih = {for (final d in days) gunAnahtari(d.date): d};
+    final a = <double>[], b = <double>[];
+    for (final d in days) {
+      final k = kosul(d);
+      if (k == null) continue;
+      final hedef = gecikme == 0
+          ? d
+          : tarih[gunAnahtari(DateTime(d.date.year, d.date.month, d.date.day + gecikme))];
+      if (hedef == null) continue;
+      final v = sonuc(hedef);
+      if (v == null) continue;
+      (k ? a : b).add(v);
+    }
+    if (a.length < minPerGroup || b.length < minPerGroup) return null;
+    return Comparison(
+      key: key,
+      nA: a.length,
+      a: MetricsEngine.mean(a),
+      nB: b.length,
+      b: MetricsEngine.mean(b),
+      esik: esik,
+    );
+  }
+
+  /// Etiket gerektirmeyen, verinin kendisinden çıkan karşılaştırmalar.
+  /// Eşikler sabit değil, kullanıcının kendi medyanı: "erken yatış" 22:00
+  /// demek değil, senin her zamankinden erken demek.
+  static List<Comparison> otomatik(List<DayRecord> days) {
+    final uykulu = days.where((d) => d.hasSleep && d.bedOffset != null).toList();
+    final sonuc = <Comparison>[];
+
+    // 1) Her zamankinden erken yatılan gecelerin sabahı (aynı kayıt).
+    if (uykulu.length >= 2 * minPerGroup) {
+      final medYatis = MetricsEngine.median([for (final d in uykulu) d.bedOffset!]);
+      final c = karsilastir('erkenYatis', uykulu,
+          kosul: (d) => d.bedOffset! < medYatis,
+          sonuc: (d) => d.baselineNights >= Config.minBaselineNights
+              ? d.readiness.toDouble()
+              : null,
+          esik: medYatis);
+      if (c != null) sonuc.add(c);
+    }
+
+    // 2) Yüklü günün ertesi sabahı HRV sapması.
+    final yuklu = days.where((d) => d.strainRaw > 0).toList();
+    if (yuklu.length >= 2 * minPerGroup) {
+      final medYuk = MetricsEngine.median([for (final d in yuklu) d.strain]);
+      final c = karsilastir('yukluGun', yuklu,
+          kosul: (d) => d.strain > medYuk,
+          sonuc: (d) => d.hrv != null && d.hrvBaselineN >= Config.minBaselineNights
+              ? d.hrvZ
+              : null,
+          esik: medYuk,
+          gecikme: 1);
+      if (c != null) sonuc.add(c);
+    }
+
+    // 3) Çok adımlı günün gecesi uyku skoru. Gece D+1 kaydında.
+    final adimli = days.where((d) => d.steps > 0).toList();
+    if (adimli.length >= 2 * minPerGroup) {
+      final medAdim =
+          MetricsEngine.median([for (final d in adimli) d.steps.toDouble()]);
+      final c = karsilastir('adim', adimli,
+          kosul: (d) => d.steps > medAdim,
+          sonuc: (d) => d.hasSleep ? d.sleepScore.toDouble() : null,
+          esik: medAdim,
+          gecikme: 1);
+      if (c != null) sonuc.add(c);
+    }
+
+    // 4) Şekerleme yapılan günün gecesi ne kadar uyunuyor.
+    final c = karsilastir('sekerleme', days,
+        kosul: (d) => d.napMinutes >= 20,
+        sonuc: (d) => d.hasSleep ? d.asleep.toDouble() : null,
+        esik: 20,
+        gecikme: 1);
+    if (c != null) sonuc.add(c);
+
+    return sonuc;
+  }
+}

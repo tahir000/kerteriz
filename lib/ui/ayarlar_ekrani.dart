@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../config.dart';
 import '../data/ayarlar.dart';
+import '../data/hatirlatici.dart';
 import '../l10n.dart';
 import '../metrics/insights.dart';
 import '../theme.dart';
@@ -26,6 +27,18 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
   Future<void> _yaz(Future<void> Function() islem) async {
     await islem();
     if (mounted) setState(() {});
+  }
+
+  /// Açarken bildirim izni isteniyor; reddedilirse tercih kapalı kalıyor.
+  Future<void> _hatirlatma(BuildContext context, bool acik) async {
+    if (acik == Ayarlar.hatirlatma) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final s = S.of(context);
+    if (acik && !await Hatirlatici.izinIste()) {
+      messenger.showSnackBar(SnackBar(content: Text(s.t('notif.denied'))));
+      return;
+    }
+    await _yaz(() => Ayarlar.hatirlatmaYaz(acik));
   }
 
   @override
@@ -94,6 +107,19 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
             enCok: Ayarlar.sinirlar['kalkis']![1],
             bicim: saatDakika,
             onChanged: (v) => _yaz(() => Ayarlar.guncelle(kalkisDk: v)),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 2, 12, K.gutter, 4),
+            child: Text(s.t('settings.reminder'), style: K.rowTitle),
+          ),
+          SegmentliSecici(
+            etiketler: [s.t('settings.reminderOff'), s.t('settings.reminderOn')],
+            secili: Ayarlar.hatirlatma ? 1 : 0,
+            onChanged: (i) => _hatirlatma(context, i == 1),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 2, 8, K.gutter, 2),
+            child: Text(s.t('settings.reminderSub'), style: K.note),
           ),
 
           // ---- hedefler ----

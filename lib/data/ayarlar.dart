@@ -36,6 +36,10 @@ class Ayarlar {
   /// önerisi buna göre geri sayıyor.
   static int kalkisDk = Config.wakeMinute;
 
+  /// Akşam hatırlatması: yatma saatinden yarım saat önce bildirim.
+  /// Varsayılan kapalı; açarken bildirim izni isteniyor.
+  static bool hatirlatma = false;
+
   /// Tanaka formülü. Nabız bölgeleri ve dolayısıyla günlük yük buna bağlı.
   static double get hrMax => 208 - 0.7 * yas;
 
@@ -99,6 +103,7 @@ class Ayarlar {
       aktifKaloriHedefi = al('kaloriAktif', aktifKaloriHedefi);
       mesafeHedefiOndaKm = al('mesafeOndaKm', mesafeHedefiOndaKm);
       kalkisDk = al('kalkis', kalkisDk);
+      if (m['hatirlatma'] is bool) hatirlatma = m['hatirlatma'] as bool;
     } catch (_) {
       // Bozuk dosya: varsayılanla devam.
     }
@@ -148,6 +153,14 @@ class Ayarlar {
     if (yasDegisti) yenidenOku.value++;
   }
 
+  /// Akşam hatırlatmasını açar ya da kapatır. Zamanlama [Hatirlatici]
+  /// tarafında; burası yalnızca tercihi tutuyor ve dinleyenlere haber veriyor.
+  static Future<void> hatirlatmaYaz(bool acik) async {
+    hatirlatma = acik;
+    degisti.value++;
+    await _kaydet();
+  }
+
   /// Yazma sırası. Her basış bir dosya yazımı başlatıyor; iki yazım aynı
   /// anda çalışırsa ikisi de dosyayı baştan kırpıp yazar ve uzun olan sonra
   /// bitince dosyanın kuyruğunda artık baytlar kalır. Bozuk JSON'u [oku]
@@ -171,6 +184,7 @@ class Ayarlar {
         'kaloriAktif': aktifKaloriHedefi,
         'mesafeOndaKm': mesafeHedefiOndaKm,
         'kalkis': kalkisDk,
+        'hatirlatma': hatirlatma,
       }));
     } catch (_) {
       // Yazılamadıysa seçim bu oturum boyunca geçerli kalır.

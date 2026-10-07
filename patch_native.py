@@ -145,11 +145,53 @@ def gradle_yamala(proje):
     print('   gradle bağımlılıkları eklendi:', ', '.join(g for g, _ in DEPS))
 
 
+DESUGAR = ('com.android.tools:desugar_jdk_libs', '2.1.4')
+
+
+def desugar_yamala(proje):
+    """Bildirim eklentisi (flutter_local_notifications) Java 8+ API'lerini
+    eski Android sürümlerinde de kullanabilmek için "desugaring" istiyor.
+    İki yer: compileOptions içinde bayrak, dependencies içinde kitaplık."""
+    yol = os.path.join(proje, 'android/app/build.gradle.kts')
+    groovy = False
+    if not os.path.exists(yol):
+        yol = os.path.join(proje, 'android/app/build.gradle')
+        groovy = True
+    if not os.path.exists(yol):
+        return
+    src = open(yol, encoding='utf-8').read()
+    onceki = src
+
+    bayrak = ('coreLibraryDesugaringEnabled true' if groovy
+              else 'isCoreLibraryDesugaringEnabled = true')
+    if 'oreLibraryDesugaringEnabled' not in src:
+        m = re.search(r'compileOptions\s*\{', src)
+        if m:
+            src = src[:m.end()] + '\n        ' + bayrak + src[m.end():]
+        else:
+            print('   UYARI: compileOptions bulunamadı, desugaring açılmadı',
+                  file=sys.stderr)
+
+    if DESUGAR[0] not in src:
+        satir = ("    coreLibraryDesugaring '%s:%s'" if groovy
+                 else '    coreLibraryDesugaring("%s:%s")') % DESUGAR
+        m = re.search(r'\ndependencies\s*\{', src)
+        if m:
+            src = src[:m.end()] + '\n' + satir + src[m.end():]
+        else:
+            src = src.rstrip() + '\n\ndependencies {\n' + satir + '\n}\n'
+
+    if src != onceki:
+        open(yol, 'w', encoding='utf-8').write(src)
+        print('   desugaring açıldı (bildirim eklentisi için)')
+
+
 def main(proje):
     here = os.path.dirname(os.path.abspath(__file__))
     if not kaynaklari_kopyala(here, proje):
         return 1
     gradle_yamala(proje)
+    desugar_yamala(proje)
     return 0
 
 

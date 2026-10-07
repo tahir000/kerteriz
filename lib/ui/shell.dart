@@ -10,6 +10,7 @@ import '../config.dart';
 import '../data/ayarlar.dart';
 import '../data/day_record.dart';
 import '../data/exporter.dart';
+import '../data/hatirlatici.dart';
 import '../data/health_repository.dart';
 import '../data/onbellek.dart';
 import '../data/ozet_yazici.dart';
@@ -80,6 +81,7 @@ class _ShellState extends State<Shell> {
   void dispose() {
     Ayarlar.yenidenOku.removeListener(_ayarDegisti);
     Ayarlar.degisti.removeListener(_hedefDegisti);
+    Hatirlatici.acilis.removeListener(_bildirimAcildi);
     _ayarZaman?.cancel();
     _pc.dispose();
     super.dispose();
@@ -111,6 +113,36 @@ class _ShellState extends State<Shell> {
   /// dosyasından okuyor, o dosyanın tazelenmesi lazım.
   void _hedefDegisti() {
     OzetYazici.yaz(_days).catchError((_) {});
+    // Kalkış saati ya da hatırlatma tercihi değişmiş olabilir.
+    unawaited(Hatirlatici.planla(_days, allDays: _allDays));
+  }
+
+  /// Akşam bildirimine dokunuldu: Bugün'e dön, etiket sayfasını aç. Veri
+  /// henüz gelmediyse istek bekliyor, ilk çizimde açılıyor.
+  bool _bekleyenEtiket = false;
+
+  void _bildirimAcildi() {
+    if (Hatirlatici.acilis.value != Hatirlatici.etiketYuku) return;
+    Hatirlatici.acilis.value = null;
+    _bekleyenEtiket = true;
+    if (mounted) setState(() {});
+  }
+
+  void _etiketSayfasi() {
+    _gitSekme(0);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: K.bg,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: EtiketKarti(_allDays.isEmpty ? _days : _allDays,
+              ozetli: false),
+        ),
+      ),
+    );
   }
 
   /// Alt menüden ya da ekran içindeki bir düğmeden sekme değiştirme.
@@ -130,6 +162,8 @@ class _ShellState extends State<Shell> {
     super.initState();
     Ayarlar.yenidenOku.addListener(_ayarDegisti);
     Ayarlar.degisti.addListener(_hedefDegisti);
+    Hatirlatici.acilis.addListener(_bildirimAcildi);
+    unawaited(Hatirlatici.baslat().then((_) => _bildirimAcildi()));
     if (Tani.cokmeIzi != null) {
       _guvenliMod = true;
       _loading = false;
@@ -345,6 +379,7 @@ class _ShellState extends State<Shell> {
       try {
         await OzetYazici.yaz(withData);
       } catch (_) {}
+      unawaited(Hatirlatici.planla(withData, allDays: birlesik));
 
       if (nesil != _nesil) return;
       await Onbellek.yaz(OnbellekIcerik(
@@ -487,6 +522,7 @@ class _ShellState extends State<Shell> {
       try {
         await OzetYazici.yaz(withData);
       } catch (_) {}
+      unawaited(Hatirlatici.planla(withData, allDays: days));
       await Tani.iz('ozet yazildi');
 
       // Önbellek: bir sonraki açılış bu dosyadan gelecek. Hiç kayıt
@@ -659,6 +695,12 @@ class _ShellState extends State<Shell> {
             repo: _repo, days: _allDays, onReload: () => _boot(tam: true)),
       ]);
     } else {
+      if (_bekleyenEtiket) {
+        _bekleyenEtiket = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _etiketSayfasi();
+        });
+      }
       body = _sayfalar([
         TodayScreen(_days, allDays: _allDays),
         SleepScreen(_days),

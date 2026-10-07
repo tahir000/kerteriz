@@ -6,10 +6,12 @@ import '../config.dart';
 import '../data/ayarlar.dart';
 import '../data/day_record.dart';
 import '../data/etiketler.dart';
+import '../data/hatirlatici.dart';
 import '../l10n.dart';
 import '../metrics/engine.dart';
 import '../metrics/insights.dart';
 import '../theme.dart';
+import 'verin_ekrani.dart';
 import 'widgets/charts.dart';
 import 'widgets/gauge.dart';
 import 'widgets/kit.dart';
@@ -91,28 +93,17 @@ class TodayScreen extends StatelessWidget {
 
     final hydDays = allDays ?? days;
     final hydToday = hydDays.isEmpty ? d : hydDays.last;
-    final hyd =
-        MetricsEngine.hydrationEffect(hydDays, Ayarlar.suHedefiMl);
-    final plan = Insights.bedtime(
-      days: days,
-      todayStrain: hydToday.strain,
-      debtMinutes: d.debtMinutes,
-      wakeMinute: Ayarlar.kalkisDk,
-    );
+    final plan =
+        Gunluk.planFor(days, allDays: allDays, wakeMinute: Ayarlar.kalkisDk);
     final week = Insights.weekly(days);
-
-    final waterLink = hyd == null
-        ? s.t('today.waterLinkNone')
-        : s.t2('today.waterLink', {
-            'atDays': '${hyd.atDays}',
-            'at': hyd.atReadiness.toStringAsFixed(0),
-            'belowDays': '${hyd.belowDays}',
-            'below': hyd.belowReadiness.toStringAsFixed(0),
-            'delta': sgn(hyd.delta, digits: 0),
-          });
+    final baslik = Gunluk.headline(days, plan);
+    // Pazartesi haftalık özet açık gelir; öteki günler tek satır.
+    final pazartesi = DateTime.now().weekday == DateTime.monday;
 
     return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
       ScreenHead('${d.label} · ${s.t('today.today')}', s.t('today.title')),
+      // Günün cümlesi: ekranın tamamını okumayan biri için tek satırlık özet.
+      FadeUp(child: _GununCumlesi(baslik)),
       _hero(
         tag: s.t('today.readiness'),
         value: d.readiness.toDouble(),
@@ -130,71 +121,9 @@ class TodayScreen extends StatelessWidget {
             : s.t('today.captionNoSleep'),
       ),
       if (d.baselineNights < Config.baselineWindow)
-        FadeUp(
-            index: 1,
-            child: _Kalibrasyon(d.baselineNights)),
+        FadeUp(index: 1, child: _Kalibrasyon(d.baselineNights)),
       ...flags.map((w) => FadeUp(index: 1, child: w)),
-      SectionLabel(s.t('today.inputs')),
-      if (d.hrv != null && d.hrvBaselineN >= Config.minBaselineNights)
-        MetricRow(
-          title: s.t('today.hrv'),
-          subtitle: s.t('today.hrvSub'),
-          value: sgn(d.hrvZ),
-          unit: s.t('unit.z'),
-          level: Levels.z(d.hrvZ),
-          levelText: s.t(Levels.zKey(d.hrvZ)),
-          extra: ZoneMeter.zScore(d.hrvZ),
-        )
-      else
-        MetricRow(
-          title: s.t('today.hrv'),
-          subtitle: d.hrv == null
-              ? s.t('today.hrvNone')
-              : s.t2('today.calibratingRow', {
-                  'n': '${d.hrvBaselineN}',
-                  'min': '${Config.minBaselineNights}',
-                }),
-          value: '--',
-        ),
-      if (d.rhr != null && d.rhrBaselineN >= Config.minBaselineNights)
-        MetricRow(
-          title: s.t('today.rhr'),
-          subtitle: s.t('today.rhrSub'),
-          value: sgn(-d.rhrZ),
-          unit: s.t('unit.z'),
-          level: Levels.z(-d.rhrZ),
-          levelText: s.t(Levels.zKey(-d.rhrZ)),
-          extra: ZoneMeter.zScore(-d.rhrZ),
-        )
-      else
-        MetricRow(
-          title: s.t('today.rhr'),
-          subtitle: d.rhr == null
-              ? s.t('today.rhrNone')
-              : s.t2('today.calibratingRow', {
-                  'n': '${d.rhrBaselineN}',
-                  'min': '${Config.minBaselineNights}',
-                }),
-          value: '--',
-        ),
-      MetricRow(
-        title: s.t('today.respTemp'),
-        subtitle: s.t('today.respTempSub'),
-        value: sgn(-(d.respZ + d.tempZ) / 2),
-        unit: s.t('unit.z'),
-        level: Levels.z(-(d.respZ + d.tempZ) / 2),
-        levelText: s.t(Levels.zKey(-(d.respZ + d.tempZ) / 2)),
-        extra: ZoneMeter.zScore(-(d.respZ + d.tempZ) / 2),
-      ),
-      MetricRow(
-        title: s.t('today.sleepScore'),
-        subtitle: s.t('today.weight25'),
-        value: '${d.sleepScore}',
-        unit: s.t('unit.of100'),
-        level: Levels.score(d.sleepScore),
-        levelText: s.t(Levels.scoreKey(d.sleepScore)),
-        trend: [for (final x in _tail(days, 14)) x.sleepScore.toDouble()],
-      ),
+
       SectionLabel(s.t('today.forToday')),
       MetricRow(
           title: s.t('today.suggestedLoad'),
@@ -221,6 +150,7 @@ class TodayScreen extends StatelessWidget {
             title: s.t('today.loadRatio'),
             subtitle: s.t('load.ratioWaiting'),
             value: '--'),
+
       SectionLabel(s.t('today.tonight')),
       MetricRow(
         title: s.t('today.bedtime'),
@@ -231,12 +161,14 @@ class TodayScreen extends StatelessWidget {
           'eff': (plan.efficiency * 100).round().toString(),
         }),
         value: saatDakika(plan.bedMinute),
+        onTap: () => _bilgi(
+            context,
+            s.t('today.bedtime'),
+            plan.efficiencyFromData
+                ? s.t('today.bedtimeNote')
+                : s.t('today.bedtimeNoteDefault')),
       ),
-      NoteBlock(plan.efficiencyFromData
-          ? s.t('today.bedtimeNote')
-          : s.t('today.bedtimeNoteDefault')),
-      _EtiketKarti(allDays ?? days),
-      SectionLabel(s.t('today.water')),
+      EtiketKarti(hydDays),
       MetricRow(
         title: s.t('today.water'),
         subtitle: s.t2('today.waterGoal', {'goal': '${Ayarlar.suHedefiMl}'}),
@@ -249,60 +181,140 @@ class TodayScreen extends StatelessWidget {
             Ayarlar.suHedefiMl.toDouble()),
         trend: [for (final x in _tail(hydDays, 14)) x.hydrationMl.toDouble()],
       ),
-      NoteBlock(waterLink),
-      NoteBlock(s.t('today.waterNote')),
-      if (week != null) ...[
-        SectionLabel(s.t('today.week')),
-        MetricRow(
-          title: s.t('today.weekReadiness'),
-          subtitle: week.readinessDelta == null
-              ? s.t2('today.weekNights', {'n': '${week.nights}'})
-              : s.t2('today.weekVsPrev', {
-                  'prev': week.prevReadiness!.toStringAsFixed(0),
-                  'delta': sgn(week.readinessDelta!, digits: 0),
-                }),
-          value: week.readiness.toStringAsFixed(0),
-          unit: s.t('unit.of100'),
-          level: Levels.readiness(week.readiness.round()),
-          levelText: s.t(Levels.readinessKey(week.readiness.round())),
+
+      SectionLabel(s.t('insights.section')),
+      _VerinGirisi(days: days, allDays: hydDays),
+
+      Acilir(
+        anahtar: 'girdiler',
+        baslik: s.t('today.inputs'),
+        ozet: d.hrv != null && d.hrvBaselineN >= Config.minBaselineNights
+            ? 'HRV ${sgn(d.hrvZ, digits: 1)} z'
+            : null,
+        children: [
+          if (d.hrv != null && d.hrvBaselineN >= Config.minBaselineNights)
+            MetricRow(
+              title: s.t('today.hrv'),
+              subtitle: s.t('today.hrvSub'),
+              value: sgn(d.hrvZ),
+              unit: s.t('unit.z'),
+              level: Levels.z(d.hrvZ),
+              levelText: s.t(Levels.zKey(d.hrvZ)),
+              extra: ZoneMeter.zScore(d.hrvZ),
+            )
+          else
+            MetricRow(
+              title: s.t('today.hrv'),
+              subtitle: d.hrv == null
+                  ? s.t('today.hrvNone')
+                  : s.t2('today.calibratingRow', {
+                      'n': '${d.hrvBaselineN}',
+                      'min': '${Config.minBaselineNights}',
+                    }),
+              value: '--',
+            ),
+          if (d.rhr != null && d.rhrBaselineN >= Config.minBaselineNights)
+            MetricRow(
+              title: s.t('today.rhr'),
+              subtitle: s.t('today.rhrSub'),
+              value: sgn(-d.rhrZ),
+              unit: s.t('unit.z'),
+              level: Levels.z(-d.rhrZ),
+              levelText: s.t(Levels.zKey(-d.rhrZ)),
+              extra: ZoneMeter.zScore(-d.rhrZ),
+            )
+          else
+            MetricRow(
+              title: s.t('today.rhr'),
+              subtitle: d.rhr == null
+                  ? s.t('today.rhrNone')
+                  : s.t2('today.calibratingRow', {
+                      'n': '${d.rhrBaselineN}',
+                      'min': '${Config.minBaselineNights}',
+                    }),
+              value: '--',
+            ),
+          MetricRow(
+            title: s.t('today.respTemp'),
+            subtitle: s.t('today.respTempSub'),
+            value: sgn(-(d.respZ + d.tempZ) / 2),
+            unit: s.t('unit.z'),
+            level: Levels.z(-(d.respZ + d.tempZ) / 2),
+            levelText: s.t(Levels.zKey(-(d.respZ + d.tempZ) / 2)),
+            extra: ZoneMeter.zScore(-(d.respZ + d.tempZ) / 2),
+          ),
+          MetricRow(
+            title: s.t('today.sleepScore'),
+            subtitle: s.t('today.weight25'),
+            value: '${d.sleepScore}',
+            unit: s.t('unit.of100'),
+            level: Levels.score(d.sleepScore),
+            levelText: s.t(Levels.scoreKey(d.sleepScore)),
+            trend: [for (final x in _tail(days, 14)) x.sleepScore.toDouble()],
+          ),
+        ],
+      ),
+
+      if (week != null)
+        Acilir(
+          anahtar: 'hafta',
+          baslik: s.t('today.week'),
+          ozet: s.t2('today.weekShort',
+              {'r': week.readiness.toStringAsFixed(0)}),
+          baslangictaAcik: pazartesi,
+          children: [
+            MetricRow(
+              title: s.t('today.weekReadiness'),
+              subtitle: week.readinessDelta == null
+                  ? s.t2('today.weekNights', {'n': '${week.nights}'})
+                  : s.t2('today.weekVsPrev', {
+                      'prev': week.prevReadiness!.toStringAsFixed(0),
+                      'delta': sgn(week.readinessDelta!, digits: 0),
+                    }),
+              value: week.readiness.toStringAsFixed(0),
+              unit: s.t('unit.of100'),
+              level: Levels.readiness(week.readiness.round()),
+              levelText: s.t(Levels.readinessKey(week.readiness.round())),
+            ),
+            MetricRow(
+              title: s.t('today.weekSleep'),
+              subtitle: week.asleepDelta == null
+                  ? s.t2('today.weekSleepScore',
+                      {'score': week.sleepScore.toStringAsFixed(0)})
+                  : s.t2('today.weekSleepVsPrev', {
+                      'score': week.sleepScore.toStringAsFixed(0),
+                      'delta': (week.asleepDelta! >= 0 ? '+' : '−') +
+                          _dur(s, week.asleepDelta!.abs().round()),
+                    }),
+              value: _dur(s, week.asleepMinutes.round()),
+            ),
+            MetricRow(
+              title: s.t('today.weekBest'),
+              subtitle: s.t2('today.weekBestSub', {
+                'date': week.bestNight.label,
+                'sleep': _dur(s, week.bestNight.asleep),
+              }),
+              value: '${week.bestNight.sleepScore}',
+              unit: s.t('unit.of100'),
+            ),
+            MetricRow(
+              title: s.t('today.weekDebt'),
+              subtitle: s.t2('today.weekDebtSub',
+                  {'ago': _dur(s, week.debtWeekAgo)}),
+              value: (week.debtDelta >= 0 ? '+' : '−') +
+                  _dur(s, week.debtDelta.abs()),
+              level: week.debtDelta > 30
+                  ? Level.bad
+                  : (week.debtDelta < -30 ? Level.good : Level.warn),
+              levelText: s.t(week.debtDelta > 30
+                  ? 'today.weekDebtUp'
+                  : (week.debtDelta < -30
+                      ? 'today.weekDebtDown'
+                      : 'today.weekDebtFlat')),
+            ),
+          ],
         ),
-        MetricRow(
-          title: s.t('today.weekSleep'),
-          subtitle: week.asleepDelta == null
-              ? s.t2('today.weekSleepScore',
-                  {'score': week.sleepScore.toStringAsFixed(0)})
-              : s.t2('today.weekSleepVsPrev', {
-                  'score': week.sleepScore.toStringAsFixed(0),
-                  'delta': (week.asleepDelta! >= 0 ? '+' : '−') +
-                      _dur(s, week.asleepDelta!.abs().round()),
-                }),
-          value: _dur(s, week.asleepMinutes.round()),
-        ),
-        MetricRow(
-          title: s.t('today.weekBest'),
-          subtitle: s.t2('today.weekBestSub', {
-            'date': week.bestNight.label,
-            'sleep': _dur(s, week.bestNight.asleep),
-          }),
-          value: '${week.bestNight.sleepScore}',
-          unit: s.t('unit.of100'),
-        ),
-        MetricRow(
-          title: s.t('today.weekDebt'),
-          subtitle: s.t2('today.weekDebtSub',
-              {'ago': _dur(s, week.debtWeekAgo)}),
-          value: (week.debtDelta >= 0 ? '+' : '−') +
-              _dur(s, week.debtDelta.abs()),
-          level: week.debtDelta > 30
-              ? Level.bad
-              : (week.debtDelta < -30 ? Level.good : Level.warn),
-          levelText: s.t(week.debtDelta > 30
-              ? 'today.weekDebtUp'
-              : (week.debtDelta < -30
-                  ? 'today.weekDebtDown'
-                  : 'today.weekDebtFlat')),
-        ),
-      ],
+
       SectionLabel(s.t('today.last30')),
       BarSeriesChart(
         bars: [
@@ -315,6 +327,96 @@ class TodayScreen extends StatelessWidget {
       const LevelScale(),
       NoteBlock(s.t('today.chartNote')),
     ]);
+  }
+}
+
+/// Açıklama metnini alt sayfada gösterir. Bugün ekranındaki uzun notlar
+/// buraya taşındı: ekranı okuyan herkes onları her gün görmek zorunda değil.
+void _bilgi(BuildContext context, String baslik, String metin) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: K.bg,
+    showDragHandle: true,
+    builder: (_) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(K.gutter + 4, 0, K.gutter + 4, 24),
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(baslik, style: K.titleSmall),
+              const SizedBox(height: 10),
+              Text(metin, style: K.caption),
+            ]),
+      ),
+    ),
+  );
+}
+
+/// Bugün ekranının en üstündeki tek cümle.
+class _GununCumlesi extends StatelessWidget {
+  final Headline h;
+  const _GununCumlesi(this.h);
+
+  static String metin(S s, Headline h) {
+    final ton = s.t('headline.tone.${h.ton.name}');
+    final dk = fmtDur(h.deger, h: s.t('common.hourShort'), m: s.t('common.minShort'));
+    final sebep = switch (h.sebep) {
+      GunSebebi.hastalik => s.t('headline.why.hastalik'),
+      GunSebebi.geceNabzi => s.t2('headline.why.geceNabzi',
+          {'v': h.deger.toStringAsFixed(0)}),
+      GunSebebi.yuklenme => s.t2('headline.why.yuklenme',
+          {'v': h.deger.toStringAsFixed(2)}),
+      GunSebebi.kisaUyku => s.t2('headline.why.kisaUyku', {'v': dk}),
+      GunSebebi.buyukBorc => s.t2('headline.why.buyukBorc', {'v': dk}),
+      GunSebebi.dusukHrv => s.t('headline.why.dusukHrv'),
+      GunSebebi.yuksekHrv => s.t('headline.why.yuksekHrv'),
+      GunSebebi.iyiUyku => s.t2('headline.why.iyiUyku',
+          {'v': h.deger.toStringAsFixed(0)}),
+      GunSebebi.yok => null,
+    };
+    final yatis = s.t2('headline.bed', {'bed': saatDakika(h.plan.bedMinute)});
+    return sebep == null ? '$ton. $yatis' : '$ton: $sebep. $yatis';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    return Kart(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 8),
+      child: Semantics(
+        liveRegion: true,
+        child: Text(metin(s, h),
+            style: K.rowTitle.copyWith(fontSize: 17, height: 1.35)),
+      ),
+    );
+  }
+}
+
+/// "Senin verin ne diyor" ekranına giriş satırı.
+class _VerinGirisi extends StatelessWidget {
+  final List<DayRecord> days;
+  final List<DayRecord> allDays;
+  const _VerinGirisi({required this.days, required this.allDays});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    return ValueListenableBuilder<int>(
+      valueListenable: Etiketler.degisti,
+      builder: (context, _, _) {
+        final n = VerinEkrani.hazirSayisi(days, allDays);
+        return MetricRow(
+          title: s.t('insights.title'),
+          subtitle: n == 0
+              ? s.t('insights.entryNone')
+              : s.t2('insights.entry', {'n': '$n'}),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => VerinEkrani(days: days, allDays: allDays))),
+        );
+      },
+    );
   }
 }
 
@@ -357,55 +459,72 @@ class _Kalibrasyon extends StatelessWidget {
   }
 }
 
-/// Etiket günlüğü: bu akşamın etiketleri ve kendi verinden hesaplanan
-/// ertesi sabah farkları. Günlük değiştikçe yalnızca bu kart yeniden çiziliyor.
-class _EtiketKarti extends StatelessWidget {
+/// Etiket günlüğü: bu akşamın etiketleri. Karşılaştırmalar "Senin verin ne
+/// diyor" ekranında; burada yalnızca giriş ve hatırlatma kısayolu var.
+class EtiketKarti extends StatelessWidget {
   /// Filtrelenmemiş liste: "ertesi sabah" takvimle bulunuyor.
   final List<DayRecord> days;
-  const _EtiketKarti(this.days);
+
+  /// false ise alt sayfada gösteriliyor: kenar boşluğu ve ipucu farklı.
+  final bool ozetli;
+  const EtiketKarti(this.days, {this.ozetli = true, super.key});
+
+  Future<void> _hatirlatmaAc(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final s = S.of(context);
+    final izin = await Hatirlatici.izinIste();
+    if (!izin) {
+      messenger.showSnackBar(SnackBar(content: Text(s.t('notif.denied'))));
+      return;
+    }
+    await Ayarlar.hatirlatmaYaz(true);
+    messenger.showSnackBar(SnackBar(content: Text(s.t('notif.enabled'))));
+  }
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
     return ValueListenableBuilder<int>(
       valueListenable: Etiketler.degisti,
-      builder: (context, _, _) {
-        final bugun = Etiketler.bugun();
-        final etkiler = Insights.tagEffects(days, Etiketler.kayit);
-        final bakilan = Etiketler.kayit.length;
-        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Kart(
+      builder: (context, _, _) => ValueListenableBuilder<int>(
+        valueListenable: Ayarlar.degisti,
+        builder: (context, _, _) {
+          final bugun = Etiketler.bugun();
+          return Kart(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(s.t('tags.title'), style: K.rowTitle),
-              const SizedBox(height: 2),
-              Text(s.t('tags.sub'), style: K.rowSub),
-              const SizedBox(height: 12),
-              Wrap(spacing: 8, runSpacing: 8, children: [
-                for (final e in etiketListesi)
-                  SecimCipi(s.t('tag.$e'),
-                      secili: bugun?.contains(e) ?? false,
-                      onTap: () => Etiketler.degistir(e)),
-                SecimCipi(s.t('tags.none'),
-                    secili: bugun != null && bugun.isEmpty,
-                    onTap: Etiketler.hicbiri),
-              ]),
-            ]),
-          ),
-          if (etkiler.isEmpty)
-            NoteBlock(s.t2('tags.waiting', {'n': '$bakilan'}))
-          else
-            for (final e in etkiler)
-              NoteBlock(s.t2('tags.effect', {
-                'tag': s.t('tag.${e.tag}'),
-                'withDays': '${e.withDays}',
-                'with': e.withReadiness.toStringAsFixed(0),
-                'withoutDays': '${e.withoutDays}',
-                'without': e.withoutReadiness.toStringAsFixed(0),
-                'delta': sgn(e.delta, digits: 0),
-              })),
-        ]);
-      },
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(s.t('tags.title'), style: K.rowTitle),
+                  const SizedBox(height: 2),
+                  Text(s.t('tags.sub'), style: K.rowSub),
+                  const SizedBox(height: 12),
+                  Wrap(spacing: 8, runSpacing: 8, children: [
+                    for (final e in etiketListesi)
+                      SecimCipi(s.t('tag.$e'),
+                          secili: bugun?.contains(e) ?? false,
+                          onTap: () => Etiketler.degistir(e)),
+                    SecimCipi(s.t('tags.none'),
+                        secili: bugun != null && bugun.isEmpty,
+                        onTap: Etiketler.hicbiri),
+                  ]),
+                  if (!Ayarlar.hatirlatma) ...[
+                    const SizedBox(height: 12),
+                    Basilabilir(
+                      onTap: () => _hatirlatmaAc(context),
+                      child: Row(children: [
+                        Icon(Icons.notifications_none, size: 18, color: K.ink2),
+                        const SizedBox(width: 6),
+                        Expanded(
+                            child: Text(s.t('tags.remind'),
+                                style: K.rowSub.copyWith(color: K.ink2))),
+                      ]),
+                    ),
+                  ],
+                ]),
+          );
+        },
+      ),
     );
   }
 }

@@ -1,5 +1,35 @@
 # Değişiklik günlüğü
 
+## 0.12.0 — Ekim 2026
+
+**Bugün ekranı sadeleşti**
+
+- **Günün cümlesi** en üstte: günün tonu, en önemli sebebi ve bu geceki yatış
+  saati tek cümlede ("Bugün dinlenme günü: gece nabzın taban çizginin 6 atım
+  üstünde. Bu gece hedef yatış 22:14."). Sebeplerin öncelik sırası sabit ve
+  test ediliyor
+- Hazırlığın girdileri ve haftalık özet açılır bölümlerde. Haftalık özet
+  pazartesi açık geliyor; öteki günler tek satır
+- Uzun açıklamalar (yatma saatinin hesabı gibi) satıra dokununca açılan alt
+  sayfada
+
+**Senin verin ne diyor**
+
+- Yeni ekran: etiket ve su karşılaştırmaları tek yerde, artı etiket
+  gerektirmeyen dört otomatik karşılaştırma. Erken yatış ve o sabahki hazırlık,
+  yüklü gün ve ertesi sabahki HRV, çok adım ve o geceki uyku skoru, şekerleme ve
+  o geceki uyku süresi. Eşikler sabit değil, kendi medyanın
+- Her kartta iki grubun ortalaması ve kaç günden hesaplandığı görünüyor; her
+  grupta en az dört gün yoksa kart gösterilmiyor
+
+**Akşam hatırlatması**
+
+- Yatma saatinden yarım saat önce tek bildirim; dokununca etiket günlüğü
+  açılıyor. Ayarlardan ya da etiket kartından açılıyor, varsayılan kapalı
+- İnternet yok: bildirim telefonda zamanlanıyor, her açılışta yeniden kuruluyor
+- `flutter_local_notifications` eklendi; kurulum yamaları manifest alıcılarını
+  ve Gradle desugaring ayarını ekliyor
+
 ## 0.11.0 — Ekim 2026
 
 32 günlük gerçek veriyle ayar.

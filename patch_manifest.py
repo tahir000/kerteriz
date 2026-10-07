@@ -35,6 +35,9 @@ PERMISSIONS = """    """ + MARK + """
     <!-- 30 gunden eski kayitlar icin sart; taban cizgiler buna bagli -->
     <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_HISTORY"/>
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+    <!-- Akşam hatırlatması: telefon yeniden başlayınca bildirim yeniden kurulsun.
+         POST_NOTIFICATIONS izni bildirim eklentisinin kendi manifestinde. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
 """
 
@@ -84,6 +87,23 @@ WIDGET_OZET = """
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/ozet_widget_info" />
+        </receiver>
+"""
+
+BILDIRIM = """
+        <!-- Akşam hatırlatması (flutter_local_notifications) -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
         </receiver>
 """
 
@@ -160,6 +180,8 @@ def main(path):
         eklenecek += WIDGET_SU
     if ".OzetWidgetProvider" not in src:
         eklenecek += WIDGET_OZET
+    if "ScheduledNotificationReceiver" not in src:
+        eklenecek += BILDIRIM
     if eklenecek:
         src = src.replace("</application>", eklenecek + "\n    </application>", 1)
 

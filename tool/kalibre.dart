@@ -91,4 +91,16 @@ Future<void> main(List<String> args) async {
         'solunum z ${w.last.respZ.toStringAsFixed(1)} · hastalık: ${MetricsEngine.illnessSignal(w)} '
         '· gece nabzı: ${g == null ? '-' : '+${g.deltaBpm.toStringAsFixed(1)}'}');
   }
+
+  stdout.writeln('\n--- günün cümlesi ve otomatik karşılaştırmalar ---');
+  final veri = days.where((d) => d.hasSleep || d.rhr != null).toList();
+  final plan = Gunluk.planFor(veri, wakeMinute: 7 * 60);
+  final h = Gunluk.headline(veri, plan);
+  stdout.writeln('ton ${h.ton.name}, sebep ${h.sebep.name} (${h.deger.toStringAsFixed(1)}), '
+      'yatış ${saatDakika(plan.bedMinute)} (07:00 kalkış)');
+  for (final c in Deneyler.otomatik(veri)) {
+    stdout.writeln('${c.key.padRight(11)} eşik ${c.esik.toStringAsFixed(1).padLeft(7)}  '
+        'A ${c.a.toStringAsFixed(1)} (${c.nA} gün)  B ${c.b.toStringAsFixed(1)} (${c.nB} gün)  '
+        'fark ${c.delta.toStringAsFixed(1)}');
+  }
 }

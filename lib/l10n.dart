@@ -177,10 +177,6 @@ class S {
         'Su alımı hazırlık skoruna ağırlıkla katılmıyor. Etkisi gerçek ama bir '
             'katsayı verecek kadar net değil; onun yerine kendi verinden hesaplanan '
             'karşılaştırma aşağıda.',
-    'today.waterLink':
-        'Hedefi tutturduğun {atDays} günün ertesinde hazırlık ortalama {at}, '
-            'hedefin altında kaldığın {belowDays} günün ertesinde {below}. '
-            'Fark {delta} puan.',
     'today.waterLinkNone':
         'Karşılaştırma için hem hedefin üstünde hem altında en az dörder gün '
             'gerekiyor. Su kaydı biriktikçe bu satır dolacak.',
@@ -206,6 +202,85 @@ class S {
         'Henüz yeterli gece yok; uyku verimi için varsayılan %90 kullanıldı. '
             'Üç geceden sonra kendi verin devreye girer. Kalkış saati ayarlardan değişir.',
 
+    // günün cümlesi
+    'headline.tone.kalibrasyon': 'Taban çizgin oluşuyor',
+    'headline.tone.dinlen': 'Bugün dinlenme günü',
+    'headline.tone.olculu': 'Ölçülü bir gün',
+    'headline.tone.hazir': 'Yüklenmeye hazırsın',
+    'headline.why.hastalik': 'solunumun ve nabzın birlikte yükseldi, kendini dinle',
+    'headline.why.geceNabzi': 'gece nabzın taban çizginin {v} atım üstünde',
+    'headline.why.yuklenme': 'yük oranın {v} ve HRV üç gündür düşük',
+    'headline.why.kisaUyku': 'dün gece yalnızca {v} uyudun',
+    'headline.why.buyukBorc': 'uyku borcun {v}',
+    'headline.why.dusukHrv': 'HRV\'n her zamankinden düşük',
+    'headline.why.yuksekHrv': 'HRV\'n her zamankinden yüksek',
+    'headline.why.iyiUyku': 'dün gece iyi uyudun ({v} puan)',
+    'headline.bed': 'Bu gece hedef yatış {bed}.',
+    'today.weekShort': 'hazırlık {r}',
+
+    // senin verin ne diyor
+    'insights.section': 'Kendi verin',
+    'insights.title': 'Senin verin ne diyor',
+    'insights.entry': '{n} karşılaştırma hazır',
+    'insights.entryNone': 'Veri biriktikçe karşılaştırmalar burada açılacak',
+    'insights.intro':
+        'Burada skor yok; kendi gecelerinin birbiriyle karşılaştırması var. Her '
+            'kartta iki grup gün, her grubun ortalaması ve kaç günden hesaplandığı '
+            'yazıyor. Her iki grupta en az dört gün yoksa kart gösterilmiyor.',
+    'insights.tags': 'Etiketlerin',
+    'insights.tagSub': 'Ertesi sabahki hazırlık ortalaması',
+    'insights.tagWith': 'İşaretlediğin akşamların ertesi',
+    'insights.tagWithout': 'İşaretlemediğin akşamların ertesi',
+    'insights.tagResult': 'Fark {delta} puan.',
+    'insights.water.title': 'Su hedefi',
+    'insights.water.sub': 'Hedef {goal} ml · ertesi sabahki hazırlık ortalaması',
+    'insights.water.a': 'Hedefi tutturduğun günlerin ertesi',
+    'insights.water.b': 'Hedefin altında kaldığın günlerin ertesi',
+    'insights.auto': 'Kendiliğinden çıkanlar',
+    'insights.autoNone':
+        'Bu karşılaştırmalar etiket istemez, verinin kendisinden çıkar. Birkaç '
+            'hafta veri birikince burada görünecekler.',
+    'insights.caveat':
+        'Bunlar ilişki, neden değil. Erken yattığın geceler başka açılardan da '
+            'farklı olabilir (hafta sonu, stres, yemek). Gün sayısı az olan '
+            'farklara temkinli bak.',
+    'insights.erkenYatis.title': 'Erken yatmak',
+    'insights.erkenYatis.sub': 'Senin her zamanki yatış saatin {saat} · o sabahki hazırlık',
+    'insights.erkenYatis.a': '{saat}\'ten önce yattığın geceler',
+    'insights.erkenYatis.b': '{saat}\'ten sonra yattığın geceler',
+    'insights.erkenYatis.result': 'Erken yattığın sabahlar hazırlık farkı {delta} puan.',
+    'insights.yukluGun.title': 'Yüklü günler',
+    'insights.yukluGun.sub': 'Ertesi sabah HRV, kendi taban çizgine göre',
+    'insights.yukluGun.a': 'Yükü {esik} üstü günlerin ertesi',
+    'insights.yukluGun.b': 'Yükü {esik} ve altı günlerin ertesi',
+    'insights.yukluGun.result':
+        'Fark {delta} z. Eksi, yüklü günlerden sonra HRV\'nin düştüğü anlamına gelir.',
+    'insights.adim.title': 'Çok yürüdüğün günler',
+    'insights.adim.sub': 'O gecenin uyku skoru',
+    'insights.adim.a': '{esik} adım üstü günlerin gecesi',
+    'insights.adim.b': '{esik} adım ve altı günlerin gecesi',
+    'insights.adim.result': 'Fark {delta} puan.',
+    'insights.sekerleme.title': 'Şekerleme',
+    'insights.sekerleme.sub': 'O gecenin uyku süresi',
+    'insights.sekerleme.a': 'Şekerleme yaptığın günlerin gecesi',
+    'insights.sekerleme.b': 'Şekerleme yapmadığın günlerin gecesi',
+    'insights.sekerleme.result': 'Fark {delta}.',
+
+    // hatırlatma
+    'tags.remind': 'Her akşam yatma saatinden önce hatırlat',
+    'notif.channel': 'Akşam hatırlatması',
+    'notif.channelSub': 'Yatma saatinden yarım saat önce, günde bir kez',
+    'notif.title': 'Yatma vaktine yarım saat: {bed}',
+    'notif.body': 'Bu akşam neler oldu? Etiketlemek tek dokunuş.',
+    'notif.denied': 'Bildirim izni verilmedi. Telefonun ayarlarından açabilirsin.',
+    'notif.enabled': 'Her akşam yatma saatinden yarım saat önce hatırlatacağım.',
+    'settings.reminder': 'Akşam hatırlatması',
+    'settings.reminderSub':
+        'Yatma saatinden yarım saat önce tek bildirim; dokununca etiket günlüğü açılır. '
+            'Saat her açılışta yeniden hesaplanır.',
+    'settings.reminderOff': 'Kapalı',
+    'settings.reminderOn': 'Açık',
+
     // etiket günlüğü
     'tags.title': 'Bu akşam',
     'tags.sub': 'Tek dokunuş. Ertesi sabahki hazırlıkla karşılaştırılır.',
@@ -219,9 +294,6 @@ class S {
         'Bir etiketin etkisini göstermek için hem o etiketin olduğu hem olmadığı '
             'en az dörder akşam gerekiyor. Şimdiye kadar {n} akşam işaretlendi. '
             'Hiçbir şey yoksa "Hiçbiri"ne dokun: işaretlenmeyen akşamlar sayılmaz.',
-    'tags.effect':
-        '{tag}: işaretlediğin {withDays} akşamın ertesinde hazırlık ortalama {with}, '
-            'işaretlemediğin {withoutDays} akşamın ertesinde {without}. Fark {delta} puan.',
 
     // haftalık özet
     'today.week': 'Haftalık özet',
@@ -585,10 +657,6 @@ class S {
         'Hydration carries no weight in the readiness score. The effect is real but '
             'not sharp enough to justify a coefficient; what you see below is a '
             'comparison computed from your own data instead.',
-    'today.waterLink':
-        'Readiness averages {at} the day after the {atDays} days you hit the goal, '
-            'and {below} the day after the {belowDays} days you fell short. '
-            'The gap is {delta} points.',
     'today.waterLinkNone':
         'The comparison needs at least four days on each side of the goal. '
             'This line fills in as hydration records accumulate.',
@@ -613,6 +681,85 @@ class S {
         'Not enough nights yet; a default 90% sleep efficiency is used. Your own '
             'data takes over after three nights. Change the wake time in settings.',
 
+    // headline
+    'headline.tone.kalibrasyon': 'Building your baseline',
+    'headline.tone.dinlen': 'A rest day',
+    'headline.tone.olculu': 'A measured day',
+    'headline.tone.hazir': 'Ready to push',
+    'headline.why.hastalik': 'respiration and heart rate are up together, listen to your body',
+    'headline.why.geceNabzi': 'overnight heart rate is {v} bpm above baseline',
+    'headline.why.yuklenme': 'load ratio is {v} and HRV has been low for three days',
+    'headline.why.kisaUyku': 'you slept only {v} last night',
+    'headline.why.buyukBorc': 'sleep debt is {v}',
+    'headline.why.dusukHrv': 'HRV is lower than usual',
+    'headline.why.yuksekHrv': 'HRV is higher than usual',
+    'headline.why.iyiUyku': 'you slept well last night ({v} points)',
+    'headline.bed': 'Tonight, aim for bed at {bed}.',
+    'today.weekShort': 'readiness {r}',
+
+    // what your data says
+    'insights.section': 'Your own data',
+    'insights.title': 'What your data says',
+    'insights.entry': '{n} comparisons ready',
+    'insights.entryNone': 'Comparisons open here as data accumulates',
+    'insights.intro':
+        'No scores here; just your own nights compared with each other. Each card '
+            'shows two groups of days, each group\'s average and how many days it '
+            'comes from. A card only appears with at least four days on each side.',
+    'insights.tags': 'Your tags',
+    'insights.tagSub': 'Next-morning readiness average',
+    'insights.tagWith': 'Mornings after tagged evenings',
+    'insights.tagWithout': 'Mornings after untagged evenings',
+    'insights.tagResult': 'The gap is {delta} points.',
+    'insights.water.title': 'Hydration goal',
+    'insights.water.sub': 'Goal {goal} ml · next-morning readiness average',
+    'insights.water.a': 'Mornings after days at goal',
+    'insights.water.b': 'Mornings after days below goal',
+    'insights.auto': 'Found on their own',
+    'insights.autoNone':
+        'These comparisons need no tags; they come from the data itself. They appear '
+            'here after a few weeks of data.',
+    'insights.caveat':
+        'These are associations, not causes. Nights you went to bed early may differ '
+            'in other ways too (weekends, stress, meals). Be careful with gaps that '
+            'rest on few days.',
+    'insights.erkenYatis.title': 'Going to bed early',
+    'insights.erkenYatis.sub': 'Your usual bedtime is {saat} · readiness that morning',
+    'insights.erkenYatis.a': 'Nights in bed before {saat}',
+    'insights.erkenYatis.b': 'Nights in bed after {saat}',
+    'insights.erkenYatis.result': 'Readiness after early nights differs by {delta} points.',
+    'insights.yukluGun.title': 'Heavy days',
+    'insights.yukluGun.sub': 'Next-morning HRV against your baseline',
+    'insights.yukluGun.a': 'Mornings after load above {esik}',
+    'insights.yukluGun.b': 'Mornings after load {esik} or below',
+    'insights.yukluGun.result':
+        'The gap is {delta} z. Negative means HRV drops after heavy days.',
+    'insights.adim.title': 'Days you walked a lot',
+    'insights.adim.sub': 'Sleep score that night',
+    'insights.adim.a': 'Nights after more than {esik} steps',
+    'insights.adim.b': 'Nights after {esik} steps or fewer',
+    'insights.adim.result': 'The gap is {delta} points.',
+    'insights.sekerleme.title': 'Naps',
+    'insights.sekerleme.sub': 'Sleep duration that night',
+    'insights.sekerleme.a': 'Nights after a nap',
+    'insights.sekerleme.b': 'Nights without a nap',
+    'insights.sekerleme.result': 'The gap is {delta}.',
+
+    // reminder
+    'tags.remind': 'Remind me every evening before bedtime',
+    'notif.channel': 'Evening reminder',
+    'notif.channelSub': 'Half an hour before bedtime, once a day',
+    'notif.title': 'Half an hour to bedtime: {bed}',
+    'notif.body': 'How was your evening? Tagging takes one tap.',
+    'notif.denied': 'Notification permission was not granted. You can enable it in your phone settings.',
+    'notif.enabled': 'I will remind you half an hour before bedtime every evening.',
+    'settings.reminder': 'Evening reminder',
+    'settings.reminderSub':
+        'A single notification half an hour before bedtime; tapping it opens the tag '
+            'journal. The time is recalculated each time you open the app.',
+    'settings.reminderOff': 'Off',
+    'settings.reminderOn': 'On',
+
     // tag journal
     'tags.title': 'This evening',
     'tags.sub': 'One tap. Compared with the next morning\'s readiness.',
@@ -626,9 +773,6 @@ class S {
         'Showing a tag\'s effect needs at least four evenings with it and four '
             'without. {n} evenings logged so far. If nothing applies, tap "None": '
             'evenings left unlogged are not counted.',
-    'tags.effect':
-        '{tag}: readiness averages {with} after the {withDays} evenings you tagged '
-            'it, and {without} after the {withoutDays} you did not. The gap is {delta} points.',
 
     // weekly summary
     'today.week': 'Weekly summary',

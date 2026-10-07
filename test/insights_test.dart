@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kerteriz/config.dart';
 import 'package:kerteriz/data/day_record.dart';
 import 'package:kerteriz/data/etiketler.dart';
+import 'package:kerteriz/data/hatirlatici.dart';
 import 'package:kerteriz/metrics/engine.dart';
 import 'package:kerteriz/metrics/insights.dart';
 
@@ -166,6 +167,110 @@ void main() {
       final days = gunler(6, f: (date, i) => gun(date, rhr: i < 4 ? 55.0 + i % 2 : 65));
       MetricsEngine.run(days);
       expect(Insights.elevatedNightHr(days), isNull);
+    });
+  });
+
+  group('günün cümlesi', () {
+    BedtimePlan plan(List<DayRecord> d) =>
+        Gunluk.planFor(d, wakeMinute: 420);
+
+    test('ilk haftada ton kalibrasyon', () {
+      final days = gunler(4);
+      MetricsEngine.run(days);
+      expect(Gunluk.headline(days, plan(days)).ton, GunTonu.kalibrasyon);
+    });
+
+    test('gece nabzı uyarısı kısa uykudan önce gelir', () {
+      final days = gunler(16, f: (date, i) {
+        final g = gun(date, rhr: i >= 14 ? 63 : 55 + (i % 3) - 1.0);
+        if (i == 15) {
+          g.asleep = 240;
+          g.timeInBed = 260;
+        }
+        return g;
+      });
+      MetricsEngine.run(days);
+      final h = Gunluk.headline(days, plan(days));
+      expect(h.sebep, GunSebebi.geceNabzi);
+      expect(h.deger, greaterThan(5));
+    });
+
+    test('kısa uyku: ihtiyacın 90 dk altı', () {
+      final days = gunler(16, f: (date, i) => i == 15
+          ? gun(date, asleep: 300, timeInBed: 320)
+          : gun(date, asleep: 520, timeInBed: 540));
+      MetricsEngine.run(days);
+      final h = Gunluk.headline(days, plan(days));
+      expect(h.sebep, GunSebebi.kisaUyku);
+      expect(h.deger, 300);
+    });
+
+    test('her şey normalse sebep yok', () {
+      // 17 gün: son gün döngünün ortasına (HRV 52, nabız 56) denk geliyor.
+      final days = gunler(17, f: (date, i) => gun(date,
+          asleep: 470, timeInBed: 560, hrv: 50 + (i % 3) * 2.0,
+          rhr: 55 + (i % 3) * 1.0));
+      MetricsEngine.run(days);
+      final h = Gunluk.headline(days, plan(days));
+      expect(h.sebep, GunSebebi.yok);
+    });
+  });
+
+  group('otomatik karşılaştırmalar', () {
+    test('iki grupta 4 gün yoksa null', () {
+      final days = gunler(10);
+      expect(
+          Deneyler.karsilastir('x', days,
+              kosul: (d) => d.date.day == days.first.date.day,
+              sonuc: (d) => 1,
+              esik: 0),
+          isNull);
+    });
+
+    test('gecikmeli eşleşme takvime göre', () {
+      // Çift günler "koşul", ertesi günün değeri günün sırası.
+      final days = gunler(12);
+      final sira = {for (var i = 0; i < days.length; i++) days[i].date: i};
+      final c = Deneyler.karsilastir('x', days,
+          kosul: (d) => sira[d.date]!.isEven,
+          sonuc: (d) => sira[d.date]!.toDouble(),
+          esik: 0,
+          gecikme: 1)!;
+      // Çiftlerin ertesi: 1,3,5,7,9,11 -> ort 6; teklerin ertesi: 2,4,6,8,10 -> 6
+      expect(c.nA, 6);
+      expect(c.nB, 5);
+      expect(c.a, 6);
+      expect(c.b, 6);
+    });
+
+    test('adım: çok yürünen günün gecesi daha iyi uyunuyorsa görünür', () {
+      final days = gunler(20, f: (date, i) => gun(date, steps: i.isEven ? 14000 : 3000));
+      MetricsEngine.run(days);
+      // Çok adımlı günlerin ertesi gecesini belirgin iyi yap.
+      for (var i = 0; i + 1 < days.length; i++) {
+        days[i + 1].sleepScore = i.isEven ? 90 : 70;
+      }
+      final c = Deneyler.otomatik(days).firstWhere((c) => c.key == 'adim');
+      expect(c.a, 90);
+      expect(c.b, 70);
+      expect(c.esik, 8500);
+    });
+  });
+
+  group('akşam hatırlatması', () {
+    test('bugün geçmediyse bugün, geçtiyse yarın', () {
+      expect(Hatirlatici.sonraki(DateTime(2026, 10, 7, 20), 22 * 60 + 15),
+          DateTime(2026, 10, 7, 22, 15));
+      expect(Hatirlatici.sonraki(DateTime(2026, 10, 7, 23), 22 * 60 + 15),
+          DateTime(2026, 10, 8, 22, 15));
+    });
+
+    test('gece yarısını aşan saat (yatış 00:30 -> hatırlatma 00:00)', () {
+      expect(Hatirlatici.sonraki(DateTime(2026, 10, 7, 21), 0),
+          DateTime(2026, 10, 8, 0, 0));
+      // Negatif dakika: 00:10 yatış, 30 dk önce = 23:40
+      expect(Hatirlatici.sonraki(DateTime(2026, 10, 7, 21), 10 - 30),
+          DateTime(2026, 10, 7, 23, 40));
     });
   });
 }

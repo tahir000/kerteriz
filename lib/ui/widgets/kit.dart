@@ -609,3 +609,160 @@ class SecimCipi extends StatelessWidget {
         ),
       );
 }
+
+/// Açılıp kapanan bölüm. Başlık [SectionLabel] ile aynı yerde; sağında
+/// kapalıyken görünen kısa bir özet ve ok var.
+///
+/// Açık/kapalı durumu [anahtar] ile oturum boyunca hatırlanıyor: veri
+/// tazelendiğinde ekran yeniden kuruluyor ve kullanıcının açtığı bölüm
+/// kendiliğinden kapanmamalı.
+class Acilir extends StatefulWidget {
+  final String anahtar;
+  final String baslik;
+  final String? ozet;
+  final bool baslangictaAcik;
+  final List<Widget> children;
+
+  const Acilir({
+    super.key,
+    required this.anahtar,
+    required this.baslik,
+    required this.children,
+    this.ozet,
+    this.baslangictaAcik = false,
+  });
+
+  static final Map<String, bool> _durum = {};
+
+  @override
+  State<Acilir> createState() => _AcilirState();
+}
+
+class _AcilirState extends State<Acilir> {
+  bool get _acik => Acilir._durum[widget.anahtar] ?? widget.baslangictaAcik;
+
+  @override
+  Widget build(BuildContext context) {
+    final acik = _acik;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Semantics(
+        button: true,
+        expanded: acik,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => setState(() => Acilir._durum[widget.anahtar] = !acik),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+                K.gutter + 4, K.sectionGap, K.gutter, 8),
+            child: Row(children: [
+              Expanded(child: Eyebrow(widget.baslik)),
+              if (!acik && widget.ozet != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(widget.ozet!, style: K.rowSub),
+                ),
+              AnimatedRotation(
+                turns: acik ? 0.5 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(Icons.expand_more, size: 20, color: K.ink3),
+              ),
+            ]),
+          ),
+        ),
+      ),
+      AnimatedSize(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.topCenter,
+        child: acik
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: widget.children)
+            : const SizedBox(width: double.infinity),
+      ),
+    ]);
+  }
+}
+
+/// İki grubun karşılaştırması: iki yatay çubuk, gün sayıları ve fark.
+/// Renk yön bildirmiyor; hangisinin "iyi" olduğu metinde yazıyor.
+class KarsilastirmaKarti extends StatelessWidget {
+  final String baslik;
+  final String? aciklama;
+  final String etiketA;
+  final double degerA;
+  final int nA;
+  final String etiketB;
+  final double degerB;
+  final int nB;
+  final String Function(double) bicim;
+  final String sonucMetni;
+
+  const KarsilastirmaKarti({
+    super.key,
+    required this.baslik,
+    required this.etiketA,
+    required this.degerA,
+    required this.nA,
+    required this.etiketB,
+    required this.degerB,
+    required this.nB,
+    required this.bicim,
+    required this.sonucMetni,
+    this.aciklama,
+  });
+
+  Widget _cubuk(String etiket, double deger, int n, double enCok, bool vurgu,
+          String gunBirimi) =>
+      Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Expanded(child: Text(etiket, style: K.rowSub)),
+            Text(bicim(deger),
+                style: K.rowValue.copyWith(fontSize: 16, color: K.ink)),
+          ]),
+          const SizedBox(height: 5),
+          LayoutBuilder(
+            builder: (context, c) => Stack(children: [
+              Container(
+                height: 8,
+                decoration: BoxDecoration(
+                    color: K.fill, borderRadius: BorderRadius.circular(K.kapsul)),
+              ),
+              Container(
+                width: enCok <= 0
+                    ? 0
+                    : (c.maxWidth * (deger.abs() / enCok)).clamp(4.0, c.maxWidth),
+                height: 8,
+                decoration: BoxDecoration(
+                    color: vurgu ? K.ink : K.ink4,
+                    borderRadius: BorderRadius.circular(K.kapsul)),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 3),
+          Text('$n$gunBirimi', style: K.axis),
+        ]),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    final enCok = [degerA.abs(), degerB.abs()].reduce((a, b) => a > b ? a : b);
+    return Kart(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(baslik, style: K.rowTitle),
+        if (aciklama != null) ...[
+          const SizedBox(height: 2),
+          Text(aciklama!, style: K.rowSub),
+        ],
+        _cubuk(etiketA, degerA, nA, enCok, true, s.t('unit.day')),
+        _cubuk(etiketB, degerB, nB, enCok, false, s.t('unit.day')),
+        const SizedBox(height: 12),
+        Text(sonucMetni, style: K.note),
+      ]),
+    );
+  }
+}
