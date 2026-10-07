@@ -35,6 +35,13 @@ object HalkaCizer {
     data class Halka(val oran: Float, val renk: Int)
 
     /**
+     * Su eklenince en içteki halkanın efekti. [baslangic] eklemeden önceki
+     * doluluk; halka oradan bugünkü değerine akarken yeni eklenen kısım
+     * dalgalanıp duruluyor. [p] 0..1 ilerleme.
+     */
+    data class Dalga(val baslangic: Float, val p: Float)
+
+    /**
      * [halkalar] dıştan içe. [boyutPx] kare kenarı, [kalinlikPx] tek halkanın
      * kalınlığı, [araPx] iki halka arası boşluk, [izRenk] boş kısmın rengi.
      */
@@ -44,7 +51,7 @@ object HalkaCizer {
         boyutPx: Int,
         kalinlikPx: Float,
         araPx: Float,
-        dalga: Float? = null
+        dalga: Dalga? = null
     ): Bitmap {
         val bmp = Bitmap.createBitmap(boyutPx, boyutPx, Bitmap.Config.ARGB_8888)
         val tuval = Canvas(bmp)
@@ -110,43 +117,86 @@ object HalkaCizer {
                     kalinlikPx * 0.18f, nokta
                 )
             }
-        }
-        // Damla dalgası: su eklenince en içteki halkanın iç kenarından merkeze
-        // doğru yayılıp sönen iki yumuşak ışıltı. Keskin çizgi yerine kenarları
-        // sönen bir bant: widget kare kare güncellendiği için (SuAnimasyon)
-        // sert kenarlar kareler arasındaki atlamayı belli ediyordu.
-        if (dalga != null && halkalar.isNotEmpty()) {
-            val son = halkalar.last()
-            val icKenar = merkez - (kalinlikPx / 2f + kalinlikPx * 0.35f +
-                (halkalar.size - 1) * (kalinlikPx + araPx)) - kalinlikPx / 2f
-            if (icKenar > 1f) {
-                val bant = kalinlikPx * 1.4f
-                val dalgaBoya = Paint(Paint.ANTI_ALIAS_FLAG)
-                for (k in 0..1) {
-                    val p = ((dalga - k * 0.28f) / 0.72f).coerceIn(0f, 1f)
-                    if (p <= 0f || p >= 1f) continue
-                    // Hızlı başla, yavaşlayarak sön.
-                    val e = 1f - (1f - p) * (1f - p) * (1f - p)
-                    val r = icKenar * (1f - 0.82f * e)
-                    val alfa = (0.5f * (1f - e) * (if (k == 0) 1f else 0.7f) * 255).toInt()
-                    if (alfa <= 2) continue
-                    val renk = Color.argb(alfa, Color.red(son.renk), Color.green(son.renk), Color.blue(son.renk))
-                    val seffaf = Color.argb(0, Color.red(son.renk), Color.green(son.renk), Color.blue(son.renk))
-                    val ic = ((r - bant) / icKenar).coerceIn(0f, 1f)
-                    val orta = (r / icKenar).coerceIn(0f, 1f)
-                    val dis = ((r + bant) / icKenar).coerceIn(0f, 1f)
-                    if (!(ic < orta && orta < dis)) continue
-                    dalgaBoya.shader = RadialGradient(
-                        merkez, merkez, icKenar,
-                        intArrayOf(seffaf, seffaf, renk, seffaf, seffaf),
-                        floatArrayOf(0f, ic, orta, dis, 1f),
-                        Shader.TileMode.CLAMP
-                    )
-                    tuval.drawCircle(merkez, merkez, icKenar, dalgaBoya)
-                }
+            if (dalga != null && i == halkalar.lastIndex) {
+                dalgaCiz(tuval, merkez, yaricap, kalinlikPx, h.renk, dalga, oran)
             }
         }
         return bmp
+    }
+
+    /**
+     * Yeni eklenen yayın üstünde sönümlenen dalga: kalınlık boyunca ilerleyen
+     * bir sinüs, genliği [Dalga.p] ilerledikçe sıfıra iner. Ucunda da sönen
+     * yumuşak bir ışıltı. Yay boyunca küçük dairelerle çiziliyor; daireler
+     * halkanın rengiyle aynı ve opak, böylece kenar dalgalanıyor gibi görünüyor.
+     */
+    private fun dalgaCiz(
+        tuval: Canvas,
+        merkez: Float,
+        yaricap: Float,
+        kalinlik: Float,
+        renk: Int,
+        d: Dalga,
+        oran: Float
+    ) {
+        val bas = d.baslangic.coerceIn(0f, oran)
+        val uzunluk = oran - bas
+        if (uzunluk <= 0.002f) return
+        // Hızlı başla, yavaşlayarak durul.
+        val e = 1f - (1f - d.p) * (1f - d.p) * (1f - d.p)
+        val genlik = 1f - e
+        if (genlik <= 0.01f) return
+
+        val boya = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = renk }
+        val adimDerece = 1.5f
+        val toplamDerece = 360f * uzunluk
+        val adim = (toplamDerece / adimDerece).toInt().coerceAtLeast(2)
+        for (k in 0..adim) {
+            val t = k / adim.toFloat()
+            val aci = Math.toRadians((-90f + 360f * (bas + uzunluk * t)).toDouble())
+            // Su önü: dalga uca yakın yerde en güçlü, geride sakinleşiyor.
+            // Tepeler uca doğru ilerliyor, akış yönünde.
+            val zarf = sin(Math.PI * Math.pow(t.toDouble(), 0.6)).toFloat()
+            val tepe = 0.5f + 0.5f * sin(t * Math.PI * 5 - d.p * Math.PI * 6).toFloat()
+            val r = kalinlik / 2f * (1f + 0.42f * genlik * zarf * tepe)
+            tuval.drawCircle(
+                merkez + (yaricap * cos(aci)).toFloat(),
+                merkez + (yaricap * sin(aci)).toFloat(),
+                r, boya
+            )
+        }
+
+        // Su parıltısı: yeni dolan kısmın üstünde akan ince, açık bir şerit.
+        // Uca doğru kayan bir parlaklık; su yüzeyindeki ışık gibi.
+        val parilti = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+            strokeWidth = kalinlik * 0.22f
+            color = Color.argb((120 * genlik).toInt(), 255, 255, 255)
+        }
+        val seritBas = bas + uzunluk * (0.15f + 0.5f * e)
+        val seritUzun = (oran - seritBas) * 0.6f
+        if (seritUzun > 0.002f) {
+            val ry = yaricap - kalinlik * 0.18f
+            tuval.drawArc(
+                RectF(merkez - ry, merkez - ry, merkez + ry, merkez + ry),
+                -90f + 360f * seritBas, 360f * seritUzun, false, parilti
+            )
+        }
+
+        // Uçta sönen ışıltı.
+        val ucAci = Math.toRadians((-90f + 360f * oran).toDouble())
+        val ux = merkez + (yaricap * cos(ucAci)).toFloat()
+        val uy = merkez + (yaricap * sin(ucAci)).toFloat()
+        val beyaz = Color.argb((150 * genlik).toInt(), 255, 255, 255)
+        val isilti = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(
+                ux, uy, kalinlik * 0.9f,
+                intArrayOf(beyaz, Color.argb(0, 255, 255, 255)),
+                floatArrayOf(0f, 1f), Shader.TileMode.CLAMP
+            )
+        }
+        tuval.drawCircle(ux, uy, kalinlik * 0.9f, isilti)
     }
 
     private fun gradyan(

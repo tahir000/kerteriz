@@ -14,11 +14,14 @@
   Su artık ilerleme çubuğu değil, camgöbeği bir halka
 - **Koyu tema:** telefon gece moduna geçince widget'lar da koyulaşıyor;
   renkler uygulamanın paletiyle aynı
-- **Damla dalgası:** su eklenince halkanın içinden merkeze yayılıp sönen iki
-  yumuşak ışıltı (16 kare, ~0,9 sn, yavaşlayarak), ardından düğmede birkaç saniye "✓ +250 ml". Başlatıcının kendi dokunma
-  dalgası her telefonda görünmediği için (Honor'da görünmüyor) efekt kare kare
-  bizim tarafımızda çiziliyor; yalnızca dokunuşta çalışıyor. Su ve Bugün widget'ları
-  aynı suyu gösteriyor, biri değişince öteki de tazeleniyor
+- **Su efekti:** su eklenince halka eski değerden yeni değere su akıyormuş
+  gibi dolar: yeni dolan kısım dalgalanıp durulur, üstünde açık bir parıltı
+  kayar, ucunda sönen bir ışıltı olur. Ardından düğmede kısa "✓ +250 ml".
+  Efekt son bilinen toplamdan anında başlıyor, Health Connect'e yazma arka
+  planda yürüyor; eskiden önce yazıp okuduğu için dokunuşa geç tepki veriyordu.
+  Başlatıcının kendi dokunma dalgası her telefonda görünmediği için (Honor'da
+  görünmüyor) efekt kare kare bizim tarafımızda çiziliyor. Su ve Bugün
+  widget'ları aynı suyu gösteriyor, biri değişince öteki de tazeleniyor
 - **Widget seçicisinde önizleme:** boş kutu yerine gerçek görünüm
 - **Uygulama kapanınca widget'lar tazeleniyor.** Eskiden uygulama özet
   dosyasını yazıyor ama widget'lara haber vermiyordu; skorlar 30 dakikalık

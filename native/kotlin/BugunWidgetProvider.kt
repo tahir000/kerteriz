@@ -32,6 +32,10 @@ class BugunWidgetProvider : AppWidgetProvider() {
         const val ACTION_YENILE = "com.kerteriz.kerteriz.BUGUN_YENILE"
 
         /** Su değişti ya da uygulama yeni skor yazdı: bütün kopyaları çiz. */
+        /** Son okunan özet; su efekti Health Connect'i beklemeden bununla çiziyor. */
+        @Volatile
+        var sonOzet: OzetOkuyucu.Ozet? = null
+
         fun idler(context: Context): IntArray =
             AppWidgetManager.getInstance(context).getAppWidgetIds(
                 ComponentName(context, BugunWidgetProvider::class.java)
@@ -51,10 +55,12 @@ class BugunWidgetProvider : AppWidgetProvider() {
             o: OzetOkuyucu.Ozet,
             su: Int,
             onayMl: Int?,
-            dalga: Float?
+            dalga: HalkaCizer.Dalga?,
+            suOrani: Float? = null
         ) {
+            sonOzet = o
             val manager = AppWidgetManager.getInstance(context)
-            idler(context).forEach { ciz(context, manager, it, o, su, onayMl, dalga) }
+            idler(context).forEach { ciz(context, manager, it, o, su, onayMl, dalga, suOrani) }
         }
 
         private fun ciz(
@@ -64,7 +70,8 @@ class BugunWidgetProvider : AppWidgetProvider() {
             o: OzetOkuyucu.Ozet,
             su: Int,
             onayMl: Int?,
-            dalga: Float? = null
+            dalga: HalkaCizer.Dalga? = null,
+            suOrani: Float? = null
         ) {
             val yerel = Locale.getDefault()
             val h = AyarOkuyucu.hedefler(context)
@@ -94,7 +101,7 @@ class BugunWidgetProvider : AppWidgetProvider() {
                         WidgetOrtak.renk(context, R.color.kerteriz_halka_ic)
                     ),
                     HalkaCizer.Halka(
-                        WidgetOrtak.oran(su, hedefSu),
+                        suOrani ?: WidgetOrtak.oran(su, hedefSu),
                         WidgetOrtak.renk(context, R.color.kerteriz_halka_su)
                     )
                 ),
@@ -184,7 +191,9 @@ class BugunWidgetProvider : AppWidgetProvider() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val o = OzetOkuyucu.oku(context)
+                sonOzet = o
                 val su = SuKaydedici.bugunkuToplam(context)
+                SuOnbellek.yaz(context, su)
                 ids.forEach { ciz(context, manager, it, o, su, null) }
             } finally {
                 bekleyen.finish()
@@ -210,9 +219,7 @@ class BugunWidgetProvider : AppWidgetProvider() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 if (eylem == ACTION_SU) {
-                    val ml = SuWidgetProvider.porsiyon(context)
-                    SuKaydedici.ekle(context, ml)
-                    SuAnimasyon.oynat(context, ml)
+                    SuAnimasyon.oynat(context, SuWidgetProvider.porsiyon(context))
                 } else {
                     hepsiniCiz(context)
                 }
