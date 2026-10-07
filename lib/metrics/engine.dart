@@ -41,9 +41,11 @@ class MetricsEngine {
     return math.sqrt(mean(a.map((x) => (x - m) * (x - m)).toList()) + 1e-9);
   }
 
-  /// z-skoru: önceki [win] günün ortalamasına göre konum.
-  /// [log] true ise ln dönüşümü üzerinde (HRV log-normal dağılır).
-  static double _z(
+  /// z-skoru: önceki [win] günün ortalamasına göre konum, ve taban çizgiyi
+  /// kuran gece sayısı. [log] true ise ln dönüşümü üzerinde (HRV log-normal
+  /// dağılır). Taban çizgi kurulamıyorsa z = 0; o zaman sayıya bakıp girdinin
+  /// skora katılıp katılmayacağına karar veren çağıran taraf.
+  static (double, int) _z(
     List<DayRecord> days,
     int i,
     double? Function(DayRecord) get, {
@@ -57,11 +59,19 @@ class MetricsEngine {
       prev.add(log ? math.log(v) : v);
     }
     final cur = get(days[i]);
-    if (cur == null || prev.length < 3) return 0;
+    if (cur == null || prev.length < 3) return (0, prev.length);
     final s = sd(prev);
-    if (s < 1e-6) return 0;
+    if (s < 1e-6) return (0, prev.length);
     final x = log ? math.log(cur) : cur;
-    return clamp((x - mean(prev)) / s, -3.5, 3.5);
+    return (clamp((x - mean(prev)) / s, -3.5, 3.5), prev.length);
+  }
+
+  /// Gece nabız serisinin başlangıç değeri: ilk [kova] örneğin medyanı.
+  static double baslangicNabzi(List<HrSample> seri, {int kova = 3}) {
+    if (seri.isEmpty) return 0;
+    final ilk = seri.take(kova).map((s) => s.bpm).toList()..sort();
+    final n = ilk.length;
+    return n.isOdd ? ilk[n ~/ 2] : (ilk[n ~/ 2 - 1] + ilk[n ~/ 2]) / 2;
   }
 
   /// z-skorunu 0..1 aralığına taşır.
@@ -71,10 +81,18 @@ class MetricsEngine {
     for (var i = 0; i < days.length; i++) {
       final d = days[i];
 
-      d.hrvZ = _z(days, i, (x) => x.hrv, log: true);
-      d.rhrZ = _z(days, i, (x) => x.rhr);
-      d.respZ = _z(days, i, (x) => x.respiratory);
-      d.tempZ = _z(days, i, (x) => x.skinTempDelta == null ? null : x.skinTempDelta! + 5);
+      final (hrvZ, hrvN) = _z(days, i, (x) => x.hrv, log: true);
+      final (rhrZ, rhrN) = _z(days, i, (x) => x.rhr);
+      final (respZ, respN) = _z(days, i, (x) => x.respiratory);
+      final (tempZ, tempN) = _z(days, i,
+          (x) => x.skinTempDelta == null ? null : x.skinTempDelta! + 5);
+      d
+        ..hrvZ = hrvZ
+        ..hrvBaselineN = hrvN
+        ..rhrZ = rhrZ
+        ..rhrBaselineN = rhrN
+        ..respZ = respZ
+        ..tempZ = tempZ;
 
       final hrvPrev = <double>[];
       for (var j = math.max(0, i - Config.baselineWindow); j < i; j++) {
@@ -149,7 +167,10 @@ class MetricsEngine {
         }
         d.nadirBpm = nadir.bpm;
         d.nadirMinute = nadir.minute;
-        final first = d.nightHr.first.bpm;
+        // Başlangıç: ilk 30 dakikanın (üç adet 10 dk'lık kova) medyanı. Tek
+        // ilk kova, yatakta telefona bakılan birkaç dakikayla şişip düşüşü
+        // olduğundan büyük gösteriyordu. Medyan tek sıçramayı yok sayar.
+        final first = baslangicNabzi(d.nightHr);
         final drop = first == 0 ? 0.0 : (first - nadir.bpm) / first;
         final f = nadir.minute / d.timeInBed;
         d.cardiac = (100 *
@@ -160,6 +181,10 @@ class MetricsEngine {
       }
 
       // ---- hazırlık: eksik girdinin ağırlığı ötekilere dağıtılır ----
+      // Taban çizgisi henüz kurulmamış girdi de eksik sayılır. Eskiden z = 0
+      // ("tam ortalama") olarak katılıyordu ve yeni kullanıcı ilk iki hafta
+      // hep 50 civarında, anlamsız bir skor görüyordu.
+      final minN = Config.minBaselineNights;
       final weights = <double>[];
       final values = <double>[];
       void add(double weight, double? value) {
@@ -168,14 +193,19 @@ class MetricsEngine {
         values.add(value);
       }
 
-      add(0.40, d.hrv == null ? null : nz(d.hrvZ));
-      add(0.25, d.rhr == null ? null : nz(-d.rhrZ));
+      add(0.40, d.hrv == null || d.hrvBaselineN < minN ? null : nz(d.hrvZ));
+      add(0.25, d.rhr == null || d.rhrBaselineN < minN ? null : nz(-d.rhrZ));
       add(0.25, d.hasSleep ? d.sleepScore / 100 : null);
+      final solunumVar = d.respiratory != null && respN >= minN;
+      final sicaklikVar = d.skinTempDelta != null && tempN >= minN;
       add(
           0.10,
-          (d.respiratory == null && d.skinTempDelta == null)
+          !solunumVar && !sicaklikVar
               ? null
-              : nz(-(d.respZ + d.tempZ) / 2));
+              // Yalnızca biri varsa öteki sıfır z'yle ortalamayı sulandırmasın.
+              : nz(-(solunumVar && sicaklikVar
+                      ? (d.respZ + d.tempZ) / 2
+                      : (solunumVar ? d.respZ : d.tempZ))));
 
       if (weights.isEmpty) {
         d.readiness = 0;

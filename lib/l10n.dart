@@ -132,6 +132,19 @@ class S {
     'today.rhrSub': 'Düşük olması iyi; işaret ters çevrilmiş',
     'today.respTemp': 'Solunum + cilt sıcaklığı',
     'today.respTempSub': 'Hastalık için en erken iki sinyal',
+    'today.calibrating': 'Taban çizgin oluşuyor',
+    'today.calibratingEarly':
+        'Hazırlık şimdilik yalnızca uykudan hesaplanıyor. HRV ve dinlenme nabzı '
+            '{min}. geceden sonra katılıyor: daha az geceyle kurulan bir taban '
+            'çizgiye göre sapma ölçmek rastgele sonuç verir.',
+    'today.calibratingLate':
+        'HRV ve dinlenme nabzı artık skora katılıyor. Taban çizgi {full}. gecede '
+            'tam oturacak; o zamana kadar sayılar biraz daha oynak olabilir.',
+    'today.calibratingRow': 'Taban çizgi kuruluyor: {n}/{min} gece. Henüz skora katılmıyor',
+    'today.hrvNone':
+        'Health Connect\'e HRV gelmiyor. Hazırlık nabız ve uykudan kuruluyor; '
+            'ayrıntı Veri sekmesinde',
+    'today.rhrNone': 'Dün gece için dinlenme nabzı yok',
     'today.sleepScore': 'Uyku skoru',
     'today.weight25': 'Ağırlığı %25',
     'today.forToday': 'Bugün için',
@@ -171,6 +184,60 @@ class S {
     'today.waterLinkNone':
         'Karşılaştırma için hem hedefin üstünde hem altında en az dörder gün '
             'gerekiyor. Su kaydı biriktikçe bu satır dolacak.',
+
+    // gece nabzı uyarısı
+    'today.nightHrHigh':
+        'Gece nabzın iki gecedir taban çizginin belirgin üstünde (ortalama '
+            '+{delta} atım). Yorgunluk, alkol, geç yemek ya da başlayan bir '
+            'hastalık bunu yapabilir. Teşhis değil; bugün yükü hafif tutmak '
+            'için bir işaret.',
+
+    // bu gece
+    'today.tonight': 'Bu gece',
+    'today.bedtime': 'Yatma saati önerisi',
+    'today.bedtimeSub':
+        '{wake} kalkış için · {need} ihtiyaç + {payback} borç payı · verim %{eff}',
+    'today.bedtimeNote':
+        'İhtiyaç bugünkü yüke göre hesaplanıyor; borcun dörtte biri (en çok bir '
+            'saat) ekleniyor, çünkü borç tek gecede kapanmaz. Yatakta geçecek süre '
+            'son 14 gecedeki kendi uyku verimine göre uzatıldı. Kalkış saati '
+            'ayarlardan değişir.',
+    'today.bedtimeNoteDefault':
+        'Henüz yeterli gece yok; uyku verimi için varsayılan %90 kullanıldı. '
+            'Üç geceden sonra kendi verin devreye girer. Kalkış saati ayarlardan değişir.',
+
+    // etiket günlüğü
+    'tags.title': 'Bu akşam',
+    'tags.sub': 'Tek dokunuş. Ertesi sabahki hazırlıkla karşılaştırılır.',
+    'tags.none': 'Hiçbiri',
+    'tag.alkol': 'Alkol',
+    'tag.kafein': 'Geç kafein',
+    'tag.gecYemek': 'Geç yemek',
+    'tag.stres': 'Yoğun stres',
+    'tag.gecAntrenman': 'Geç antrenman',
+    'tags.waiting':
+        'Bir etiketin etkisini göstermek için hem o etiketin olduğu hem olmadığı '
+            'en az dörder akşam gerekiyor. Şimdiye kadar {n} akşam işaretlendi. '
+            'Hiçbir şey yoksa "Hiçbiri"ne dokun: işaretlenmeyen akşamlar sayılmaz.',
+    'tags.effect':
+        '{tag}: işaretlediğin {withDays} akşamın ertesinde hazırlık ortalama {with}, '
+            'işaretlemediğin {withoutDays} akşamın ertesinde {without}. Fark {delta} puan.',
+
+    // haftalık özet
+    'today.week': 'Haftalık özet',
+    'today.weekReadiness': 'Ortalama hazırlık',
+    'today.weekNights': 'Son 7 gün, {n} gece',
+    'today.weekVsPrev': 'Önceki hafta {prev} · fark {delta}',
+    'today.weekSleep': 'Ortalama uyku',
+    'today.weekSleepScore': 'Uyku skoru ortalaması {score}',
+    'today.weekSleepVsPrev': 'Uyku skoru {score} · önceki haftaya göre {delta}',
+    'today.weekBest': 'En iyi gece',
+    'today.weekBestSub': '{date} · {sleep} uyku',
+    'today.weekDebt': 'Borç değişimi',
+    'today.weekDebtSub': 'Bir hafta önce {ago}',
+    'today.weekDebtUp': 'Artıyor',
+    'today.weekDebtDown': 'Azalıyor',
+    'today.weekDebtFlat': 'Sabit',
 
     // uyku
     'sleep.title': 'Uyku',
@@ -275,6 +342,8 @@ class S {
     'settings.ageNote':
         'Nabız bölgeleri ve günlük yük hesabı yaşa bağlı (208 - 0,7 x yaş). '
         'Yaşı değiştirince veriler yeniden işlenir.',
+    'settings.wake': 'Kalkış saati',
+    'settings.wakeSub': 'Yatma saati önerisi buna göre hesaplanır',
     'settings.goals': 'Günlük hedefler',
     'settings.waterGoal': 'Su hedefi',
     'settings.waterGoalSub': 'Bugün ekranındaki ölçek ve su widget\'ı',
@@ -331,6 +400,10 @@ class S {
     'data.capLoadSub': 'Nabız bölgeleri ve adımdan',
     'data.capIllness': 'Hastalık erken uyarısı',
     'data.capIllnessSub': 'Solunum hızı ve cilt sıcaklığı gerekiyor',
+    'data.capIllnessNightHr':
+        'Solunum ve sıcaklık gelmiyor; yalnızca gece nabzına bakan sade sürüm çalışıyor',
+    'data.capReadinessNoHrv':
+        'HRV gelmiyor. Skorun %40\'ı eksik; ağırlık nabız ve uykuya dağıtıldı',
     'data.capSpo2': 'Gece SpO2 takibi',
     'data.capSpo2Sub': 'Kandaki oksijen kaydı gerekiyor',
     'data.byType': 'Tip tip gelen kayıt',
@@ -467,6 +540,19 @@ class S {
     'today.rhrSub': 'Lower is better; the sign is inverted',
     'today.respTemp': 'Respiration + skin temperature',
     'today.respTempSub': 'The two earliest signals of illness',
+    'today.calibrating': 'Building your baseline',
+    'today.calibratingEarly':
+        'For now readiness comes from sleep alone. HRV and resting heart rate join '
+            'after night {min}: measuring deviation from a baseline built on fewer '
+            'nights gives random results.',
+    'today.calibratingLate':
+        'HRV and resting heart rate now count toward the score. The baseline settles '
+            'fully on night {full}; until then numbers may move a little more.',
+    'today.calibratingRow': 'Building baseline: {n}/{min} nights. Not in the score yet',
+    'today.hrvNone':
+        'No HRV is reaching Health Connect. Readiness is built from heart rate and '
+            'sleep; details in the Data tab',
+    'today.rhrNone': 'No resting heart rate for last night',
     'today.sleepScore': 'Sleep score',
     'today.weight25': 'Weighted 25%',
     'today.forToday': 'For today',
@@ -506,6 +592,59 @@ class S {
     'today.waterLinkNone':
         'The comparison needs at least four days on each side of the goal. '
             'This line fills in as hydration records accumulate.',
+
+    // night heart rate alert
+    'today.nightHrHigh':
+        'Your overnight heart rate has been clearly above baseline for two nights '
+            '(+{delta} bpm on average). Fatigue, alcohol, a late meal or an oncoming '
+            'illness can all do this. Not a diagnosis; a sign to keep today light.',
+
+    // tonight
+    'today.tonight': 'Tonight',
+    'today.bedtime': 'Suggested bedtime',
+    'today.bedtimeSub':
+        'To wake at {wake} · {need} need + {payback} debt share · efficiency {eff}%',
+    'today.bedtimeNote':
+        'Need follows today\'s load; a quarter of your sleep debt (at most an hour) '
+            'is added, since debt is not repaid in one night. Time in bed is stretched '
+            'by your own sleep efficiency over the last 14 nights. Change the wake '
+            'time in settings.',
+    'today.bedtimeNoteDefault':
+        'Not enough nights yet; a default 90% sleep efficiency is used. Your own '
+            'data takes over after three nights. Change the wake time in settings.',
+
+    // tag journal
+    'tags.title': 'This evening',
+    'tags.sub': 'One tap. Compared with the next morning\'s readiness.',
+    'tags.none': 'None',
+    'tag.alkol': 'Alcohol',
+    'tag.kafein': 'Late caffeine',
+    'tag.gecYemek': 'Late meal',
+    'tag.stres': 'High stress',
+    'tag.gecAntrenman': 'Late workout',
+    'tags.waiting':
+        'Showing a tag\'s effect needs at least four evenings with it and four '
+            'without. {n} evenings logged so far. If nothing applies, tap "None": '
+            'evenings left unlogged are not counted.',
+    'tags.effect':
+        '{tag}: readiness averages {with} after the {withDays} evenings you tagged '
+            'it, and {without} after the {withoutDays} you did not. The gap is {delta} points.',
+
+    // weekly summary
+    'today.week': 'Weekly summary',
+    'today.weekReadiness': 'Average readiness',
+    'today.weekNights': 'Last 7 days, {n} nights',
+    'today.weekVsPrev': 'Previous week {prev} · change {delta}',
+    'today.weekSleep': 'Average sleep',
+    'today.weekSleepScore': 'Sleep score average {score}',
+    'today.weekSleepVsPrev': 'Sleep score {score} · {delta} vs previous week',
+    'today.weekBest': 'Best night',
+    'today.weekBestSub': '{date} · {sleep} asleep',
+    'today.weekDebt': 'Debt change',
+    'today.weekDebtSub': 'A week ago {ago}',
+    'today.weekDebtUp': 'Rising',
+    'today.weekDebtDown': 'Falling',
+    'today.weekDebtFlat': 'Steady',
 
     'sleep.title': 'Sleep',
     'sleep.lastNight': 'Last night',
@@ -608,6 +747,8 @@ class S {
     'settings.ageNote':
         'Heart rate zones and the daily load figure depend on age '
         '(208 - 0.7 x age). Changing it reprocesses your data.',
+    'settings.wake': 'Wake time',
+    'settings.wakeSub': 'The suggested bedtime counts back from this',
     'settings.goals': 'Daily goals',
     'settings.waterGoal': 'Water goal',
     'settings.waterGoalSub': 'The meter on Today and the water widget',
@@ -664,6 +805,10 @@ class S {
     'data.capLoadSub': 'From heart rate zones and steps',
     'data.capIllness': 'Early illness signal',
     'data.capIllnessSub': 'Needs respiratory rate and skin temperature',
+    'data.capIllnessNightHr':
+        'No respiration or temperature; a simpler version based on overnight heart rate runs',
+    'data.capReadinessNoHrv':
+        'No HRV arriving. 40% of the score is missing; its weight moved to heart rate and sleep',
     'data.capSpo2': 'Nightly SpO2 tracking',
     'data.capSpo2Sub': 'Needs blood oxygen records',
     'data.byType': 'Records by type',

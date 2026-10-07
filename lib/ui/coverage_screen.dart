@@ -70,6 +70,9 @@ class CoverageScreen extends StatelessWidget {
     final withSpo2 = days.where((d) => d.spo2Avg != null).length;
     final illnessOk =
         withResp > 0 || days.any((d) => d.skinTempDelta != null);
+    // Solunum/sıcaklık yoksa gece nabzı uyarısı tek başına çalışıyor;
+    // bunun için kurulmuş bir dinlenme nabzı taban çizgisi yetiyor.
+    final nightHrOk = withRhr >= Config.minBaselineNights + 2;
     final loadOk = _n(HealthDataType.HEART_RATE) > 0;
     final readyOk = withHrv > 0 || withRhr > 0 || withSleep > 0;
     final missing = _typeKeys.keys
@@ -165,7 +168,11 @@ class CoverageScreen extends StatelessWidget {
       SectionLabel(s.t('data.capabilities')),
       MetricRow(
           title: s.t('data.capReadiness'),
-          subtitle: s.t('data.capReadinessSub'),
+          // HRV hazırlığın %40'ı. Gelmiyorsa bunu burada açıkça söylüyoruz;
+          // yoksa kullanıcı skoru Whoop'unkiyle aynı şey sanıyor.
+          subtitle: withHrv > 0
+              ? s.t('data.capReadinessSub')
+              : s.t('data.capReadinessNoHrv'),
           value: s.t(readyOk ? 'common.yes' : 'common.no'),
           level: readyOk ? Level.good : Level.bad,
           levelText: s.t(withHrv > 0 ? 'lvl.full' : 'lvl.partial')),
@@ -183,10 +190,14 @@ class CoverageScreen extends StatelessWidget {
           levelText: s.t(loadOk ? 'lvl.working' : 'lvl.noData')),
       MetricRow(
           title: s.t('data.capIllness'),
-          subtitle: s.t('data.capIllnessSub'),
-          value: s.t(illnessOk ? 'common.yes' : 'common.no'),
+          subtitle: s.t(illnessOk
+              ? 'data.capIllnessSub'
+              : (nightHrOk ? 'data.capIllnessNightHr' : 'data.capIllnessSub')),
+          value: s.t(illnessOk || nightHrOk ? 'common.yes' : 'common.no'),
           level: illnessOk ? Level.good : Level.warn,
-          levelText: s.t(illnessOk ? 'lvl.on' : 'lvl.off')),
+          levelText: s.t(illnessOk
+              ? 'lvl.on'
+              : (nightHrOk ? 'lvl.partial' : 'lvl.off'))),
       MetricRow(
           title: s.t('data.capSpo2'),
           subtitle: s.t('data.capSpo2Sub'),

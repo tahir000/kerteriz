@@ -58,6 +58,15 @@ class DayRecord {
   // --- türetilmiş (engine dolduruyor) ---
   double hrvZ = 0, rhrZ = 0, respZ = 0, tempZ = 0;
   double? hrvBaseline, hrvBaselineSd, rhrBaseline;
+
+  /// Taban çizgiyi kuran önceki gece sayısı (pencere içinde, en çok 14).
+  /// [Config.minBaselineNights] altındaysa o girdi hazırlığa katılmaz.
+  int hrvBaselineN = 0, rhrBaselineN = 0;
+
+  /// Kalp girdilerinden en iyi kurulmuş olanın gece sayısı. Kalibrasyon
+  /// göstergesi bunu kullanıyor.
+  int get baselineNights =>
+      hrvBaselineN > rhrBaselineN ? hrvBaselineN : rhrBaselineN;
   double strainRaw = 0, strain = 0;
   int need = 0;
   int sleepScore = 0;

@@ -32,6 +32,10 @@ class Ayarlar {
   static int aktifKaloriHedefi = Config.dailyActiveCalorieGoal;
   static int mesafeHedefiOndaKm = Config.dailyDistanceTenthKm;
 
+  /// Hedef kalkış saati, gece yarısından itibaren dakika. Yatma saati
+  /// önerisi buna göre geri sayıyor.
+  static int kalkisDk = Config.wakeMinute;
+
   /// Tanaka formülü. Nabız bölgeleri ve dolayısıyla günlük yük buna bağlı.
   static double get hrMax => 208 - 0.7 * yas;
 
@@ -52,6 +56,7 @@ class Ayarlar {
     'kalori': [800, 8000],
     'kaloriAktif': [100, 4000],
     'mesafeOndaKm': [5, 600],
+    'kalkis': [240, 720],
   };
 
   static int _kis(String alan, int deger) {
@@ -93,6 +98,7 @@ class Ayarlar {
       kaloriHedefi = al('kalori', kaloriHedefi);
       aktifKaloriHedefi = al('kaloriAktif', aktifKaloriHedefi);
       mesafeHedefiOndaKm = al('mesafeOndaKm', mesafeHedefiOndaKm);
+      kalkisDk = al('kalkis', kalkisDk);
     } catch (_) {
       // Bozuk dosya: varsayılanla devam.
     }
@@ -116,6 +122,7 @@ class Ayarlar {
     int? kaloriHedefi,
     int? aktifKaloriHedefi,
     int? mesafeHedefiOndaKm,
+    int? kalkisDk,
   }) async {
     final yasDegisti = yas != null && _kis('yas', yas) != Ayarlar.yas;
 
@@ -134,6 +141,7 @@ class Ayarlar {
     if (mesafeHedefiOndaKm != null) {
       Ayarlar.mesafeHedefiOndaKm = _kis('mesafeOndaKm', mesafeHedefiOndaKm);
     }
+    if (kalkisDk != null) Ayarlar.kalkisDk = _kis('kalkis', kalkisDk);
 
     degisti.value++;
     await _kaydet();
@@ -162,6 +170,7 @@ class Ayarlar {
         'kalori': kaloriHedefi,
         'kaloriAktif': aktifKaloriHedefi,
         'mesafeOndaKm': mesafeHedefiOndaKm,
+        'kalkis': kalkisDk,
       }));
     } catch (_) {
       // Yazılamadıysa seçim bu oturum boyunca geçerli kalır.

@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'data/ayarlar.dart';
 import 'data/day_record.dart';
+import 'data/etiketler.dart';
 import 'data/tani.dart';
 import 'l10n.dart';
 import 'theme.dart';
@@ -33,6 +34,7 @@ Future<void> main() async {
     // Tema tercihi ilk çerçeveden önce okunuyor: uygulama açık temayla
     // parlayıp sonra koyuya dönmesin.
     await Ayarlar.oku();
+    await Etiketler.oku();
     await Tani.iz('ayarlar');
     runApp(const KerterizApp());
   }, (e, s) {

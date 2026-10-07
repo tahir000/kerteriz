@@ -90,7 +90,13 @@ hazırlık = 100 * ( 0.40*nz(z_HRV)
                  + 0.25*(uyku_skoru/100)
                  + 0.10*nz(-(z_solunum + z_sıcaklık)/2) )
 ```
-Eksik girdi olursa ağırlıklar kalanlara oransal dağıtılır.
+Eksik girdi olursa ağırlıklar kalanlara oransal dağıtılır. **Taban çizgisi
+henüz `Config.minBaselineNights` (7) geceden kurulmamış girdi de eksik sayılır**
+(0.10.0'dan beri): eskiden z = 0 olarak "tam ortalama" diye katılıyordu ve yeni
+kullanıcı ilk iki hafta hep 50 civarında bir skor görüyordu. İlk 7 gece hazırlık
+yalnızca uykudan kurulur; Bugün ekranı 14. geceye kadar bir kalibrasyon kartı
+gösterir. Solunum ve sıcaklıktan yalnızca biri varsa öteki sıfır z'yle
+ortalamaya girmez.
 
 **Uyku skoru (0–100)** — beş bileşenin ağırlıklı toplamı
 ```
@@ -144,6 +150,30 @@ Aynı dilimde aynı durumda (uyku/uyanık) olma yüzdesi, 30 gün üzerinden ort
 - **Hastalık erken uyarısı:** solunum z > 1.2 **ve** cilt sıcaklığı z > 1.0 **ve**
   nabız z > 0.8, son 3 günün en az 2'sinde. Üçlüsüne birlikte bakmak tek başına
   nabza bakmaktan erken uyarır.
+- **Gece nabzı uyarısı** (`Insights.elevatedNightHr`): Fitbit Air solunum ve
+  sıcaklık yazmadığı için üstteki üçlü hiç tetiklenemiyor. Sade sürüm: son iki
+  gece takvimde ardışık, ikisinde de dinlenme nabzı z ≥ 1.5 **ve** taban
+  çizginin en az 3 atım üstünde, taban çizgi en az 7 geceden kurulmuş. Mutlak
+  eşik, varyansı çok düşük kişide 1 atımlık farkın alarm olmasını engeller.
+  Metin teşhis koymaz; alkol, geç yemek ve yorgunluğu da sayar.
+- **Haftalık özet** (`Insights.weekly`): son 7 takvim günü ile önceki 7 gün.
+  Hazırlık ve uyku ortalaması, en iyi gece, borç değişimi. Haftada 4 geceden
+  azsa gösterilmez. Liste filtrelenmiş olabileceği için indeksle değil tarihle
+  sayar.
+- **Yatma saati önerisi** (`Insights.bedtime`): ihtiyaç motorla aynı formül
+  (taban + bugünkü yük x 2.2) + borcun dörtte biri (en çok 60 dk). Yatakta
+  geçecek süre son 14 gecedeki kendi uyku verimine bölünür (3 geceden azsa %90).
+  Kalkış saati ayarlardan, 15 dakikalık adımlarla.
+- **Etiket günlüğü** (`Insights.tagEffects`, `data/etiketler.dart`): alkol, geç
+  kafein, geç yemek, yoğun stres, geç antrenman. Akşamın etiketi **ertesi
+  sabahın** hazırlığıyla eşleşir; 05:00'ten önce açılan uygulama hala dün
+  akşamdır. Yalnızca günlüğe bakılmış akşamlar sayılır ("Hiçbiri" bunun için
+  var); işaretlenmemiş akşam "alkol yoktu" demek değil. Su karşılaştırmasıyla
+  aynı ilke: katsayı yok, her iki grupta en az 4 akşam, kendi verin konuşur.
+  Health Connect'te karşılığı olmadığı için `kerteriz_etiketler.json` dosyasında.
+- **Kardiyak toparlanma başlangıcı** 0.10.0'dan beri ilk 30 dakikanın (üç
+  kova) medyanı. Tek ilk kova, yatakta telefona bakılan birkaç dakikayla şişip
+  skoru 30 puana kadar yukarı itebiliyordu (`test/engine_test.dart` bunu ölçüyor).
 - **Yüklenme:** ACWR > 1.45 **ve** HRV üç gündür taban çizginin altında.
 - **Hidrasyon karşılaştırması** (`MetricsEngine.hydrationEffect`): su kaydı olan
   günler "hedefte" / "hedefin altında" diye ikiye ayrılır, her grubun **ertesi**
@@ -166,10 +196,11 @@ Aynı dilimde aynı durumda (uyku/uyanık) olma yüzdesi, 30 gün üzerinden ort
 ```
 lib/
   config.dart                 motor sabitleri + tercih varsayılanları
-  l10n.dart                   iki dil (tr, en), 249 anahtar
+  l10n.dart                   iki dil (tr, en), 289 anahtar
   theme.dart                  iki palet (açık/koyu), tipografi, seviye eşikleri
   data/
-    ayarlar.dart              tema, yaş, günlük hedefler (küçük JSON dosyası)
+    ayarlar.dart              tema, yaş, kalkış saati, günlük hedefler (küçük JSON dosyası)
+    etiketler.dart            etiket günlüğü: akşam başına etiketler (küçük JSON dosyası)
     onbellek.dart             gün önbelleği: açılışta diskten, tazeleme arkada
     day_record.dart           gün modeli + JSON serileştirme
     health_repository.dart    Health Connect okuma, günlük toplama, kapsama takibi
@@ -178,6 +209,11 @@ lib/
     tani.dart                 açılış izi (diske yazılır), güvenli mod
   metrics/
     engine.dart               taban çizgiler, z-skorları, bütün bileşik metrikler
+    insights.dart             haftalık özet, yatma saati, etiket etkisi, gece nabzı uyarısı
+test/
+  engine_test.dart            motor formülleri (hazırlık, kalibrasyon, borç, yük, kardiyak)
+  insights_test.dart          içgörüler ve etiket günlüğü
+  today_screen_test.dart      ekranlar sentetik veriyle hatasız ve taşmasız çiziliyor mu
   ui/
     shell.dart                izin akışı, yükleme, 5 sekme (PageView), alt menü
     ayarlar_ekrani.dart       görünüm, yaş, günlük hedefler, sürüm
@@ -315,8 +351,14 @@ karşılığı olan özet widget'ı eklendi: üç halka (adım, kalori, mesafe) 
 hazırlık, uyku, dinlenme nabzı. Gizlilik politikası, Play sağlık beyanı ve
 README buna göre güncellendi.
 
+**Testler:** `flutter test` (40 test). Formüllere dokunan her değişiklikten
+sonra çalıştırılmalı.
+
 **Sıradaki adımlar:**
-1. HRV akıyor mu, Veri sekmesinden doğrula
+1. HRV akıyor mu, Veri sekmesinden doğrula. Gelmiyorsa hazırlık kartı ve Veri
+   sekmesi bunu artık açıkça söylüyor. Dakikalık nabızdan RMSSD türetilemez
+   (atımdan atıma aralık gerekir), yani HRV'nin yerine geçecek dürüst bir
+   türetme yok
 2. ~2 hafta veri biriktir
 3. Uygulamadan JSON dışa aktar, eşikleri kullanıcının kendi dağılımına göre kalibre et
    (uyku ihtiyacı tabanı, bölge ağırlıkları, seviye sınırları)

@@ -573,3 +573,39 @@ class SayiSatiri extends StatelessWidget {
         ]),
       );
 }
+
+/// Açılıp kapanan kapsül. Etiket günlüğünde kullanılıyor; seçili durum
+/// yalnızca renkle değil, onay işaretiyle de belli.
+class SecimCipi extends StatelessWidget {
+  final String text;
+  final bool secili;
+  final VoidCallback onTap;
+
+  const SecimCipi(this.text,
+      {super.key, required this.secili, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Basilabilir(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+          decoration: BoxDecoration(
+            color: secili ? K.ink : K.fill,
+            borderRadius: BorderRadius.circular(K.kapsul),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (secili) ...[
+              Icon(Icons.check, size: 15, color: K.card),
+              const SizedBox(width: 5),
+            ],
+            Text(text,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: secili ? K.card : K.ink2,
+                )),
+          ]),
+        ),
+      );
+}

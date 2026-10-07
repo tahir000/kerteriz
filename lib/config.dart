@@ -11,7 +11,7 @@
 class Config {
   /// Uygulama sürümü. pubspec.yaml ile aynı tutulmalı; Veri sekmesinde
   /// görünür ki telefonda hangi yapının çalıştığı tahmin edilmesin.
-  static const String version = '0.9.0';
+  static const String version = '0.10.0';
 
   /// Varsayılan yaş. Gerçek değer [Ayarlar.yas]; maksimum nabız tahmini
   /// oradan hesaplanıyor (Tanaka formülü: 208 - 0.7 * yaş).
@@ -29,6 +29,12 @@ class Config {
 
   /// Taban çizgi penceresi (gün).
   static const int baselineWindow = 14;
+
+  /// Bir kalp girdisinin (HRV, dinlenme nabzı, solunum, sıcaklık) hazırlığa
+  /// katılması için taban çizgisini kuran en az gece sayısı. Üç geceden
+  /// hesaplanan bir standart sapma o kadar gürültülü ki z-skoru anlamsız;
+  /// bu sayıya ulaşana kadar hazırlık kalan girdilerden kuruluyor.
+  static const int minBaselineNights = 7;
 
   /// Uyku ihtiyacı taban değeri (dakika) — üzerine dünkü yükün katkısı eklenir.
   static const int sleepNeedBaseMinutes = 438;
@@ -59,6 +65,10 @@ class Config {
   /// Günlük mesafe hedefi, kilometrenin ONDA BİRİ cinsinden (70 = 7,0 km).
   /// Tam sayı tutuluyor ki Kotlin tarafına birebir aktarılabilsin.
   static const int dailyDistanceTenthKm = 70;
+
+  /// Varsayılan hedef kalkış saati (gece yarısından dakika; 420 = 07:00).
+  /// Gerçek değer [Ayarlar.kalkisDk].
+  static const int wakeMinute = 420;
 
   /// Varsayılan yaşa göre maksimum nabız. Uygulamanın kullandığı değer
   /// [Ayarlar.hrMax]; bu yalnızca yedek.

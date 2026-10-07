@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config.dart';
 import '../data/ayarlar.dart';
 import '../l10n.dart';
+import '../metrics/insights.dart';
 import '../theme.dart';
 import 'widgets/kit.dart';
 
@@ -84,6 +85,16 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
             onChanged: (v) => _yaz(() => Ayarlar.guncelle(yas: v)),
           ),
           NoteBlock(s.t('settings.ageNote')),
+          SayiSatiri(
+            title: s.t('settings.wake'),
+            subtitle: s.t('settings.wakeSub'),
+            deger: Ayarlar.kalkisDk,
+            adim: 15,
+            enAz: Ayarlar.sinirlar['kalkis']![0],
+            enCok: Ayarlar.sinirlar['kalkis']![1],
+            bicim: saatDakika,
+            onChanged: (v) => _yaz(() => Ayarlar.guncelle(kalkisDk: v)),
+          ),
 
           // ---- hedefler ----
           SectionLabel(s.t('settings.goals')),

@@ -1,5 +1,33 @@
 # Değişiklik günlüğü
 
+## 0.10.0 — Ekim 2026
+
+**Yeni**
+
+- **Haftalık özet:** Bugün ekranında son 7 gün, önceki 7 güne göre. Ortalama
+  hazırlık ve uyku, en iyi gece, uyku borcunun değişimi
+- **Yatma saati önerisi:** bugünkü yükten bu gecenin ihtiyacı, üstüne borcun
+  dörtte biri (en çok bir saat), yatakta geçecek süre kendi uyku verimine göre.
+  Kalkış saati ayarlarda
+- **Etiket günlüğü:** alkol, geç kafein, geç yemek, yoğun stres, geç antrenman.
+  Tek dokunuş; yeterli akşam birikince ertesi sabahki hazırlık farkı kendi
+  verinden gösteriliyor
+- **Gece nabzı uyarısı:** solunum ve sıcaklık gelmeyen cihazlarda eski hastalık
+  sinyali hiç tetiklenemiyordu. Dinlenme nabzı iki gecedir taban çizginin
+  belirgin üstündeyse artık uyarı çıkıyor
+- **Testler:** motor, içgörüler ve ekranlar için 40 otomatik test
+
+**Düzeltmeler**
+
+- **İlk iki hafta:** taban çizgisi 7 geceden kurulmamış HRV ve nabız artık
+  hazırlığa "ortalama" diye katılmıyor. İlk günler skor uykudan kuruluyor ve
+  bir kalibrasyon kartı kaç gece kaldığını gösteriyor
+- **HRV gelmiyorsa** Bugün ve Veri ekranları bunu açıkça söylüyor
+- **Kardiyak toparlanma:** başlangıç nabzı ilk 30 dakikanın medyanı. Yatakta
+  telefona bakılan birkaç dakika skoru 30 puana kadar şişirebiliyordu
+- Solunum ve cilt sıcaklığından yalnızca biri geliyorsa, öteki sıfır olarak
+  ortalamaya girip sinyali yarıya indirmiyor
+
 ## 0.9.0 — Ekim 2026
 
 - **Hızlı açılış:** okunan günler `kerteriz_onbellek.json` dosyasına yazılıyor.

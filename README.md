@@ -35,12 +35,18 @@ göndermeden.
 | **Sirkadiyen düzenlilik** | Sleep Regularity Index — ardışık gecelerin örtüşmesi |
 | **Su** | Ana ekran widget'ından tek dokunuşla eklenir; hedefe göre gösterilir |
 | **Özet widget'ı** | Adım, kalori, mesafe halkaları + hazırlık, uyku, dinlenme nabzı |
+| **Haftalık özet** | Son 7 gün önceki 7 güne göre: hazırlık, uyku, en iyi gece, borç |
+| **Yatma saati** | Bugünkü yük + borç payı, kendi uyku verimine göre kalkış saatinden geri sayılır |
+| **Etiket günlüğü** | Alkol, geç kafein, geç yemek…: ertesi sabahki hazırlıkla kendi verinden karşılaştırılır |
+| **Gece nabzı uyarısı** | Dinlenme nabzı iki gecedir taban çizginin belirgin üstündeyse |
 
 Hedefler ve yaş uygulama içindeki **ayarlar** ekranından girilir; gece modu da
 oradan seçilir.
 
 Taban çizgiler 14 günlük penceredir ve HRV için logaritmik uzayda kurulur
-(RMSSD log-normal dağılır; ham ortalama yanlış sonuç verir).
+(RMSSD log-normal dağılır; ham ortalama yanlış sonuç verir). Taban çizgisi 7
+geceden az olan girdi hazırlığa katılmaz; ilk günlerde uygulama bunu bir
+kalibrasyon kartıyla gösterir.
 
 ## Tasarım ilkeleri
 
