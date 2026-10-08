@@ -37,6 +37,7 @@ class CoverageScreen extends StatelessWidget {
     HealthDataType.SKIN_TEMPERATURE: 'type.skinTemp',
     HealthDataType.STEPS: 'type.steps',
     HealthDataType.WATER: 'type.water',
+    HealthDataType.WORKOUT: 'type.workout',
   };
 
   /// Skorlarda doğrudan ağırlığı olan tipler — boş olmaları önemli.

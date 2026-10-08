@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/ayarlar.dart';
 import '../data/day_record.dart';
 import '../data/etiketler.dart';
+import '../data/hisler.dart';
 import '../l10n.dart';
 import '../metrics/engine.dart';
 import '../metrics/insights.dart';
@@ -33,7 +34,8 @@ class VerinEkrani extends StatelessWidget {
       (MetricsEngine.hydrationEffect(allDays, Ayarlar.suHedefiMl) == null
           ? 0
           : 1) +
-      Deneyler.otomatik(days).length;
+      Deneyler.otomatik(days).length +
+      (Deneyler.hisVeSkor(days, Hisler.kayit) == null ? 0 : 1);
 
   String _dur(S s, num m) =>
       fmtDur(m, h: s.t('common.hourShort'), m: s.t('common.minShort'));
@@ -137,6 +139,37 @@ class VerinEkrani extends StatelessWidget {
                   ScreenHead(s.t('app.name'), s.t('insights.title'),
                       ayarlar: false),
                   NoteBlock(s.t('insights.intro')),
+
+                  // ---- his ve skor ----
+                  SectionLabel(s.t('feel.section')),
+                  ValueListenableBuilder<int>(
+                    valueListenable: Hisler.degisti,
+                    builder: (context, _, _) {
+                      final c = Deneyler.hisVeSkor(days, Hisler.kayit);
+                      if (c == null) {
+                        return NoteBlock(s.t2('feel.waiting',
+                            {'n': '${Hisler.kayit.length}'}));
+                      }
+                      return KarsilastirmaKarti(
+                        baslik: s.t('feel.compareTitle'),
+                        aciklama: s.t('feel.compareSub'),
+                        etiketA: s.t('feel.good'),
+                        degerA: c.a,
+                        nA: c.nA,
+                        etiketB: s.t('feel.bad'),
+                        degerB: c.b,
+                        nB: c.nB,
+                        bicim: (v) => v.toStringAsFixed(0),
+                        sonucMetni: s.t2(
+                            c.delta >= 10
+                                ? 'feel.resultMatch'
+                                : (c.delta > 0
+                                    ? 'feel.resultWeak'
+                                    : 'feel.resultNone'),
+                            {'delta': sgn(c.delta, digits: 0)}),
+                      );
+                    },
+                  ),
 
                   // ---- etiketler ----
                   SectionLabel(s.t('insights.tags')),

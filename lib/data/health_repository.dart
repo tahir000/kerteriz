@@ -91,8 +91,17 @@ class HealthRepository {
     HealthDataType.ACTIVE_ENERGY_BURNED,
   ];
 
+  /// İsteğe bağlı tipler: istenir ama verilmezse uygulama yine açılır.
+  /// Antrenmanlar yalnızca Yük sekmesindeki listeyi ve antrenman yükünü
+  /// besliyor; skorların hiçbiri onlara bağlı değil.
+  static const List<HealthDataType> optionalTypes = [HealthDataType.WORKOUT];
+
   /// İzin ekranında istenen tiplerin tamamı.
-  static const List<HealthDataType> permissionTypes = [...types, ...widgetTypes];
+  static const List<HealthDataType> permissionTypes = [
+    ...types,
+    ...widgetTypes,
+    ...optionalTypes,
+  ];
 
   Future<void> configure() => _health.configure();
 
@@ -122,6 +131,32 @@ class HealthRepository {
       } catch (_) {}
     }
     return hasPermissions();
+  }
+
+  /// İsteğe bağlı izinlerden daha önce hiç sorulmamış olanları bir kez sorar.
+  ///
+  /// Gerekçe: izin isteği yalnızca zorunlu izinler eksikken çalışıyordu.
+  /// Sonradan eklenen bir izin (0.14.0'da antrenmanlar) mevcut kullanıcılara
+  /// hiç sorulmuyor, özellik sessizce boş kalıyordu. Reddedilen izin bir daha
+  /// sorulmuyor: her açılışta izin ekranı açmak kaba olur.
+  Future<void> yeniIzinleriSor() async {
+    final sorulmamis = [
+      for (final t in optionalTypes)
+        if (!Ayarlar.sorulanIzinler.contains(t.name)) t
+    ];
+    if (sorulmamis.isEmpty) return;
+    try {
+      final verildi = await _health.hasPermissions(sorulmamis,
+              permissions: _access(sorulmamis)) ??
+          false;
+      if (!verildi) {
+        await _health.requestAuthorization(sorulmamis,
+            permissions: _access(sorulmamis));
+      }
+    } catch (_) {
+      // Desteklenmiyorsa ya da reddedildiyse uygulama yine çalışır.
+    }
+    await Ayarlar.izinSoruldu(sorulmamis.map((t) => t.name));
   }
 
   /// Her tip için erişim seviyesi: su READ_WRITE, diğerleri READ.
@@ -416,6 +451,103 @@ class HealthRepository {
           }
         }
       }
+    }
+
+    // --- gün içi dilimler: 15 dakikalık nabız ortalaması ve adım ---
+    // Gün içi stres ve enerji bunlardan hesaplanıyor (metrics/gun_ici.dart).
+    for (final rec in byDate.values) {
+      final g0 = dakikaIndeksi(rec.date);
+      if (g0 == null) continue;
+      final nabiz = List<double?>.filled(DayRecord.dilimSayisi, null);
+      var dolu = false;
+      for (var b = 0; b < DayRecord.dilimSayisi; b++) {
+        var top = 0.0, n = 0;
+        for (var k = 0; k < DayRecord.dilimDk; k++) {
+          final v = dakikaNabzi(g0 + b * DayRecord.dilimDk + k);
+          if (v == null) continue;
+          top += v;
+          n++;
+        }
+        if (n >= 3) {
+          nabiz[b] = top / n;
+          dolu = true;
+        }
+      }
+      if (dolu) {
+        rec.gunNabzi = nabiz;
+        rec.gunAdim = List<int>.filled(DayRecord.dilimSayisi, 0);
+      }
+    }
+    for (final p in points) {
+      if (p.type != HealthDataType.STEPS) continue;
+      final rec = dayFor(p.dateFrom);
+      if (rec == null || rec.gunAdim.isEmpty) continue;
+      final v = _num(p);
+      if (v == null) continue;
+      final b = p.dateFrom.difference(rec.date).inMinutes ~/ DayRecord.dilimDk;
+      if (b >= 0 && b < DayRecord.dilimSayisi) rec.gunAdim[b] += v.round();
+    }
+
+    // --- antrenmanlar (isteğe bağlı izin) ---
+    // Ayrı okunuyor: izin verilmediyse ya da tip desteklenmiyorsa skorlar
+    // etkilenmesin. Yük, o saatlerin dakikalık nabzından günlükle aynı
+    // bölge ağırlıklarıyla hesaplanıyor.
+    try {
+      await Tani.iz('tip okunuyor: WORKOUT');
+      final kayitlar = await _health
+          .getHealthDataFromTypes(
+            types: const [HealthDataType.WORKOUT],
+            startTime: start,
+            endTime: end,
+          )
+          .timeout(const Duration(seconds: 15));
+      rawCounts[HealthDataType.WORKOUT] = kayitlar.length;
+      for (final p in kayitlar) {
+        final deger = p.value;
+        if (deger is! WorkoutHealthValue) continue;
+        final rec = dayFor(p.dateFrom);
+        if (rec == null) continue;
+        final a = Antrenman(deger.workoutActivityType.name, p.dateFrom, p.dateTo);
+        a.kcal = deger.totalEnergyBurned;
+        a.mesafeM = deger.totalDistance;
+        final k0 = dakikaIndeksi(p.dateFrom), k1 = dakikaIndeksi(p.dateTo);
+        if (k0 != null && k1 != null && k1 > k0) {
+          final rest = rec.rhr ?? 60;
+          final aralik = Ayarlar.hrMax - rest;
+          var top = 0.0, n = 0;
+          double? maks;
+          for (var k = k0; k < k1; k++) {
+            final v = dakikaNabzi(k);
+            if (v == null) continue;
+            top += v;
+            n++;
+            if (maks == null || v > maks) maks = v;
+            final hrr = aralik <= 0 ? 0.0 : (v - rest) / aralik;
+            final z = hrr >= 0.85
+                ? 4
+                : hrr >= 0.70
+                    ? 3
+                    : hrr >= 0.60
+                        ? 2
+                        : hrr >= 0.50
+                            ? 1
+                            : 0;
+            if (z > 0) a.bolge[z] += 1;
+          }
+          if (n > 0) a.ortNabiz = top / n;
+          a.maksNabiz = maks;
+          for (var z = 1; z < 5; z++) {
+            a.yukHam += a.bolge[z] * Config.bolgeAgirliklari[z];
+          }
+        }
+        rec.antrenmanlar.add(a);
+      }
+      for (final rec in byDate.values) {
+        rec.antrenmanlar.sort((x, y) => x.bas.compareTo(y.bas));
+      }
+      await Tani.iz('tip tamam: WORKOUT');
+    } catch (e) {
+      await Tani.iz('tip HATA: WORKOUT -> $e');
     }
 
     // --- adım ---

@@ -145,7 +145,7 @@ Sonra her veri tipi için gerekçe. Kopyala yapıştır:
 | READ_SKIN_TEMPERATURE | Hastalık erken uyarı sinyalinin ikinci bileşeni; kullanıcının kendi ortalamasından sapma olarak gösterilir. |
 | READ_STEPS | Günlük yük hesabına katkıda bulunur; Yük sekmesinde ve ana ekran özet widget'ında kullanıcının kendi belirlediği hedefe göre halka olarak gösterilir. |
 | READ_DISTANCE | Ana ekran özet widget'ında günün mesafesi, kullanıcının ayarladığı hedefe göre halka olarak gösterilir. |
-| READ_EXERCISE | Egzersiz oturumları günlük yük hesabına girer; Yük sekmesinde gösterilir. |
+| READ_EXERCISE | Yük sekmesinde antrenman listesi: her antrenmanın türü, süresi, o saatlerin nabzından hesaplanan yükü ve nabız bölgeleri, ertesi sabahki hazırlık. Gün içi stres hesabında antrenman saatleri stres sayılmaz. İsteğe bağlıdır: verilmezse uygulama çalışmaya devam eder. |
 | READ_TOTAL_CALORIES_BURNED / READ_ACTIVE_CALORIES_BURNED | Ana ekran özet widget'ında günün kalorisi halka olarak gösterilir; cihaz toplam kalori yazmıyorsa aktif kaloriye ve onun kendi hedefine düşülür. |
 | READ_HEALTH_DATA_HISTORY | Bütün metrikler 14 günlük taban çizgiye dayanır ve uygulama 90 günlük geçmiş okur; 30 günden eski kayıt okunamazsa skorlar hesaplanamaz. |
 | READ_HYDRATION | Bugün eklenen su toplamı Bugün sekmesinde kullanıcının belirlediği hedefe göre gösterilir ve hedefin tutturulduğu günlerin ertesindeki hazırlık ortalamasıyla karşılaştırılır. |

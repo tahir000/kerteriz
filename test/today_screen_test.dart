@@ -5,6 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:kerteriz/data/day_record.dart';
 import 'package:kerteriz/l10n.dart';
 import 'package:kerteriz/metrics/engine.dart';
+import 'package:kerteriz/ui/gun_ici_ekrani.dart';
 import 'package:kerteriz/ui/screens.dart';
 import 'package:kerteriz/ui/verin_ekrani.dart';
 
@@ -40,6 +41,29 @@ void main() {
         hydrationMl: (i * 500) % 3500,
         steps: 4000 + (i * 1733) % 9000,
         bedHour: i.isEven ? 22 : 23));
+    // Bugünün kaydı gerçek bugün olsun ki gün içi bölümü görünsün.
+    MetricsEngine.run(days);
+    return days;
+  }
+
+  List<DayRecord> bugunlu() {
+    final n = DateTime.now();
+    final days = gunler(30, son: DateTime(n.year, n.month, n.day), f: (date, i) {
+      final g = gun(date, asleep: 400 + (i * 37) % 120, steps: 4000 + (i * 1733) % 9000);
+      g.gunNabzi = [for (var b = 0; b < DayRecord.dilimSayisi; b++) 70.0 + (b % 7) * 4];
+      g.gunAdim = [for (var b = 0; b < DayRecord.dilimSayisi; b++) b % 9 == 0 ? 600 : 0];
+      if (i == 28) {
+        g.antrenmanlar = [
+          Antrenman('RUNNING', DateTime(date.year, date.month, date.day, 18),
+              DateTime(date.year, date.month, date.day, 18, 45))
+            ..ortNabiz = 150
+            ..maksNabiz = 172
+            ..yukHam = 140
+            ..bolge = [0, 5, 10, 20, 8]
+        ];
+      }
+      return g;
+    });
     MetricsEngine.run(days);
     return days;
   }
@@ -55,8 +79,9 @@ void main() {
       final yatis = s.t('headline.bed').split('{').first;
       expect(find.textContaining(yatis), findsOneWidget);
       // Gece nabzı son iki gece yüksek: hem cümlede hem uyarıda.
-      final uyari = s.t('today.nightHrHigh').split('{').first;
-      expect(find.textContaining(uyari), findsOneWidget);
+      final uyari = find.textContaining(s.t('today.nightHrHigh').split('{').first);
+      await tester.scrollUntilVisible(uyari, 200, scrollable: kaydir);
+      expect(uyari, findsOneWidget);
 
       await tester.scrollUntilVisible(find.text(s.t('today.bedtime')), 300,
           scrollable: kaydir);
@@ -96,6 +121,37 @@ void main() {
       await tester.scrollUntilVisible(bos, 300,
           scrollable: find.byType(Scrollable).last);
       expect(bos, findsOneWidget);
+    });
+
+    testWidgets('gün içi bölümü çiziliyor ($dil)', (tester) async {
+      final d = bugunlu();
+      await ciz(tester, TodayScreen(d, allDays: d), dil);
+      final s = S.forCode(dil);
+      await tester.scrollUntilVisible(find.text(s.t('intraday.stress')), 300,
+          scrollable: find.byType(Scrollable).first);
+      expect(find.text(s.t('intraday.energy')), findsOneWidget);
+    });
+
+    testWidgets('gün içi ayrıntısı çiziliyor ($dil)', (tester) async {
+      final d = bugunlu();
+      await ciz(tester, GunIciEkrani(days: d, bugun: d.last), dil);
+      final s = S.forCode(dil);
+      expect(find.text(s.t('intraday.energyStart')), findsOneWidget);
+      final saatlik = find.text(s.t('intraday.stressHourly').toUpperCase());
+      await tester.scrollUntilVisible(saatlik, 300,
+          scrollable: find.byType(Scrollable).first);
+      expect(saatlik, findsOneWidget);
+    });
+
+    testWidgets('antrenman listesi ve ayrıntısı çiziliyor ($dil)', (tester) async {
+      final d = bugunlu();
+      await ciz(tester, LoadScreen(d), dil);
+      final s = S.forCode(dil);
+      final kosu = find.text(s.t('workout.type.RUNNING'));
+      expect(kosu, findsOneWidget);
+      await tester.tap(kosu);
+      await tester.pumpAndSettle();
+      expect(find.text(s.t('workout.load')), findsOneWidget);
     });
 
     testWidgets('öteki ekranlar çiziliyor ($dil)', (tester) async {

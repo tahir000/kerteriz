@@ -281,6 +281,114 @@ class S {
     'settings.reminderOff': 'Kapalı',
     'settings.reminderOn': 'Açık',
 
+    // gün içi
+    'lvl.calm': 'sakin',
+    'intraday.section': 'Gün içi',
+    'intraday.title': 'Gün içi',
+    'intraday.energy': 'Enerji',
+    'intraday.energySub': 'Sabah {start} ile başladı · {time} itibarıyla tahmin',
+    'intraday.stress': 'Stres',
+    'intraday.stressSub': 'Son bir saat · bugün {min} yüksek stres',
+    'intraday.none': 'Bugün için henüz gün içi nabız verisi yok. Bileklik eşitledikçe dolacak.',
+    'intraday.energyStart': 'Başlangıç',
+    'intraday.energyStartSub': 'Sabahki hazırlık (ilk haftalarda uyku skoru)',
+    'intraday.drainLoad': 'Hareket ve antrenman',
+    'intraday.drainStress': 'Stres',
+    'intraday.drainAwake': 'Uyanık geçen saatler',
+    'intraday.energyNote':
+        'Enerji bir tahmin, ölçüm değil. Sabah hazırlıkla başlıyor; günlük yükle aynı '
+            'nabız bölgeleri, hareketsizken yükselen nabız ve uyanık geçen her saat onu '
+            'azaltıyor. Katsayılar sabit: en ağır bir gün yaklaşık 60 puan, tam stresli '
+            'bir saat 6 puan, uyanık her saat 1,5 puan götürüyor.',
+    'intraday.stressHourly': 'Saat saat stres',
+    'intraday.stressNone': 'Bugün stres ölçülebilecek kadar hareketsiz uyanık dilim yok.',
+    'intraday.highStress': 'Yüksek stres süresi',
+    'intraday.calmHr': 'Sakin nabzın',
+    'intraday.calmHrSub': 'Son günlerin hareketsiz uyanık anlarından; stresin referansı',
+    'intraday.stressNote':
+        'Stres, hareket etmezken nabzın kendi sakin nabzının üstüne çıkması. Yürürken, '
+            'antrenmanda ve uykuda geçen dilimler sayılmıyor. Kahve, sıcak, hastalık ve '
+            'heyecan da nabzı yükseltir; bu yüzden "stres" burada zihinsel stresle sınırlı '
+            'değil, vücudun yüklenmesi demek.',
+
+    // sabah sorusu
+    'feel.title': 'Bugün nasıl hissediyorsun?',
+    'feel.sub': 'Tek dokunuş. Hissin ile hazırlık skorunu karşılaştırıyoruz.',
+    'feel.1': 'Çok yorgun',
+    'feel.2': 'Yorgun',
+    'feel.3': 'Normal',
+    'feel.4': 'İyi',
+    'feel.5': 'Çok iyi',
+    'feel.section': 'Hissin ve skorun',
+    'feel.waiting':
+        'İyi hissettiğin (İyi, Çok iyi) ve kötü hissettiğin (Yorgun, Çok yorgun) en az '
+            'dörder sabah gerekiyor. Şimdiye kadar {n} sabah işaretlendi.',
+    'feel.compareTitle': 'Skor seni tanıyor mu?',
+    'feel.compareSub': 'O sabahki hazırlık ortalaması',
+    'feel.good': 'İyi hissettiğin sabahlar',
+    'feel.bad': 'Yorgun hissettiğin sabahlar',
+    'feel.resultMatch': 'Fark {delta} puan: skor hissinle belirgin biçimde örtüşüyor.',
+    'feel.resultWeak': 'Fark {delta} puan: aynı yönde ama zayıf. Sabah sayısı arttıkça netleşir.',
+    'feel.resultNone':
+        'Fark {delta} puan: skor şimdilik hissinle örtüşmüyor. Uyku dışı etkenler '
+            '(stres, hastalık, alkol) hissini skordan daha çok etkiliyor olabilir.',
+
+    // antrenmanlar
+    'type.workout': 'Antrenman',
+    'workout.section': 'Antrenmanlar',
+    'workout.none':
+        'Son 14 günde antrenman kaydı yok. Bileklik ya da spor uygulaması antrenmanı '
+            'Health Connect\'e yazınca burada görünür. Egzersiz iznini vermediysen '
+            'Health Connect ayarlarından açabilirsin.',
+    'workout.rowSub': '{date} {time} · {dur} · ort. {hr} atım',
+    'workout.load': 'Antrenman yükü',
+    'workout.share': 'Günün yükünün %{p}\'i',
+    'workout.hr': 'Ortalama nabız',
+    'workout.hrSub': 'En yüksek {max} atım',
+    'workout.kcal': 'Kalori',
+    'workout.distance': 'Mesafe',
+    'workout.nextMorning': 'Ertesi sabah hazırlık',
+    'workout.nextHrv': 'HRV {z} z',
+    'workout.note':
+        'Antrenman yükü günlük yükle aynı formülle, o saatlerin dakikalık nabzından '
+            'hesaplanıyor; 0-21 ölçeği de aynı. Kalori ve mesafe antrenmanı kaydeden '
+            'uygulamanın kendi değeri.',
+
+    // sabah bildirimi
+    'notif.morningChannel': 'Sabah bildirimi',
+    'notif.morningChannelSub': 'Kalkış saatinden yarım saat sonra, günde bir kez',
+    'notif.morningTitle': 'Günaydın, gecen hazır',
+    'notif.morningBody': 'Hazırlığını gör ve bugün nasıl hissettiğini tek dokunuşla işaretle.',
+    'settings.morning': 'Sabah bildirimi',
+    'settings.morningSub':
+        'Kalkış saatinden yarım saat sonra tek bildirim. Skoru içermiyor: o saatte gecenin '
+            'verisi henüz işlenmedi, skor uygulama açılınca hesaplanıyor.',
+    'workout.type.RUNNING': 'Koşu',
+    'workout.type.RUNNING_TREADMILL': 'Koşu bandı',
+    'workout.type.WALKING': 'Yürüyüş',
+    'workout.type.HIKING': 'Doğa yürüyüşü',
+    'workout.type.BIKING': 'Bisiklet',
+    'workout.type.BIKING_STATIONARY': 'Sabit bisiklet',
+    'workout.type.SWIMMING': 'Yüzme',
+    'workout.type.SWIMMING_POOL': 'Havuzda yüzme',
+    'workout.type.SWIMMING_OPEN_WATER': 'Açık suda yüzme',
+    'workout.type.STRENGTH_TRAINING': 'Kuvvet antrenmanı',
+    'workout.type.TRADITIONAL_STRENGTH_TRAINING': 'Ağırlık antrenmanı',
+    'workout.type.FUNCTIONAL_STRENGTH_TRAINING': 'Fonksiyonel antrenman',
+    'workout.type.WEIGHTLIFTING': 'Ağırlık kaldırma',
+    'workout.type.HIGH_INTENSITY_INTERVAL_TRAINING': 'HIIT',
+    'workout.type.YOGA': 'Yoga',
+    'workout.type.PILATES': 'Pilates',
+    'workout.type.ELLIPTICAL': 'Eliptik',
+    'workout.type.ROWING': 'Kürek',
+    'workout.type.ROWING_MACHINE': 'Kürek makinesi',
+    'workout.type.FOOTBALL_SOCCER': 'Futbol',
+    'workout.type.SOCCER': 'Futbol',
+    'workout.type.BASKETBALL': 'Basketbol',
+    'workout.type.TENNIS': 'Tenis',
+    'workout.type.DANCING': 'Dans',
+    'workout.type.OTHER': 'Antrenman',
+
     // etiket günlüğü
     'tags.title': 'Bu akşam',
     'tags.sub': 'Tek dokunuş. Ertesi sabahki hazırlıkla karşılaştırılır.',
@@ -759,6 +867,113 @@ class S {
             'journal. The time is recalculated each time you open the app.',
     'settings.reminderOff': 'Off',
     'settings.reminderOn': 'On',
+
+    // intraday
+    'lvl.calm': 'calm',
+    'intraday.section': 'Through the day',
+    'intraday.title': 'Through the day',
+    'intraday.energy': 'Energy',
+    'intraday.energySub': 'Started at {start} this morning · estimate as of {time}',
+    'intraday.stress': 'Stress',
+    'intraday.stressSub': 'Last hour · {min} of high stress today',
+    'intraday.none': 'No daytime heart rate yet today. It fills in as the band syncs.',
+    'intraday.energyStart': 'Start',
+    'intraday.energyStartSub': 'This morning\'s readiness (sleep score in the first weeks)',
+    'intraday.drainLoad': 'Movement and workouts',
+    'intraday.drainStress': 'Stress',
+    'intraday.drainAwake': 'Hours awake',
+    'intraday.energyNote':
+        'Energy is an estimate, not a measurement. It starts from readiness and drops '
+            'with the same heart rate zones as daily load, with heart rate rising while '
+            'still, and with every hour awake. The coefficients are fixed: the heaviest day '
+            'takes about 60 points, a fully stressed hour 6, each waking hour 1.5.',
+    'intraday.stressHourly': 'Stress by hour',
+    'intraday.stressNone': 'Not enough still, awake time today to measure stress.',
+    'intraday.highStress': 'Time in high stress',
+    'intraday.calmHr': 'Your calm heart rate',
+    'intraday.calmHrSub': 'From still, awake moments of recent days; the stress reference',
+    'intraday.stressNote':
+        'Stress is heart rate rising above your own calm level while you are not moving. '
+            'Walking, workouts and sleep are left out. Coffee, heat, illness and excitement '
+            'raise heart rate too, so "stress" here means load on the body, not only mental stress.',
+
+    // morning check-in
+    'feel.title': 'How do you feel today?',
+    'feel.sub': 'One tap. We compare how you feel with your readiness score.',
+    'feel.1': 'Exhausted',
+    'feel.2': 'Tired',
+    'feel.3': 'Okay',
+    'feel.4': 'Good',
+    'feel.5': 'Great',
+    'feel.section': 'How you feel vs. your score',
+    'feel.waiting':
+        'This needs at least four mornings feeling good (Good, Great) and four feeling '
+            'tired (Tired, Exhausted). {n} mornings logged so far.',
+    'feel.compareTitle': 'Does the score know you?',
+    'feel.compareSub': 'Readiness average that morning',
+    'feel.good': 'Mornings you felt good',
+    'feel.bad': 'Mornings you felt tired',
+    'feel.resultMatch': 'A {delta} point gap: the score clearly tracks how you feel.',
+    'feel.resultWeak': 'A {delta} point gap: same direction but weak. It sharpens with more mornings.',
+    'feel.resultNone':
+        'A {delta} point gap: the score does not track how you feel yet. Things beyond '
+            'sleep (stress, illness, alcohol) may move your feeling more than the score.',
+
+    // workouts
+    'type.workout': 'Workout',
+    'workout.section': 'Workouts',
+    'workout.none':
+        'No workouts in the last 14 days. They appear here once your band or a sports '
+            'app writes them to Health Connect. If you did not grant exercise access, you '
+            'can enable it in Health Connect settings.',
+    'workout.rowSub': '{date} {time} · {dur} · avg {hr} bpm',
+    'workout.load': 'Workout load',
+    'workout.share': '{p}% of the day\'s load',
+    'workout.hr': 'Average heart rate',
+    'workout.hrSub': 'Peak {max} bpm',
+    'workout.kcal': 'Calories',
+    'workout.distance': 'Distance',
+    'workout.nextMorning': 'Next-morning readiness',
+    'workout.nextHrv': 'HRV {z} z',
+    'workout.note':
+        'Workout load uses the same formula as daily load, from minute-level heart rate '
+            'during the session, on the same 0-21 scale. Calories and distance come from '
+            'the app that recorded the workout.',
+
+    // morning notification
+    'notif.morningChannel': 'Morning notification',
+    'notif.morningChannelSub': 'Half an hour after your wake time, once a day',
+    'notif.morningTitle': 'Good morning, your night is in',
+    'notif.morningBody': 'See your readiness and tap how you feel today.',
+    'settings.morning': 'Morning notification',
+    'settings.morningSub':
+        'A single notification half an hour after your wake time. It carries no score: '
+            'last night\'s data is not processed yet; the score is computed when you open the app.',
+    'workout.type.RUNNING': 'Run',
+    'workout.type.RUNNING_TREADMILL': 'Treadmill run',
+    'workout.type.WALKING': 'Walk',
+    'workout.type.HIKING': 'Hike',
+    'workout.type.BIKING': 'Ride',
+    'workout.type.BIKING_STATIONARY': 'Indoor ride',
+    'workout.type.SWIMMING': 'Swim',
+    'workout.type.SWIMMING_POOL': 'Pool swim',
+    'workout.type.SWIMMING_OPEN_WATER': 'Open water swim',
+    'workout.type.STRENGTH_TRAINING': 'Strength training',
+    'workout.type.TRADITIONAL_STRENGTH_TRAINING': 'Weight training',
+    'workout.type.FUNCTIONAL_STRENGTH_TRAINING': 'Functional training',
+    'workout.type.WEIGHTLIFTING': 'Weightlifting',
+    'workout.type.HIGH_INTENSITY_INTERVAL_TRAINING': 'HIIT',
+    'workout.type.YOGA': 'Yoga',
+    'workout.type.PILATES': 'Pilates',
+    'workout.type.ELLIPTICAL': 'Elliptical',
+    'workout.type.ROWING': 'Rowing',
+    'workout.type.ROWING_MACHINE': 'Rowing machine',
+    'workout.type.FOOTBALL_SOCCER': 'Football',
+    'workout.type.SOCCER': 'Football',
+    'workout.type.BASKETBALL': 'Basketball',
+    'workout.type.TENNIS': 'Tennis',
+    'workout.type.DANCING': 'Dance',
+    'workout.type.OTHER': 'Workout',
 
     // tag journal
     'tags.title': 'This evening',

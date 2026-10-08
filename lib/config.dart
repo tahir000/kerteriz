@@ -11,7 +11,7 @@
 class Config {
   /// Uygulama sürümü. pubspec.yaml ile aynı tutulmalı; Veri sekmesinde
   /// görünür ki telefonda hangi yapının çalıştığı tahmin edilmesin.
-  static const String version = '0.13.0';
+  static const String version = '0.14.0';
 
   /// Varsayılan yaş. Gerçek değer [Ayarlar.yas]; maksimum nabız tahmini
   /// oradan hesaplanıyor (Tanaka formülü: 208 - 0.7 * yaş).
@@ -35,6 +35,11 @@ class Config {
   /// hesaplanan bir standart sapma o kadar gürültülü ki z-skoru anlamsız;
   /// bu sayıya ulaşana kadar hazırlık kalan girdilerden kuruluyor.
   static const int minBaselineNights = 7;
+
+  /// Nabız bölgelerinin yük ağırlıkları (Banister TRIMP mantığı). 0 kullanılmıyor,
+  /// 1..4 bölgeler: %50-60, %60-70, %70-85, %85+ nabız rezervi. Günlük yük ve
+  /// antrenman yükü aynı ağırlıkları kullanıyor.
+  static const List<double> bolgeAgirliklari = [0.0, 1.00, 1.85, 2.90, 4.60];
 
   /// Uyku ihtiyacı taban değeri (dakika) — üzerine dünkü yükün katkısı eklenir.
   static const int sleepNeedBaseMinutes = 438;

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:intl/intl.dart';
 
 class HrSample {
@@ -25,6 +27,59 @@ class SleepSegment {
         DateTime.parse(j['start'] as String),
         DateTime.parse(j['end'] as String),
       );
+}
+
+/// Health Connect'teki bir egzersiz kaydı ve o saatlerin nabzından
+/// hesaplanan yükü.
+class Antrenman {
+  /// HealthWorkoutActivityType adı: RUNNING, WALKING, STRENGTH_TRAINING...
+  final String tur;
+  final DateTime bas;
+  final DateTime bit;
+  double? ortNabiz;
+  double? maksNabiz;
+
+  /// Nabız bölgelerinde geçen dakika; 0 kullanılmıyor, 1..4 (günlükle aynı).
+  List<double> bolge = [0, 0, 0, 0, 0];
+
+  /// Bölge ağırlıklı dakikalar (TRIMP); günlük yükün ham karşılığı.
+  double yukHam = 0;
+  int? kcal;
+  int? mesafeM;
+
+  Antrenman(this.tur, this.bas, this.bit);
+
+  int get dakika => bit.difference(bas).inMinutes;
+
+  /// Günlük yükle aynı 0-21 logaritmik ölçek.
+  double get yuk => (6.9 * math.log(1 + yukHam / 24)).clamp(0, 21).toDouble();
+
+  Map<String, dynamic> toJson() => {
+        'tur': tur,
+        'bas': bas.toIso8601String(),
+        'bit': bit.toIso8601String(),
+        'ortNabiz': ortNabiz,
+        'maksNabiz': maksNabiz,
+        'bolge': bolge,
+        'yukHam': yukHam,
+        'kcal': kcal,
+        'mesafeM': mesafeM,
+      };
+
+  factory Antrenman.fromJson(Map<String, dynamic> j) {
+    final a = Antrenman(j['tur'] as String, DateTime.parse(j['bas'] as String),
+        DateTime.parse(j['bit'] as String));
+    a.ortNabiz = (j['ortNabiz'] as num?)?.toDouble();
+    a.maksNabiz = (j['maksNabiz'] as num?)?.toDouble();
+    final b = j['bolge'];
+    if (b is List && b.length == 5) {
+      a.bolge = b.map((e) => (e as num).toDouble()).toList();
+    }
+    a.yukHam = (j['yukHam'] as num?)?.toDouble() ?? 0;
+    a.kcal = (j['kcal'] as num?)?.toInt();
+    a.mesafeM = (j['mesafeM'] as num?)?.toInt();
+    return a;
+  }
 }
 
 /// Bir "gün" = o sabah biten gece + o günün aktivitesi.
@@ -58,6 +113,17 @@ class DayRecord {
   int steps = 0;
   int hydrationMl = 0; // su widget'ı Health Connect'e yazıyor, buradan okunuyor
   List<double> zoneMinutes = [0, 0, 0, 0, 0]; // 0 kullanılmıyor, 1..4
+
+  /// O günün antrenmanları (başlangıç saatine göre sıralı).
+  List<Antrenman> antrenmanlar = [];
+
+  /// Gün içi 15 dakikalık dilimler (96 adet, gece yarısından): dilimin
+  /// ortalama nabzı ve adımı. Gün içi stres ve enerji bunlardan hesaplanıyor.
+  /// Boş liste: veri yok (önbellekte eski günler için saklanmıyor).
+  List<double?> gunNabzi = [];
+  List<int> gunAdim = [];
+  static const int dilimDk = 15;
+  static const int dilimSayisi = 96;
 
   // --- türetilmiş (engine dolduruyor) ---
   double hrvZ = 0, rhrZ = 0, respZ = 0, tempZ = 0;
@@ -140,6 +206,10 @@ class DayRecord {
         'segments': segments.map((s) => s.toJson()).toList(),
         'nightHr':
             geceNabzi ? nightHr.map((s) => s.toJson()).toList() : const [],
+        'antrenmanlar': antrenmanlar.map((a) => a.toJson()).toList(),
+        // Gün içi dilimler de gece nabzı gibi yalnızca son günlerde tutuluyor.
+        'gunNabzi': geceNabzi ? gunNabzi : const [],
+        'gunAdim': geceNabzi ? gunAdim : const [],
         'derived': {
           'hrvZ': hrvZ,
           'rhrZ': rhrZ,
@@ -202,6 +272,20 @@ class DayRecord {
     if (nh is List) {
       d.nightHr =
           nh.map((e) => HrSample.fromJson(e as Map<String, dynamic>)).toList();
+    }
+
+    final an = j['antrenmanlar'];
+    if (an is List) {
+      d.antrenmanlar =
+          an.map((e) => Antrenman.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    final gn = j['gunNabzi'];
+    if (gn is List && gn.length == dilimSayisi) {
+      d.gunNabzi = gn.map((e) => (e as num?)?.toDouble()).toList();
+    }
+    final ga = j['gunAdim'];
+    if (ga is List && ga.length == dilimSayisi) {
+      d.gunAdim = ga.map((e) => (e as num).toInt()).toList();
     }
 
     final t = j['derived'];

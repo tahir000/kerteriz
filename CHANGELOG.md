@@ -1,5 +1,38 @@
 # Değişiklik günlüğü
 
+## 0.14.0 — Ekim 2026
+
+**Antrenmanlar**
+
+- Yük sekmesinde son 14 günün antrenmanları: tür, saat, süre, ortalama nabız ve
+  yük. Dokununca ayrıntı: nabız bölgeleri, günün yükündeki payı, kalori, mesafe,
+  ertesi sabahki hazırlık ve HRV
+- Antrenman yükü, o saatlerin dakikalık nabzından günlük yükle aynı formül ve
+  0-21 ölçekle hesaplanıyor
+- Egzersiz izni isteğe bağlı: verilmezse uygulama açılmaya devam ediyor.
+  Mevcut kullanıcılara bir kez soruluyor
+
+**Gün içi stres ve enerji**
+
+- Bugün ekranında yeni "Gün içi" bölümü; dokununca saat saat stres ve enerji eğrisi
+- Stres: hareket etmezken nabzın, kişinin kendi sakin uyanık nabzının üstüne
+  çıkması. Yürüme, antrenman ve uyku sayılmıyor; referans son günlerin
+  hareketsiz uyanık dilimlerinden
+- Enerji: sabah hazırlıkla başlayıp yük, stres ve uyanık saatlerle azalan bir
+  tahmin. Katsayılar sabit ve ekranda yazıyor
+
+**Sabah değerlendirmesi**
+
+- "Bugün nasıl hissediyorsun?" sorusu Bugün ekranının en üstünde, beş seçenek
+- "Senin verin ne diyor" ekranında "Skor seni tanıyor mu?": iyi ve yorgun
+  hissedilen sabahların hazırlık ortalaması
+- Sabah bildirimi (ayarlardan, varsayılan kapalı): kalkıştan yarım saat sonra
+
+**İzinler**
+
+- Kullanılmayan kilo ve VO₂max izinleri kaldırıldı (Play sağlık izinlerini tek
+  tek inceliyor). Gizlilik politikası ve yayın gerekçeleri güncellendi
+
 ## 0.13.0 — Ekim 2026
 
 **Widget'lar**

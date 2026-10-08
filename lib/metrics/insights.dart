@@ -468,6 +468,21 @@ class Deneyler {
     );
   }
 
+  /// Sabah hissi ile hazırlık: iyi hissettiğin sabahlar (4-5) ile kötü
+  /// hissettiklerin (1-2) arasındaki hazırlık farkı. Skorun seni ne kadar
+  /// tanıdığının ölçüsü; fark büyükse skor hissinle örtüşüyor.
+  static Comparison? hisVeSkor(List<DayRecord> days, Map<String, int> his) =>
+      karsilastir('his', days,
+          kosul: (d) {
+            final h = his[gunAnahtari(d.date)];
+            if (h == null || h == 3) return null;
+            return h >= 4;
+          },
+          sonuc: (d) => d.baselineNights >= Config.minBaselineNights
+              ? d.readiness.toDouble()
+              : null,
+          esik: 3);
+
   /// Etiket gerektirmeyen, verinin kendisinden çıkan karşılaştırmalar.
   /// Eşikler sabit değil, kullanıcının kendi medyanı: "erken yatış" 22:00
   /// demek değil, senin her zamankinden erken demek.

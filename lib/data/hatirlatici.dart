@@ -20,7 +20,13 @@ import 'day_record.dart';
 /// açılmasa da hatırlatma susmuyor, yalnızca son hesaplanan saatte kalıyor.
 class Hatirlatici {
   static const int _id = 1;
+  static const int _sabahId = 2;
   static const String etiketYuku = 'etiket';
+  static const String sabahYuku = 'sabah';
+
+  /// Sabah bildirimi kalkış saatinden kaç dakika sonra gelsin. Bileklik
+  /// gecenin verisini birkaç dakikada eşitliyor; yarım saat yeterli pay.
+  static const int sabahSonraDk = 30;
 
   /// Önceden kaç dakika hatırlatılsın.
   static const int onceDk = 30;
@@ -72,7 +78,42 @@ class Hatirlatici {
     return t;
   }
 
-  /// Tercihe göre bildirimi kurar ya da kaldırır.
+  static Future<void> _kur({
+    required int id,
+    required int dakika,
+    required String kanal,
+    required String kanalAdi,
+    required String kanalAciklama,
+    required String baslik,
+    required String govde,
+    required String yuk,
+  }) async {
+    final an = sonraki(DateTime.now(), dakika);
+    await _eklenti.zonedSchedule(
+      id: id,
+      // Yerel saat dilimini bilmeden doğru anı vermek için mutlak an
+      // UTC olarak veriliyor. Günlük tekrar da UTC saatine bağlı; yaz saati
+      // geçişinde bir saat kayabilir, ama uygulama her açılışta yeniden
+      // kurduğu için kayma bir sonraki açılışta düzeliyor.
+      scheduledDate: tz.TZDateTime.from(an.toUtc(), tz.UTC),
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          kanal,
+          kanalAdi,
+          channelDescription: kanalAciklama,
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      title: baslik,
+      body: govde,
+      payload: yuk,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  /// Tercihlere göre bildirimleri kurar ya da kaldırır.
   static Future<void> planla(List<DayRecord> days,
       {List<DayRecord>? allDays}) async {
     if (days.isEmpty) return;
@@ -80,34 +121,39 @@ class Hatirlatici {
     if (!_hazir) return;
     try {
       await _eklenti.cancel(id: _id);
-      if (!Ayarlar.hatirlatma) return;
-
-      final plan = Gunluk.planFor(days,
-          allDays: allDays, wakeMinute: Ayarlar.kalkisDk);
+      await _eklenti.cancel(id: _sabahId);
       final s = S.forCode(DayRecord.locale);
-      final an = sonraki(DateTime.now(), plan.bedMinute - onceDk);
-      await _eklenti.zonedSchedule(
-        id: _id,
-        // Yerel saat dilimini bilmeden doğru anı vermek için mutlak an
-        // UTC olarak veriliyor. Günlük tekrar da UTC saatine bağlı; yaz saati
-        // geçişinde bir saat kayabilir, ama uygulama her açılışta yeniden
-        // kurduğu için kayma bir sonraki açılışta düzeliyor.
-        scheduledDate: tz.TZDateTime.from(an.toUtc(), tz.UTC),
-        notificationDetails: NotificationDetails(
-          android: AndroidNotificationDetails(
-            'aksam',
-            s.t('notif.channel'),
-            channelDescription: s.t('notif.channelSub'),
-            importance: Importance.defaultImportance,
-            priority: Priority.defaultPriority,
-          ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        title: s.t2('notif.title', {'bed': saatDakika(plan.bedMinute)}),
-        body: s.t('notif.body'),
-        payload: etiketYuku,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
+
+      if (Ayarlar.hatirlatma) {
+        final plan = Gunluk.planFor(days,
+            allDays: allDays, wakeMinute: Ayarlar.kalkisDk);
+        await _kur(
+          id: _id,
+          dakika: plan.bedMinute - onceDk,
+          kanal: 'aksam',
+          kanalAdi: s.t('notif.channel'),
+          kanalAciklama: s.t('notif.channelSub'),
+          baslik: s.t2('notif.title', {'bed': saatDakika(plan.bedMinute)}),
+          govde: s.t('notif.body'),
+          yuk: etiketYuku,
+        );
+      }
+
+      // Sabah bildirimi sayı içermiyor: o saatte bu geceki veri henüz
+      // uygulamada işlenmedi, skoru ancak uygulama açılınca hesaplıyor.
+      // Bildirim bu yüzden davet: aç, hazırlığını gör, nasıl hissettiğini işaretle.
+      if (Ayarlar.sabahBildirimi) {
+        await _kur(
+          id: _sabahId,
+          dakika: Ayarlar.kalkisDk + sabahSonraDk,
+          kanal: 'sabah',
+          kanalAdi: s.t('notif.morningChannel'),
+          kanalAciklama: s.t('notif.morningChannelSub'),
+          baslik: s.t('notif.morningTitle'),
+          govde: s.t('notif.morningBody'),
+          yuk: sabahYuku,
+        );
+      }
     } catch (_) {
       // Zamanlanamadıysa uygulama yine çalışır; ayarlar ekranı tercihi tutar.
     }

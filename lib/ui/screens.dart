@@ -7,11 +7,14 @@ import '../data/ayarlar.dart';
 import '../data/day_record.dart';
 import '../data/etiketler.dart';
 import '../data/hatirlatici.dart';
+import '../data/hisler.dart';
 import '../l10n.dart';
 import '../metinler.dart';
 import '../metrics/engine.dart';
+import '../metrics/gun_ici.dart';
 import '../metrics/insights.dart';
 import '../theme.dart';
+import 'gun_ici_ekrani.dart';
 import 'verin_ekrani.dart';
 import 'widgets/charts.dart';
 import 'widgets/gauge.dart';
@@ -98,11 +101,22 @@ class TodayScreen extends StatelessWidget {
         Gunluk.planFor(days, allDays: allDays, wakeMinute: Ayarlar.kalkisDk);
     final week = Insights.weekly(days);
     final baslik = Gunluk.headline(days, plan);
+    // Gün içi: bugünün kaydı (filtrelenmemiş listenin son günü, takvimde bugün).
+    final simdi = DateTime.now();
+    final bugunKayit = hydDays.isNotEmpty &&
+            gunAnahtari(hydDays.last.date) == gunAnahtari(simdi)
+        ? hydDays.last
+        : null;
+    final gunIci = bugunKayit == null
+        ? null
+        : GunIci.ozet(hydDays, bugunKayit, hrMax: Ayarlar.hrMax, simdi: simdi);
     // Pazartesi haftalık özet açık gelir; öteki günler tek satır.
     final pazartesi = DateTime.now().weekday == DateTime.monday;
 
     return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
       ScreenHead('${d.label} · ${s.t('today.today')}', s.t('today.title')),
+      // Sabah sorusu: cevaplanana kadar en üstte.
+      const _SabahSorusu(),
       // Günün cümlesi: ekranın tamamını okumayan biri için tek satırlık özet.
       FadeUp(child: _GununCumlesi(baslik)),
       _hero(
@@ -151,6 +165,11 @@ class TodayScreen extends StatelessWidget {
             title: s.t('today.loadRatio'),
             subtitle: s.t('load.ratioWaiting'),
             value: '--'),
+
+      if (gunIci != null) ...[
+        SectionLabel(s.t('intraday.section')),
+        _GunIciSatirlari(gunIci, bugunKayit!, days: hydDays),
+      ],
 
       SectionLabel(s.t('today.tonight')),
       MetricRow(
@@ -352,6 +371,89 @@ void _bilgi(BuildContext context, String baslik, String metin) {
       ),
     ),
   );
+}
+
+/// Sabah sorusu: "Bugün nasıl hissediyorsun?" Cevaplanınca kaybolur.
+class _SabahSorusu extends StatelessWidget {
+  const _SabahSorusu();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    return ValueListenableBuilder<int>(
+      valueListenable: Hisler.degisti,
+      builder: (context, _, _) {
+        // 04:00'ten önce sorulmuyor: gece yarısı açan biri sabahı kastetmiyor.
+        if (Hisler.bugun() != null || DateTime.now().hour < 4) {
+          return const SizedBox.shrink();
+        }
+        return FadeUp(
+          child: Kart(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 8),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(s.t('feel.title'), style: K.rowTitle),
+                  const SizedBox(height: 2),
+                  Text(s.t('feel.sub'), style: K.rowSub),
+                  const SizedBox(height: 12),
+                  Wrap(spacing: 8, runSpacing: 8, children: [
+                    for (var v = Hisler.enAz; v <= Hisler.enCok; v++)
+                      SecimCipi(s.t('feel.$v'),
+                          secili: false, onTap: () => Hisler.yaz(v)),
+                  ]),
+                ]),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Bugün ekranındaki iki satır: enerji ve stres. Dokununca ayrıntı.
+class _GunIciSatirlari extends StatelessWidget {
+  final GunIciOzet o;
+  final DayRecord bugun;
+  final List<DayRecord> days;
+  const _GunIciSatirlari(this.o, this.bugun, {required this.days});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    void ac() => Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => GunIciEkrani(days: days, bugun: bugun)));
+    final e = o.enerji;
+    final st = o.simdikiStres ?? o.ortalamaStres;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (e != null)
+        MetricRow(
+          title: s.t('intraday.energy'),
+          subtitle: s.t2('intraday.energySub', {
+            'start': e.baslangic.toStringAsFixed(0),
+            'time': GunIci.dilimSaati(o.sonVeriDilimi + 1),
+          }),
+          value: e.simdi.toStringAsFixed(0),
+          unit: s.t('unit.of100'),
+          level: Levels.readiness(e.simdi.round()),
+          levelText: s.t(Levels.readinessKey(e.simdi.round())),
+          trend: e.degerler.length > 1 ? e.degerler : null,
+          onTap: ac,
+        ),
+      MetricRow(
+        title: s.t('intraday.stress'),
+        subtitle: s.t2('intraday.stressSub', {
+          'min': _dur(s, o.yuksekStresDk),
+        }),
+        value: st == null ? '--' : (st * 100).toStringAsFixed(0),
+        unit: st == null ? null : s.t('unit.of100'),
+        level: st == null ? null : Levels.stres(st),
+        levelText: st == null ? null : s.t(Levels.stresKey(st)),
+        trend: [for (final v in o.stres.take(o.sonVeriDilimi + 1)) (v ?? 0) * 100],
+        onTap: ac,
+      ),
+    ]);
+  }
 }
 
 /// Bugün ekranının en üstündeki tek cümle.
@@ -663,6 +765,11 @@ class LoadScreen extends StatelessWidget {
     final zoneTotal = d.zoneMinutes.sublist(1).fold<double>(0, (a, x) => a + x);
     final last28 = _tail(days, 28);
     final zoneRanges = ['50–60% HRR', '60–70% HRR', '70–85% HRR', '85%+ HRR'];
+    // Son 14 günün antrenmanları, yeniden eskiye.
+    final antrenmanlar = [
+      for (final x in _tail(days, 14).reversed)
+        for (final a in x.antrenmanlar.reversed) MapEntry(x, a)
+    ];
 
     return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
       ScreenHead(d.label, s.t('load.title')),
@@ -678,6 +785,23 @@ class LoadScreen extends StatelessWidget {
         levelText: d.acwrReady ? s.t(Levels.acwrKey(d.acwr)) : null,
         caption: s.t2('load.caption', {'min': '${zoneTotal.round()}'}),
       ),
+      SectionLabel(s.t('workout.section')),
+      if (antrenmanlar.isEmpty)
+        NoteBlock(s.t('workout.none'))
+      else
+        for (final e in antrenmanlar.take(10))
+          MetricRow(
+            title: antrenmanAdi(s, e.value.tur),
+            subtitle: s.t2('workout.rowSub', {
+              'date': e.key.label,
+              'time': fmtClock(e.value.bas),
+              'dur': _dur(s, e.value.dakika),
+              'hr': e.value.ortNabiz?.toStringAsFixed(0) ?? '--',
+            }),
+            value: e.value.yuk.toStringAsFixed(1),
+            unit: s.t('unit.of21'),
+            onTap: () => _antrenmanAyrinti(context, e.key, e.value, days),
+          ),
       SectionLabel(s.t('load.balance')),
       MetricRow(
           title: s.t('load.acute'),
@@ -733,6 +857,103 @@ class LoadScreen extends StatelessWidget {
       MetricRow(title: s.t('load.steps'), value: d.steps.toString()),
     ]);
   }
+}
+
+/// Antrenman türünün okunur adı. Bilinmeyen tür adı alt çizgisiz yazılır.
+String antrenmanAdi(S s, String tur) {
+  final k = 'workout.type.$tur';
+  final t = s.t(k);
+  if (t != k) return t;
+  final kelimeler = tur.toLowerCase().split('_');
+  final ad = kelimeler.join(' ');
+  return ad.isEmpty ? tur : ad[0].toUpperCase() + ad.substring(1);
+}
+
+/// Antrenman ayrıntısı: bölgeler, günün yükündeki payı, ertesi sabah.
+void _antrenmanAyrinti(
+    BuildContext context, DayRecord gun, Antrenman a, List<DayRecord> days) {
+  final s = S.of(context);
+  final gunHam = gun.strainRaw;
+  final pay = gunHam <= 0 ? null : (a.yukHam / gunHam).clamp(0, 1);
+  DayRecord? ertesi;
+  for (final x in days) {
+    final fark = (x.date.difference(gun.date).inHours / 24).round();
+    if (fark == 1) ertesi = x;
+  }
+  final zoneRanges = ['50–60%', '60–70%', '70–85%', '85%+'];
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: K.bg,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (_) => SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 4, 0, K.gutter, 4),
+            child: Text(antrenmanAdi(s, a.tur), style: K.titleSmall),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 4, 0, K.gutter, 8),
+            child: Text(
+                '${gun.label} · ${fmtClock(a.bas)}–${fmtClock(a.bit)}',
+                style: K.rowSub),
+          ),
+          MetricRow(
+            title: s.t('workout.load'),
+            subtitle: pay == null
+                ? null
+                : s.t2('workout.share', {'p': (pay * 100).round().toString()}),
+            value: a.yuk.toStringAsFixed(1),
+            unit: s.t('unit.of21'),
+          ),
+          MetricRow(
+            title: s.t('workout.hr'),
+            subtitle: s.t2('workout.hrSub',
+                {'max': a.maksNabiz?.toStringAsFixed(0) ?? '--'}),
+            value: a.ortNabiz?.toStringAsFixed(0) ?? '--',
+            unit: s.t('unit.bpm'),
+          ),
+          if (a.kcal != null && a.kcal! > 0)
+            MetricRow(title: s.t('workout.kcal'), value: '${a.kcal}', unit: ' kcal'),
+          if (a.mesafeM != null && a.mesafeM! > 0)
+            MetricRow(
+                title: s.t('workout.distance'),
+                value: (a.mesafeM! / 1000).toStringAsFixed(2),
+                unit: ' km'),
+          if (a.bolge.skip(1).any((v) => v > 0)) ...[
+            StackBar([
+              MapEntry(K.stageWake, a.bolge[1]),
+              MapEntry(K.stageRem, a.bolge[2]),
+              MapEntry(K.stageLight, a.bolge[3]),
+              MapEntry(K.stageDeep, a.bolge[4]),
+            ]),
+            for (var k = 1; k <= 4; k++)
+              if (a.bolge[k] > 0)
+                MetricRow(
+                    title: s.t2('load.zone', {'n': '$k'}),
+                    subtitle: zoneRanges[k - 1],
+                    value: a.bolge[k].round().toString(),
+                    unit: s.t('unit.min')),
+          ],
+          if (ertesi != null && ertesi.hasSleep)
+            MetricRow(
+              title: s.t('workout.nextMorning'),
+              subtitle: ertesi.hrv != null &&
+                      ertesi.hrvBaselineN >= Config.minBaselineNights
+                  ? s.t2('workout.nextHrv', {'z': sgn(ertesi.hrvZ, digits: 1)})
+                  : null,
+              value: '${ertesi.readiness}',
+              unit: s.t('unit.of100'),
+              level: Levels.readiness(ertesi.readiness),
+              levelText: s.t(Levels.readinessKey(ertesi.readiness)),
+            ),
+          NoteBlock(s.t('workout.note')),
+        ]),
+      ),
+    ),
+  );
 }
 
 // =====================================================================

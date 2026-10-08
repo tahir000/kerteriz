@@ -122,7 +122,14 @@ class _ShellState extends State<Shell> {
   bool _bekleyenEtiket = false;
 
   void _bildirimAcildi() {
-    if (Hatirlatici.acilis.value != Hatirlatici.etiketYuku) return;
+    final yuk = Hatirlatici.acilis.value;
+    if (yuk == Hatirlatici.sabahYuku) {
+      // Sabah bildirimi: Bugün'e dön; sabah sorusu en üstte bekliyor.
+      Hatirlatici.acilis.value = null;
+      _gitSekme(0);
+      return;
+    }
+    if (yuk != Hatirlatici.etiketYuku) return;
     Hatirlatici.acilis.value = null;
     _bekleyenEtiket = true;
     if (mounted) setState(() {});
@@ -508,6 +515,11 @@ class _ShellState extends State<Shell> {
       if (!ok) {
         _hata(nesil, sessiz, 'state.noPermission');
         return;
+      }
+      // Sonradan eklenen isteğe bağlı izinler (antrenmanlar) bir kez sorulsun.
+      if (!sessiz) {
+        await Tani.iz('istege bagli izinler');
+        await _repo.yeniIzinleriSor();
       }
 
       await Tani.iz('okuma basliyor');

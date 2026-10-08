@@ -141,7 +141,7 @@ class MetricsEngine {
       if (rhrPrev.length >= 3) d.rhrBaseline = mean(rhrPrev);
 
       // ---- günlük yük (TRIMP benzeri, log ölçek) ----
-      const w = [0.0, 1.00, 1.85, 2.90, 4.60];
+      const w = Config.bolgeAgirliklari;
       var raw = 0.0;
       for (var k = 1; k < 5; k++) {
         raw += d.zoneMinutes[k] * w[k];

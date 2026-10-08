@@ -24,11 +24,10 @@ PERMISSIONS = """    """ + MARK + """
     <uses-permission android:name="android.permission.health.READ_SKIN_TEMPERATURE"/>
     <uses-permission android:name="android.permission.health.READ_STEPS"/>
     <uses-permission android:name="android.permission.health.READ_DISTANCE"/>
+    <!-- Antrenmanlar: Yük sekmesindeki liste ve antrenman yükü (isteğe bağlı) -->
     <uses-permission android:name="android.permission.health.READ_EXERCISE"/>
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
-    <uses-permission android:name="android.permission.health.READ_WEIGHT"/>
-    <uses-permission android:name="android.permission.health.READ_VO2_MAX"/>
     <!-- Su widget'ı: okuma VE yazma. Uygulamadaki tek yazma izni budur. -->
     <uses-permission android:name="android.permission.health.READ_HYDRATION"/>
     <uses-permission android:name="android.permission.health.WRITE_HYDRATION"/>
@@ -140,6 +139,14 @@ ALIAS = """
 
 IZIN_SATIRLARI = [r for r in PERMISSIONS.splitlines() if "uses-permission" in r]
 
+# Eskiden istenip artık kullanılmayan izinler. Play sağlık izinlerini tek tek
+# inceliyor ve kullanılmayan izin reddedilme sebebi; daha önce yamalanmış
+# projelerden de siliniyorlar.
+ESKI_IZINLER = [
+    "android.permission.health.READ_WEIGHT",
+    "android.permission.health.READ_VO2_MAX",
+]
+
 
 def _izin_adi(satir):
     m = re.search(r'android:name="([^"]+)"', satir)
@@ -169,6 +176,13 @@ def main(path):
         if eksik:
             src = src.replace(MARK, MARK + "\n" + "\n".join(eksik), 1)
             print("   eklenen izin:", ", ".join(_izin_adi(r) for r in eksik))
+
+    # 1a) artık kullanılmayan izinleri sil
+    for ad in ESKI_IZINLER:
+        yeni = re.sub(r'[ \t]*<uses-permission android:name="%s"\s*/>\n?' % re.escape(ad), "", src)
+        if yeni != src:
+            print("   kaldırılan izin:", ad)
+            src = yeni
 
     # 1b) queries: zaten bir blok varsa içine ekle, yoksa yeni blok aç.
     # Birden fazla <queries> yazmaktansa mevcut olanı genişletmek daha güvenli.

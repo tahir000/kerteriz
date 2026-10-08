@@ -24,8 +24,7 @@ Kerteriz, Android **Health Connect** üzerinden şu tiplere **okuma** izniyle er
 - Uyku oturumları ve uyku evreleri (derin, hafif, REM, uyanık)
 - Nabız, dinlenme nabzı, kalp hızı değişkenliği (HRV)
 - Solunum hızı, kandaki oksijen (SpO2), cilt sıcaklığı
-- Adım, egzersiz oturumları, yakılan kalori, mesafe
-- Kilo, VO2max
+- Adım, egzersiz oturumları (antrenmanlar), yakılan kalori, mesafe
 - Su alımı (hidrasyon)
 - 30 günden eski kayıtlara erişim (geçmiş verisi izni)
 
@@ -41,9 +40,11 @@ Veriler yalnızca cihazınızda işlenir. Uygulama bunlardan hazırlık skoru,
 uyku skoru, uyku borcu, günlük yük, akut/kronik yük oranı, sirkadiyen düzenlilik
 ve kardiyak toparlanma gibi türetilmiş ölçüler hesaplar ve ekranda gösterir.
 
-Uygulamanın kendi ayarları (tema tercihi, yaş, günlük hedefler) da yalnızca
-cihazdaki özel uygulama alanında küçük bir dosyada tutulur. Yaş yalnızca
-maksimum nabız tahmini için kullanılır ve hiçbir yere gönderilmez.
+Uygulamanın kendi ayarları (tema tercihi, yaş, günlük hedefler, kalkış saati,
+bildirim tercihleri), etiket günlüğünüz (örneğin "alkol", "geç kafein") ve sabah
+değerlendirmeniz ("bugün nasıl hissediyorsun") da yalnızca cihazdaki özel
+uygulama alanında küçük dosyalarda tutulur. Yaş yalnızca maksimum nabız tahmini
+için kullanılır. Bunların hiçbiri hiçbir yere gönderilmez.
 
 ## 3. Nereye gönderiyoruz
 

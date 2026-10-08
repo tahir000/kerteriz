@@ -209,7 +209,8 @@ lib/
   data/
     ayarlar.dart              tema, yaş, kalkış saati, günlük hedefler (küçük JSON dosyası)
     etiketler.dart            etiket günlüğü: akşam başına etiketler (küçük JSON dosyası)
-    hatirlatici.dart          akşam bildirimi (flutter_local_notifications), her açılışta yeniden kurulur
+    hisler.dart               sabah değerlendirmesi (1-5), küçük JSON dosyası
+    hatirlatici.dart          akşam ve sabah bildirimi (flutter_local_notifications), her açılışta yeniden kurulur
     onbellek.dart             gün önbelleği: açılışta diskten, tazeleme arkada
     day_record.dart           gün modeli + JSON serileştirme
     uyku_bloklari.dart        gece uykusunu şekerlemelerden ayırır
@@ -219,6 +220,7 @@ lib/
     tani.dart                 açılış izi (diske yazılır), güvenli mod
   metrics/
     engine.dart               taban çizgiler, z-skorları, bütün bileşik metrikler
+    gun_ici.dart              gün içi stres (sakin uyanık nabza göre) ve enerji tahmini
     insights.dart             haftalık özet, yatma saati, etiket etkisi, gece nabzı uyarısı,
                               günün cümlesi (Gunluk), otomatik karşılaştırmalar (Deneyler)
 test/
@@ -233,6 +235,7 @@ tool/
     ayarlar_ekrani.dart       görünüm, yaş, günlük hedefler, sürüm
     screens.dart              Bugün / Uyku / Yük / Kalp
     coverage_screen.dart      Veri — Health Connect tanı ekranı
+    gun_ici_ekrani.dart       gün içi ayrıntı: enerji eğrisi, saatlik stres
     verin_ekrani.dart         "Senin verin ne diyor": etiket, su ve otomatik karşılaştırmalar
     widgets/kit.dart          satır, bölgeli ölçek, rozet, bölmeli seçici
     widgets/gauge.dart        yay göstergesi, mini eğilim çizgisi, giriş animasyonu
@@ -393,7 +396,17 @@ bitmap'i üç düzen arasında paylaşılıyor (320 px, ~400 KB): Binder aktarı
 renkleri de `context.getColor` ile oradan geliyor. Gerçek animasyon yok:
 RemoteViews desteklemiyor; efektler dokunma dalgası ve su düğmesinin kısa onayı.
 
-**Testler:** `flutter test` (59 test). Formüllere dokunan her değişiklikten
+**Gün içi (0.14.0):** 15 dakikalık dilimler (`DayRecord.gunNabzi`, `gunAdim`),
+önbellekte yalnızca son 7 gün tutuluyor. Stres referansı dinlenme nabzı değil
+sakin uyanık nabız: oturan birinin nabzı uykudakinden 10-15 atım yüksek, dinlenme
+nabzına göre ölçmek herkesi gün boyu stresli gösterirdi. Enerji katsayıları
+(`GunIci.yukKaybi`, `stresKaybi`, `uyaniklikKaybi`) veriden çıkmıyor, sabit;
+"uydurma katsayı yok" ilkesinin bilinçli istisnası, bu yüzden ekranda tahmin
+olduğu ve katsayıların ne olduğu yazıyor. Antrenmanlar isteğe bağlı izinle
+okunuyor (`optionalTypes`); yeni isteğe bağlı izinler mevcut kullanıcılara
+`yeniIzinleriSor` ile bir kez soruluyor.
+
+**Testler:** `flutter test` (75 test). Formüllere dokunan her değişiklikten
 sonra çalıştırılmalı.
 
 **Sıradaki adımlar:**

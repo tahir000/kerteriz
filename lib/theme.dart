@@ -214,6 +214,12 @@ class Levels {
       ? 'lvl.enough'
       : (ml >= goal * 0.7 ? 'lvl.below' : 'lvl.wellBelow');
 
+  /// Gün içi stres (0..1): düşük olan iyi.
+  static Level stres(num v) =>
+      v < 0.25 ? Level.good : (v < 0.5 ? Level.warn : Level.bad);
+  static String stresKey(num v) =>
+      v < 0.25 ? 'lvl.calm' : (v < 0.5 ? 'lvl.medium' : 'lvl.high');
+
   static Level dev(num absZ) =>
       absZ < 1 ? Level.good : (absZ < 2 ? Level.warn : Level.bad);
   static String devKey(num absZ) =>

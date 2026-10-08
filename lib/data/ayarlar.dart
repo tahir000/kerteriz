@@ -40,6 +40,14 @@ class Ayarlar {
   /// Varsayılan kapalı; açarken bildirim izni isteniyor.
   static bool hatirlatma = false;
 
+  /// Sabah bildirimi: kalkış saatinden yarım saat sonra, hazırlığa ve sabah
+  /// sorusuna davet. Varsayılan kapalı.
+  static bool sabahBildirimi = false;
+
+  /// Bir kez sorulmuş isteğe bağlı Health Connect izinleri (tip adları).
+  /// Reddedilen izin her açılışta yeniden sorulmasın diye tutuluyor.
+  static final Set<String> sorulanIzinler = {};
+
   /// Tanaka formülü. Nabız bölgeleri ve dolayısıyla günlük yük buna bağlı.
   static double get hrMax => 208 - 0.7 * yas;
 
@@ -104,6 +112,9 @@ class Ayarlar {
       mesafeHedefiOndaKm = al('mesafeOndaKm', mesafeHedefiOndaKm);
       kalkisDk = al('kalkis', kalkisDk);
       if (m['hatirlatma'] is bool) hatirlatma = m['hatirlatma'] as bool;
+      if (m['sabah'] is bool) sabahBildirimi = m['sabah'] as bool;
+      final si = m['sorulanIzinler'];
+      if (si is List) sorulanIzinler.addAll(si.whereType<String>());
     } catch (_) {
       // Bozuk dosya: varsayılanla devam.
     }
@@ -161,6 +172,17 @@ class Ayarlar {
     await _kaydet();
   }
 
+  static Future<void> izinSoruldu(Iterable<String> adlar) async {
+    sorulanIzinler.addAll(adlar);
+    await _kaydet();
+  }
+
+  static Future<void> sabahYaz(bool acik) async {
+    sabahBildirimi = acik;
+    degisti.value++;
+    await _kaydet();
+  }
+
   /// Yazma sırası. Her basış bir dosya yazımı başlatıyor; iki yazım aynı
   /// anda çalışırsa ikisi de dosyayı baştan kırpıp yazar ve uzun olan sonra
   /// bitince dosyanın kuyruğunda artık baytlar kalır. Bozuk JSON'u [oku]
@@ -185,6 +207,8 @@ class Ayarlar {
         'mesafeOndaKm': mesafeHedefiOndaKm,
         'kalkis': kalkisDk,
         'hatirlatma': hatirlatma,
+        'sabah': sabahBildirimi,
+        'sorulanIzinler': sorulanIzinler.toList()..sort(),
       }));
     } catch (_) {
       // Yazılamadıysa seçim bu oturum boyunca geçerli kalır.

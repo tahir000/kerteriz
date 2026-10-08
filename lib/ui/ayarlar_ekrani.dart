@@ -41,6 +41,17 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
     await _yaz(() => Ayarlar.hatirlatmaYaz(acik));
   }
 
+  Future<void> _sabah(BuildContext context, bool acik) async {
+    if (acik == Ayarlar.sabahBildirimi) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final s = S.of(context);
+    if (acik && !await Hatirlatici.izinIste()) {
+      messenger.showSnackBar(SnackBar(content: Text(s.t('notif.denied'))));
+      return;
+    }
+    await _yaz(() => Ayarlar.sabahYaz(acik));
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
@@ -120,6 +131,19 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
           Padding(
             padding: const EdgeInsets.fromLTRB(K.gutter + 2, 8, K.gutter, 2),
             child: Text(s.t('settings.reminderSub'), style: K.note),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 2, 12, K.gutter, 4),
+            child: Text(s.t('settings.morning'), style: K.rowTitle),
+          ),
+          SegmentliSecici(
+            etiketler: [s.t('settings.reminderOff'), s.t('settings.reminderOn')],
+            secili: Ayarlar.sabahBildirimi ? 1 : 0,
+            onChanged: (i) => _sabah(context, i == 1),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 2, 8, K.gutter, 2),
+            child: Text(s.t('settings.morningSub'), style: K.note),
           ),
 
           // ---- hedefler ----
