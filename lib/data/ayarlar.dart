@@ -48,6 +48,9 @@ class Ayarlar {
   /// Reddedilen izin her açılışta yeniden sorulmasın diye tutuluyor.
   static final Set<String> sorulanIzinler = {};
 
+  /// "Cihazın HRV paylaşmıyor" notu kapatıldı mı.
+  static bool cihazNotuKapali = false;
+
   /// Tanaka formülü. Nabız bölgeleri ve dolayısıyla günlük yük buna bağlı.
   static double get hrMax => 208 - 0.7 * yas;
 
@@ -113,6 +116,7 @@ class Ayarlar {
       kalkisDk = al('kalkis', kalkisDk);
       if (m['hatirlatma'] is bool) hatirlatma = m['hatirlatma'] as bool;
       if (m['sabah'] is bool) sabahBildirimi = m['sabah'] as bool;
+      if (m['cihazNotuKapali'] is bool) cihazNotuKapali = m['cihazNotuKapali'] as bool;
       final si = m['sorulanIzinler'];
       if (si is List) sorulanIzinler.addAll(si.whereType<String>());
     } catch (_) {
@@ -172,6 +176,12 @@ class Ayarlar {
     await _kaydet();
   }
 
+  static Future<void> cihazNotunuKapat() async {
+    cihazNotuKapali = true;
+    degisti.value++;
+    await _kaydet();
+  }
+
   static Future<void> izinSoruldu(Iterable<String> adlar) async {
     sorulanIzinler.addAll(adlar);
     await _kaydet();
@@ -209,6 +219,7 @@ class Ayarlar {
         'hatirlatma': hatirlatma,
         'sabah': sabahBildirimi,
         'sorulanIzinler': sorulanIzinler.toList()..sort(),
+        'cihazNotuKapali': cihazNotuKapali,
       }));
     } catch (_) {
       // Yazılamadıysa seçim bu oturum boyunca geçerli kalır.

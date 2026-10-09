@@ -25,6 +25,8 @@ Kerteriz, Android **Health Connect** üzerinden şu tiplere **okuma** izniyle er
 - Nabız, dinlenme nabzı, kalp hızı değişkenliği (HRV)
 - Solunum hızı, kandaki oksijen (SpO2), cilt sıcaklığı
 - Adım, egzersiz oturumları (antrenmanlar), yakılan kalori, mesafe
+- Regl kayıtları (döngü günü ve evresi için; isteğe bağlı)
+- Beslenme kayıtları: başka uygulamaların yazdığı öğünlerin kalorisi, saati ve kafeini (isteğe bağlı)
 - Su alımı (hidrasyon)
 - 30 günden eski kayıtlara erişim (geçmiş verisi izni)
 

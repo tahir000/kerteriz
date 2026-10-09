@@ -389,6 +389,63 @@ class S {
     'workout.type.DANCING': 'Dans',
     'workout.type.OTHER': 'Antrenman',
 
+    // döngü
+    'cycle.title': 'Döngü',
+    'cycle.day': '{n}. gün',
+    'cycle.phase.regl': 'Regl dönemi',
+    'cycle.phase.folikuler': 'Foliküler evre',
+    'cycle.phase.luteal': 'Luteal evre: nabız yükselir, HRV düşer',
+    'cycle.note':
+        'Döngü günü Health Connect\'teki regl kayıtlarından (Flo, Clue, Samsung Health '
+            'gibi uygulamalar yazıyor) hesaplanıyor. Evre kaba bir tahmin: yumurtlama '
+            'döngü sonundan yaklaşık 14 gün önce varsayılıyor. Kerteriz döngü ya da '
+            'doğurganlık takibi yapmıyor.',
+    'cycle.noAdjust':
+        'Hazırlık şimdilik döngüye göre düzeltilmiyor: kendi farkını ölçmek için en az '
+            'iki döngü başlangıcı ve her evrede sekiz gün veri gerekiyor.',
+    'cycle.diff':
+        'Senin verinde luteal evrede dinlenme nabzın ortalama {rhr} atım, HRV\'n %{hrv} '
+            'değişiyor. Bu fark sabit bir katsayı değil, kendi geçmiş döngülerinden.',
+    'cycle.adjustedToday':
+        'Bugün luteal evredesin; hazırlık hesaplanırken nabız ve HRV bu fark kadar '
+            'düzeltildi, yani beklenen yükseliş seni "dinlen"e itmiyor.',
+    'cycle.notLuteal': 'Bugün luteal evrede değilsin; düzeltme uygulanmadı.',
+
+    // cihaz notu
+    'device.title': '{src} HRV paylaşmıyor',
+    'device.titleGeneric': 'Cihazın HRV paylaşmıyor',
+    'device.body':
+        'Health Connect\'e kalp hızı değişkenliği gelmiyor. Hazırlık dinlenme nabzı ve '
+            'uykudan kuruluyor; gece toparlanması yeterli veri birikince eklenecek.',
+    'device.bodyCardiac':
+        'Health Connect\'e kalp hızı değişkenliği gelmiyor. Hazırlık dinlenme nabzı, '
+            'uyku ve gece kardiyak toparlanmasından kuruluyor. Skorun en ağır girdisi eksik; '
+            'sayıları HRV\'li cihazlarla birebir karşılaştırma.',
+    'data.sources': 'Veri kaynakları',
+    'data.sourcesNoHrv':
+        'Samsung Health ve Garmin Connect, Health Connect\'e HRV yazmıyor (Samsung dinlenme '
+            'nabzı ve solunumu da yazmıyor). Kerteriz dinlenme nabzını gece nabız serisinden '
+            'türetiyor; HRV\'nin yerine gece kardiyak toparlanmasını kullanıyor.',
+    'type.menstruation': 'Regl kaydı',
+    'type.nutrition': 'Beslenme',
+
+    // beslenme karşılaştırmaları
+    'insights.gecYemek.title': 'Geç yemek',
+    'insights.gecYemek.sub': 'Son öğünden yatışa senin medyanın {h} saat · o geceki uyku skoru',
+    'insights.gecYemek.a': 'Yatıştan {h} saatten az önce yediğin geceler',
+    'insights.gecYemek.b': 'Daha erken yediğin geceler',
+    'insights.gecYemek.result': 'Fark {delta} puan.',
+    'insights.kalori.title': 'Çok kalorili günler',
+    'insights.kalori.sub': 'Ertesi sabahki hazırlık',
+    'insights.kalori.a': '{kcal} kcal üstü günlerin ertesi',
+    'insights.kalori.b': '{kcal} kcal ve altı günlerin ertesi',
+    'insights.kalori.result': 'Fark {delta} puan.',
+    'insights.kafein.title': 'Öğleden sonra kafein',
+    'insights.kafein.sub': 'O geceki uyku skoru',
+    'insights.kafein.a': '14:00\'ten sonra kafein aldığın günler',
+    'insights.kafein.b': 'Kafeini 14:00\'ten önce bitirdiğin günler',
+    'insights.kafein.result': 'Fark {delta} puan.',
+
     // etiket günlüğü
     'tags.title': 'Bu akşam',
     'tags.sub': 'Tek dokunuş. Ertesi sabahki hazırlıkla karşılaştırılır.',
@@ -583,7 +640,7 @@ class S {
     'data.capIllnessNightHr':
         'Solunum ve sıcaklık gelmiyor; yalnızca gece nabzına bakan sade sürüm çalışıyor',
     'data.capReadinessNoHrv':
-        'HRV gelmiyor. Skorun %40\'ı eksik; ağırlık nabız ve uykuya dağıtıldı',
+        'HRV gelmiyor. Skorun %40\'ı eksik; nabız, uyku ve gece toparlanmasından kuruluyor',
     'data.capSpo2': 'Gece SpO2 takibi',
     'data.capSpo2Sub': 'Kandaki oksijen kaydı gerekiyor',
     'data.byType': 'Tip tip gelen kayıt',
@@ -975,6 +1032,62 @@ class S {
     'workout.type.DANCING': 'Dance',
     'workout.type.OTHER': 'Workout',
 
+    // cycle
+    'cycle.title': 'Cycle',
+    'cycle.day': 'Day {n}',
+    'cycle.phase.regl': 'Period',
+    'cycle.phase.folikuler': 'Follicular phase',
+    'cycle.phase.luteal': 'Luteal phase: heart rate rises, HRV drops',
+    'cycle.note':
+        'Cycle day comes from period records in Health Connect (written by apps like Flo, '
+            'Clue or Samsung Health). The phase is a rough estimate: ovulation is assumed '
+            'about 14 days before the cycle ends. Kerteriz does not do cycle or fertility tracking.',
+    'cycle.noAdjust':
+        'Readiness is not adjusted for the cycle yet: measuring your own shift needs at '
+            'least two cycle starts and eight days in each phase.',
+    'cycle.diff':
+        'In your data, during the luteal phase resting heart rate shifts by {rhr} bpm and '
+            'HRV by {hrv}% on average. This is not a fixed coefficient; it comes from your own past cycles.',
+    'cycle.adjustedToday':
+        'You are in the luteal phase today; heart rate and HRV were adjusted by that shift, '
+            'so the expected rise does not push you toward "rest".',
+    'cycle.notLuteal': 'You are not in the luteal phase today; no adjustment applied.',
+
+    // device note
+    'device.title': '{src} does not share HRV',
+    'device.titleGeneric': 'Your device does not share HRV',
+    'device.body':
+        'No heart rate variability is reaching Health Connect. Readiness is built from '
+            'resting heart rate and sleep; overnight recovery joins once enough data builds up.',
+    'device.bodyCardiac':
+        'No heart rate variability is reaching Health Connect. Readiness is built from '
+            'resting heart rate, sleep and overnight cardiac recovery. The heaviest input is '
+            'missing; do not compare the numbers one to one with HRV-capable devices.',
+    'data.sources': 'Data sources',
+    'data.sourcesNoHrv':
+        'Samsung Health and Garmin Connect do not write HRV to Health Connect (Samsung also '
+            'skips resting heart rate and respiration). Kerteriz derives resting heart rate '
+            'from the overnight series and uses overnight cardiac recovery in place of HRV.',
+    'type.menstruation': 'Period records',
+    'type.nutrition': 'Nutrition',
+
+    // nutrition comparisons
+    'insights.gecYemek.title': 'Late meals',
+    'insights.gecYemek.sub': 'Your median from last meal to bed is {h} h · sleep score that night',
+    'insights.gecYemek.a': 'Nights you ate less than {h} h before bed',
+    'insights.gecYemek.b': 'Nights you ate earlier',
+    'insights.gecYemek.result': 'The gap is {delta} points.',
+    'insights.kalori.title': 'High-calorie days',
+    'insights.kalori.sub': 'Next-morning readiness',
+    'insights.kalori.a': 'Mornings after more than {kcal} kcal',
+    'insights.kalori.b': 'Mornings after {kcal} kcal or less',
+    'insights.kalori.result': 'The gap is {delta} points.',
+    'insights.kafein.title': 'Afternoon caffeine',
+    'insights.kafein.sub': 'Sleep score that night',
+    'insights.kafein.a': 'Days with caffeine after 2 pm',
+    'insights.kafein.b': 'Days caffeine ended before 2 pm',
+    'insights.kafein.result': 'The gap is {delta} points.',
+
     // tag journal
     'tags.title': 'This evening',
     'tags.sub': 'One tap. Compared with the next morning\'s readiness.',
@@ -1167,7 +1280,7 @@ class S {
     'data.capIllnessNightHr':
         'No respiration or temperature; a simpler version based on overnight heart rate runs',
     'data.capReadinessNoHrv':
-        'No HRV arriving. 40% of the score is missing; its weight moved to heart rate and sleep',
+        'No HRV arriving. 40% of the score is missing; built from heart rate, sleep and overnight recovery',
     'data.capSpo2': 'Nightly SpO2 tracking',
     'data.capSpo2Sub': 'Needs blood oxygen records',
     'data.byType': 'Records by type',

@@ -483,6 +483,64 @@ class Deneyler {
               : null,
           esik: 3);
 
+  /// Beslenme karşılaştırmaları. Gece, ertesi günün kaydında: yatış
+  /// [DayRecord.bedStart], uyku skoru o kaydın.
+  static List<Comparison> beslenme(List<DayRecord> days) {
+    final tarih = {for (final d in days) gunAnahtari(d.date): d};
+    DayRecord? ertesi(DayRecord d) =>
+        tarih[gunAnahtari(DateTime(d.date.year, d.date.month, d.date.day + 1))];
+    final sonuc = <Comparison>[];
+
+    // Son öğünden yatışa kaç saat: kişinin kendi medyanından kısa mı.
+    final aralik = <DayRecord, double>{};
+    for (final d in days) {
+      final e = ertesi(d);
+      if (d.sonOgun == null || e?.bedStart == null) continue;
+      final saat = e!.bedStart!.difference(d.sonOgun!).inMinutes / 60;
+      if (saat > 0 && saat <= 12) aralik[d] = saat;
+    }
+    if (aralik.length >= 2 * minPerGroup) {
+      final med = MetricsEngine.median(aralik.values.toList());
+      final c = karsilastir('gecYemek', days,
+          kosul: (d) => aralik.containsKey(d) ? aralik[d]! <= med : null,
+          sonuc: (d) => d.hasSleep ? d.sleepScore.toDouble() : null,
+          esik: med,
+          gecikme: 1);
+      if (c != null) sonuc.add(c);
+    }
+
+    // Çok kalorili gün: kişinin kendi medyanının üstü.
+    final kaloriler = [
+      for (final d in days)
+        if (d.kcalAlinan != null && d.kcalAlinan! > 300) d.kcalAlinan!
+    ];
+    if (kaloriler.length >= 2 * minPerGroup) {
+      final med = MetricsEngine.median(kaloriler);
+      final c = karsilastir('kalori', days,
+          kosul: (d) => (d.kcalAlinan == null || d.kcalAlinan! <= 300)
+              ? null
+              : d.kcalAlinan! > med,
+          sonuc: (d) => d.baselineNights >= Config.minBaselineNights
+              ? d.readiness.toDouble()
+              : null,
+          esik: med,
+          gecikme: 1);
+      if (c != null) sonuc.add(c);
+    }
+
+    // Öğleden sonra kafein: son kafein 14:00'ten sonra mı. Eşik sabit,
+    // çünkü kafeinin yarılanma süresi (~5 saat) kişiden çok az bağımsız.
+    final c = karsilastir('kafein', days,
+        kosul: (d) => d.sonKafein == null ? null : d.sonKafein!.hour >= kafeinSaati,
+        sonuc: (d) => d.hasSleep ? d.sleepScore.toDouble() : null,
+        esik: kafeinSaati.toDouble(),
+        gecikme: 1);
+    if (c != null) sonuc.add(c);
+    return sonuc;
+  }
+
+  static const int kafeinSaati = 14;
+
   /// Etiket gerektirmeyen, verinin kendisinden çıkan karşılaştırmalar.
   /// Eşikler sabit değil, kullanıcının kendi medyanı: "erken yatış" 22:00
   /// demek değil, senin her zamankinden erken demek.
@@ -529,7 +587,10 @@ class Deneyler {
       if (c != null) sonuc.add(c);
     }
 
-    // 4) Şekerleme yapılan günün gecesi ne kadar uyunuyor.
+    // 4-6) Beslenme: başka uygulamaların Health Connect'e yazdığı öğünlerden.
+    sonuc.addAll(beslenme(days));
+
+    // 7) Şekerleme yapılan günün gecesi ne kadar uyunuyor.
     final c = karsilastir('sekerleme', days,
         kosul: (d) => d.napMinutes >= 20,
         sonuc: (d) => d.hasSleep ? d.asleep.toDouble() : null,

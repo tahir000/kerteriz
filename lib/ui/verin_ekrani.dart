@@ -88,6 +88,50 @@ class VerinEkrani extends StatelessWidget {
           sonucMetni: s.t2('insights.adim.result',
               {'delta': sgn(c.delta, digits: 0)}),
         );
+      case 'gecYemek':
+        final saat = c.esik.toStringAsFixed(1);
+        return KarsilastirmaKarti(
+          baslik: s.t('insights.gecYemek.title'),
+          aciklama: s.t2('insights.gecYemek.sub', {'h': saat}),
+          etiketA: s.t2('insights.gecYemek.a', {'h': saat}),
+          degerA: c.a,
+          nA: c.nA,
+          etiketB: s.t2('insights.gecYemek.b', {'h': saat}),
+          degerB: c.b,
+          nB: c.nB,
+          bicim: sayi,
+          sonucMetni: s.t2('insights.gecYemek.result',
+              {'delta': sgn(c.delta, digits: 0)}),
+        );
+      case 'kalori':
+        final esik = c.esik.round().toString();
+        return KarsilastirmaKarti(
+          baslik: s.t('insights.kalori.title'),
+          aciklama: s.t('insights.kalori.sub'),
+          etiketA: s.t2('insights.kalori.a', {'kcal': esik}),
+          degerA: c.a,
+          nA: c.nA,
+          etiketB: s.t2('insights.kalori.b', {'kcal': esik}),
+          degerB: c.b,
+          nB: c.nB,
+          bicim: sayi,
+          sonucMetni: s.t2('insights.kalori.result',
+              {'delta': sgn(c.delta, digits: 0)}),
+        );
+      case 'kafein':
+        return KarsilastirmaKarti(
+          baslik: s.t('insights.kafein.title'),
+          aciklama: s.t('insights.kafein.sub'),
+          etiketA: s.t('insights.kafein.a'),
+          degerA: c.a,
+          nA: c.nA,
+          etiketB: s.t('insights.kafein.b'),
+          degerB: c.b,
+          nB: c.nB,
+          bicim: sayi,
+          sonucMetni: s.t2('insights.kafein.result',
+              {'delta': sgn(c.delta, digits: 0)}),
+        );
       default: // sekerleme
         return KarsilastirmaKarti(
           baslik: s.t('insights.sekerleme.title'),

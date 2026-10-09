@@ -38,6 +38,20 @@ class CoverageScreen extends StatelessWidget {
     HealthDataType.STEPS: 'type.steps',
     HealthDataType.WATER: 'type.water',
     HealthDataType.WORKOUT: 'type.workout',
+    HealthDataType.MENSTRUATION_FLOW: 'type.menstruation',
+    HealthDataType.NUTRITION: 'type.nutrition',
+  };
+
+  /// Kaynak bölümünde gösterilen tipler ve etiketleri.
+  static const _kaynakTipleri = <String, String>{
+    'HEART_RATE': 'type.heartRate',
+    'SLEEP_SESSION': 'type.sleepSession',
+    'HEART_RATE_VARIABILITY_RMSSD': 'type.hrv',
+    'RESTING_HEART_RATE': 'type.restingHr',
+    'STEPS': 'type.steps',
+    'WORKOUT': 'type.workout',
+    'NUTRITION': 'type.nutrition',
+    'MENSTRUATION_FLOW': 'type.menstruation',
   };
 
   /// Skorlarda doğrudan ağırlığı olan tipler — boş olmaları önemli.
@@ -219,6 +233,20 @@ class CoverageScreen extends StatelessWidget {
         ),
       const LevelScale(),
 
+      if (repo.kaynaklar.isNotEmpty) ...[
+        SectionLabel(s.t('data.sources')),
+        for (final e in _kaynakTipleri.entries)
+          if (repo.kaynaklar[e.key]?.isNotEmpty ?? false)
+            MetricRow(
+              title: s.t(e.value),
+              subtitle: (repo.kaynaklar[e.key]!.toList()..sort()).join(', '),
+            ),
+        // HRV yazmayan bilinen kaynaklar için açıklama.
+        if (withHrv == 0 &&
+            (repo.kaynaklar['HEART_RATE'] ?? const <String>{})
+                .any((k) => k == 'Samsung Health' || k == 'Garmin Connect'))
+          NoteBlock(s.t('data.sourcesNoHrv')),
+      ],
       if (derivedRhr > 0) NoteBlock(s.t('data.derivedNote')),
       if (missing.isNotEmpty) NoteBlock(s.t('data.missingNote')),
       NoteBlock(s.t('data.privacyNote')),

@@ -714,7 +714,9 @@ class _ShellState extends State<Shell> {
         });
       }
       body = _sayfalar([
-        TodayScreen(_days, allDays: _allDays),
+        TodayScreen(_days,
+            allDays: _allDays,
+            kalpKaynagi: _repo.kaynaklar['HEART_RATE']?.firstOrNull),
         SleepScreen(_days),
         LoadScreen(_days),
         HeartScreen(_days),

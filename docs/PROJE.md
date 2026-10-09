@@ -220,6 +220,7 @@ lib/
     tani.dart                 açılış izi (diske yazılır), güvenli mod
   metrics/
     engine.dart               taban çizgiler, z-skorları, bütün bileşik metrikler
+    dongu.dart                döngü günü, evre ve kişinin kendi luteal farkıyla hazırlık düzeltmesi
     gun_ici.dart              gün içi stres (sakin uyanık nabza göre) ve enerji tahmini
     insights.dart             haftalık özet, yatma saati, etiket etkisi, gece nabzı uyarısı,
                               günün cümlesi (Gunluk), otomatik karşılaştırmalar (Deneyler)
@@ -406,7 +407,15 @@ olduğu ve katsayıların ne olduğu yazıyor. Antrenmanlar isteğe bağlı izin
 okunuyor (`optionalTypes`); yeni isteğe bağlı izinler mevcut kullanıcılara
 `yeniIzinleriSor` ile bir kez soruluyor.
 
-**Testler:** `flutter test` (75 test). Formüllere dokunan her değişiklikten
+**Döngü ve HRV'siz cihazlar (0.15.0):** Döngü düzeltmesi `MetricsEngine.run`'ın
+başında: `Dongu.isaretle` evreyi yazar, `Dongu.farklar` kişinin luteal-foliküler
+farkını ölçer, z-skorları luteal günlerde bu fark çıkarılmış değerlerle kurulur.
+Ham değerler kayıtta aynen kalır. HRV son 14 günde hiç gelmediyse
+(`hrvBaselineN == 0`) gece kardiyak toparlanması %20 ağırlıkla hazırlığa
+katılır (`kardiyakYedekAgirlik`); bu bir tercih, veriden çıkan bir katsayı değil.
+Veri kaynakları `HealthRepository.kaynaklar` (tip adı -> kaynak adları).
+
+**Testler:** `flutter test` (87 test). Formüllere dokunan her değişiklikten
 sonra çalıştırılmalı.
 
 **Sıradaki adımlar:**

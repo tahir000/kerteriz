@@ -120,6 +120,33 @@ class DayRecord {
   /// Gün içi 15 dakikalık dilimler (96 adet, gece yarısından): dilimin
   /// ortalama nabzı ve adımı. Gün içi stres ve enerji bunlardan hesaplanıyor.
   /// Boş liste: veri yok (önbellekte eski günler için saklanmıyor).
+  // --- döngü (Health Connect regl kayıtları) ---
+  /// O gün regl kaydı var mı (akış "yok" dışında herhangi bir değer).
+  bool regl = false;
+
+  /// Kayıt döngünün başlangıcı olarak işaretlenmiş mi.
+  bool donguBaslangici = false;
+
+  // --- beslenme (Health Connect; başka uygulamalar yazıyor) ---
+  double? kcalAlinan;
+
+  /// O günün son öğün kaydının saati (öğünü kaydeden uygulamanın verdiği).
+  DateTime? sonOgun;
+  double? kafeinMg;
+  DateTime? sonKafein;
+
+  // --- türetilmiş döngü bilgisi (metrics/dongu.dart dolduruyor) ---
+  int? donguGunu;
+
+  /// 'regl', 'folikuler', 'luteal' ya da null (döngü bilinmiyor).
+  String? donguEvresi;
+
+  /// Hazırlık hesabında döngü düzeltmesi uygulandı mı.
+  bool donguDuzeltildi = false;
+
+  /// HRV gelmediği için gece kardiyak toparlanması hazırlığa katıldı mı.
+  bool kardiyakYedek = false;
+
   List<double?> gunNabzi = [];
   List<int> gunAdim = [];
   static const int dilimDk = 15;
@@ -207,6 +234,12 @@ class DayRecord {
         'nightHr':
             geceNabzi ? nightHr.map((s) => s.toJson()).toList() : const [],
         'antrenmanlar': antrenmanlar.map((a) => a.toJson()).toList(),
+        'regl': regl,
+        'donguBaslangici': donguBaslangici,
+        'kcalAlinan': kcalAlinan,
+        'sonOgun': sonOgun?.toIso8601String(),
+        'kafeinMg': kafeinMg,
+        'sonKafein': sonKafein?.toIso8601String(),
         // Gün içi dilimler de gece nabzı gibi yalnızca son günlerde tutuluyor.
         'gunNabzi': geceNabzi ? gunNabzi : const [],
         'gunAdim': geceNabzi ? gunAdim : const [],
@@ -274,6 +307,13 @@ class DayRecord {
           nh.map((e) => HrSample.fromJson(e as Map<String, dynamic>)).toList();
     }
 
+    d.regl = j['regl'] == true;
+    d.donguBaslangici = j['donguBaslangici'] == true;
+    d.kcalAlinan = say('kcalAlinan');
+    d.kafeinMg = say('kafeinMg');
+    final so = j['sonOgun'], sk = j['sonKafein'];
+    d.sonOgun = so is String ? DateTime.parse(so) : null;
+    d.sonKafein = sk is String ? DateTime.parse(sk) : null;
     final an = j['antrenmanlar'];
     if (an is List) {
       d.antrenmanlar =

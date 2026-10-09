@@ -26,6 +26,10 @@ PERMISSIONS = """    """ + MARK + """
     <uses-permission android:name="android.permission.health.READ_DISTANCE"/>
     <!-- Antrenmanlar: Yük sekmesindeki liste ve antrenman yükü (isteğe bağlı) -->
     <uses-permission android:name="android.permission.health.READ_EXERCISE"/>
+    <!-- Döngü: regl kayıtları, hazırlığı döngü evresine göre düzeltmek için (isteğe bağlı) -->
+    <uses-permission android:name="android.permission.health.READ_MENSTRUATION"/>
+    <!-- Beslenme: başka uygulamaların yazdığı öğünler, yalnızca okuma (isteğe bağlı) -->
+    <uses-permission android:name="android.permission.health.READ_NUTRITION"/>
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
     <!-- Su widget'ı: okuma VE yazma. Uygulamadaki tek yazma izni budur. -->

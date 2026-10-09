@@ -146,6 +146,8 @@ Sonra her veri tipi için gerekçe. Kopyala yapıştır:
 | READ_STEPS | Günlük yük hesabına katkıda bulunur; Yük sekmesinde ve ana ekran özet widget'ında kullanıcının kendi belirlediği hedefe göre halka olarak gösterilir. |
 | READ_DISTANCE | Ana ekran özet widget'ında günün mesafesi, kullanıcının ayarladığı hedefe göre halka olarak gösterilir. |
 | READ_EXERCISE | Yük sekmesinde antrenman listesi: her antrenmanın türü, süresi, o saatlerin nabzından hesaplanan yükü ve nabız bölgeleri, ertesi sabahki hazırlık. Gün içi stres hesabında antrenman saatleri stres sayılmaz. İsteğe bağlıdır: verilmezse uygulama çalışmaya devam eder. |
+| READ_MENSTRUATION | Döngü günü ve evresi Bugün ekranında gösterilir; luteal evrede dinlenme nabzı ve HRV, kullanıcının kendi geçmiş döngülerinden ölçülen fark kadar düzeltilerek hazırlık hesaplanır. Doğurganlık tahmini yapılmaz. İsteğe bağlıdır. |
+| READ_NUTRITION | Başka uygulamaların yazdığı öğünlerin kalorisi, saati ve kafeini okunur; "Senin verin ne diyor" ekranında geç yemek, çok kalorili gün ve öğleden sonra kafein ile uyku ve hazırlık karşılaştırılır. Uygulama beslenme verisi yazmaz. İsteğe bağlıdır. |
 | READ_TOTAL_CALORIES_BURNED / READ_ACTIVE_CALORIES_BURNED | Ana ekran özet widget'ında günün kalorisi halka olarak gösterilir; cihaz toplam kalori yazmıyorsa aktif kaloriye ve onun kendi hedefine düşülür. |
 | READ_HEALTH_DATA_HISTORY | Bütün metrikler 14 günlük taban çizgiye dayanır ve uygulama 90 günlük geçmiş okur; 30 günden eski kayıt okunamazsa skorlar hesaplanamaz. |
 | READ_HYDRATION | Bugün eklenen su toplamı Bugün sekmesinde kullanıcının belirlediği hedefe göre gösterilir ve hedefin tutturulduğu günlerin ertesindeki hazırlık ortalamasıyla karşılaştırılır. |

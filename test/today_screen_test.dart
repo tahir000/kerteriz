@@ -143,6 +143,26 @@ void main() {
       expect(saatlik, findsOneWidget);
     });
 
+    testWidgets('döngü satırı ve cihaz notu çiziliyor ($dil)', (tester) async {
+      final n = DateTime.now();
+      final d = gunler(40, son: DateTime(n.year, n.month, n.day), f: (date, i) {
+        final g = gun(date, hrv: null, rhr: 56 + (i % 3).toDouble());
+        g.regl = i % 28 < 4;
+        return g;
+      });
+      MetricsEngine.run(d);
+      await ciz(tester, TodayScreen(d, allDays: d, kalpKaynagi: 'Samsung Health'), dil);
+      final s = S.forCode(dil);
+      final not = find.text(s.t2('device.title', {'src': 'Samsung Health'}));
+      await tester.scrollUntilVisible(not, 200, scrollable: find.byType(Scrollable).first);
+      expect(not, findsOneWidget);
+      final dongu = find.text(s.t('cycle.title'));
+      await tester.scrollUntilVisible(dongu, 200, scrollable: find.byType(Scrollable).first);
+      await tester.tap(dongu);
+      await tester.pumpAndSettle();
+      expect(find.textContaining(s.t('cycle.note').substring(0, 20)), findsOneWidget);
+    });
+
     testWidgets('antrenman listesi ve ayrıntısı çiziliyor ($dil)', (tester) async {
       final d = bugunlu();
       await ciz(tester, LoadScreen(d), dil);

@@ -1,5 +1,35 @@
 # Değişiklik günlüğü
 
+## 0.15.0 — Ekim 2026
+
+**Samsung ve Garmin**
+
+- Veri sekmesinde "Veri kaynakları": her ölçümü hangi uygulamanın yazdığı
+- HRV hiç gelmiyorsa (Samsung Health ve Garmin Connect Health Connect'e HRV
+  yazmıyor) Bugün ekranında kapatılabilir bir not, ve hazırlığa gece kardiyak
+  toparlanması katılıyor (%20 ağırlık, yalnızca HRV yokken)
+
+**Döngü**
+
+- Health Connect'teki regl kayıtlarından döngü günü ve evre (Bugün için)
+- Luteal evrede dinlenme nabzı ve HRV, kişinin kendi geçmiş döngülerinde ölçülen
+  luteal-foliküler farkı kadar düzeltilerek hazırlık hesaplanıyor. Sabit katsayı
+  yok; en az iki döngü ve her evrede sekiz gün veri yoksa düzeltme yapılmıyor
+- İsteğe bağlı izin; doğurganlık tahmini yok
+
+**Beslenme**
+
+- Başka uygulamaların Health Connect'e yazdığı öğünler okunuyor (kalori, son öğün
+  saati, kafein). Kerteriz yemek kaydı tutmuyor
+- Üç yeni karşılaştırma: geç yemek → uyku skoru, çok kalorili gün → ertesi sabah
+  hazırlık, öğleden sonra kafein → uyku skoru
+
+**Diğer**
+
+- Mağaza metni yeni konumlanmaya göre yeniden yazıldı (`docs/MAGAZA.md`)
+- Bilgi alt sayfası uzun metinde taşıyordu, kaydırılabilir oldu
+- 87 test
+
 ## 0.14.0 — Ekim 2026
 
 **Antrenmanlar**

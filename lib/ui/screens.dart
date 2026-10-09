@@ -11,6 +11,7 @@ import '../data/hisler.dart';
 import '../l10n.dart';
 import '../metinler.dart';
 import '../metrics/engine.dart';
+import '../metrics/dongu.dart';
 import '../metrics/gun_ici.dart';
 import '../metrics/insights.dart';
 import '../theme.dart';
@@ -71,7 +72,10 @@ class TodayScreen extends StatelessWidget {
   /// ertesi gün olmayabilir. Verilmezse [days] kullanılır.
   final List<DayRecord>? allDays;
 
-  const TodayScreen(this.days, {this.allDays, super.key});
+  /// Nabız verisini yazan uygulama (örn. "Samsung Health"); HRV notu için.
+  final String? kalpKaynagi;
+
+  const TodayScreen(this.days, {this.allDays, this.kalpKaynagi, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -137,9 +141,19 @@ class TodayScreen extends StatelessWidget {
       ),
       if (d.baselineNights < Config.baselineWindow)
         FadeUp(index: 1, child: _Kalibrasyon(d.baselineNights)),
+      // HRV hiç gelmiyorsa (Samsung, Garmin): bir kez söyle, kapatılabilir.
+      if (d.hrv == null && d.hrvBaselineN == 0 && d.rhrBaselineN >= 3)
+        _CihazNotu(kaynak: kalpKaynagi, kardiyak: d.kardiyakYedek),
       ...flags.map((w) => FadeUp(index: 1, child: w)),
 
       SectionLabel(s.t('today.forToday')),
+      if (d.donguGunu != null)
+        MetricRow(
+          title: s.t('cycle.title'),
+          subtitle: s.t('cycle.phase.${d.donguEvresi}'),
+          value: s.t2('cycle.day', {'n': '${d.donguGunu}'}),
+          onTap: () => _bilgi(context, s.t('cycle.title'), _donguMetni(s, days)),
+        ),
       MetricRow(
           title: s.t('today.suggestedLoad'),
           subtitle: s.t('today.suggestedLoadSub'),
@@ -357,8 +371,10 @@ void _bilgi(BuildContext context, String baslik, String metin) {
     context: context,
     backgroundColor: K.bg,
     showDragHandle: true,
+    // Uzun açıklamalar (döngü notu gibi) ekranı aşabiliyor: kaydırılabilir.
+    isScrollControlled: true,
     builder: (_) => SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(K.gutter + 4, 0, K.gutter + 4, 24),
         child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -453,6 +469,70 @@ class _GunIciSatirlari extends StatelessWidget {
         onTap: ac,
       ),
     ]);
+  }
+}
+
+/// Döngü satırının açıklaması: evre ve (varsa) kişinin kendi farkı.
+String _donguMetni(S s, List<DayRecord> days) {
+  final f = Dongu.farklar(days);
+  final d = days.last;
+  final ana = s.t('cycle.note');
+  if (f == null) return '$ana\n\n${s.t('cycle.noAdjust')}';
+  final fark = s.t2('cycle.diff', {
+    'rhr': sgn(f.rhr, digits: 1),
+    'hrv': sgn(f.hrvYuzde, digits: 0),
+  });
+  final bugun = d.donguDuzeltildi ? s.t('cycle.adjustedToday') : s.t('cycle.notLuteal');
+  return '$ana\n\n$fark $bugun';
+}
+
+/// HRV paylaşmayan cihazlar için bir kerelik not.
+class _CihazNotu extends StatelessWidget {
+  final String? kaynak;
+  final bool kardiyak;
+  const _CihazNotu({required this.kaynak, required this.kardiyak});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    return ValueListenableBuilder<int>(
+      valueListenable: Ayarlar.degisti,
+      builder: (context, _, _) {
+        if (Ayarlar.cihazNotuKapali) return const SizedBox.shrink();
+        return FadeUp(
+          index: 1,
+          child: Kart(
+            padding: const EdgeInsets.fromLTRB(16, 14, 10, 14),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          kaynak == null
+                              ? s.t('device.titleGeneric')
+                              : s.t2('device.title', {'src': kaynak!}),
+                          style: K.rowTitle),
+                      const SizedBox(height: 4),
+                      Text(
+                          kardiyak
+                              ? s.t('device.bodyCardiac')
+                              : s.t('device.body'),
+                          style: K.note),
+                    ]),
+              ),
+              Basilabilir(
+                onTap: Ayarlar.cihazNotunuKapat,
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Icon(Icons.close, size: 18, color: K.ink3),
+                ),
+              ),
+            ]),
+          ),
+        );
+      },
+    );
   }
 }
 

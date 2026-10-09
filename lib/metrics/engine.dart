@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../config.dart';
 import '../data/day_record.dart';
+import 'dongu.dart';
 
 /// Su alımı ile ERTESİ günün hazırlığı arasındaki karşılaştırma.
 /// Hazırlık formülüne bir katsayı olarak GİRMEZ — etkisi gerçek ama bir
@@ -107,12 +108,31 @@ class MetricsEngine {
   /// z-skorunu 0..1 aralığına taşır.
   static double nz(double z) => clamp(0.5 + z / 3.6, 0, 1);
 
+  /// HRV hiç gelmiyorsa (Samsung, Garmin) gece kardiyak toparlanmasının
+  /// hazırlıktaki ağırlığı. HRV'nin yerini tam tutmuyor; toparlanmanın
+  /// nabızdan okunabilen tek işareti olduğu için katılıyor. Veri sekmesi ve
+  /// Bugün ekranı bunun yapıldığını açıkça söylüyor.
+  static const double kardiyakYedekAgirlik = 0.20;
+
   static void run(List<DayRecord> days) {
+    // Döngü: evreyi işaretle ve kişinin kendi luteal-foliküler farkını ölç.
+    // Luteal günlerde nabız ve HRV bu fark kadar düzeltilip taban çizgiyle
+    // karşılaştırılıyor; düzeltmesiz değerler kayıtta aynen kalıyor.
+    Dongu.isaretle(days);
+    final dongu = Dongu.farklar(days);
+    bool luteal(DayRecord x) => dongu != null && x.donguEvresi == 'luteal';
+    double? rhrDuz(DayRecord x) =>
+        x.rhr == null ? null : x.rhr! - (luteal(x) ? dongu!.rhr : 0);
+    double? hrvDuz(DayRecord x) => x.hrv == null
+        ? null
+        : x.hrv! * (luteal(x) ? math.exp(-dongu!.lnHrv) : 1);
+
     for (var i = 0; i < days.length; i++) {
       final d = days[i];
+      d.donguDuzeltildi = luteal(d);
 
-      final (hrvZ, hrvN) = _z(days, i, (x) => x.hrv, log: true);
-      final (rhrZ, rhrN) = _z(days, i, (x) => x.rhr);
+      final (hrvZ, hrvN) = _z(days, i, hrvDuz, log: true);
+      final (rhrZ, rhrN) = _z(days, i, rhrDuz);
       final (respZ, respN) = _z(days, i, (x) => x.respiratory);
       final (tempZ, tempN) = _z(days, i,
           (x) => x.skinTempDelta == null ? null : x.skinTempDelta! + 5);
@@ -225,6 +245,15 @@ class MetricsEngine {
       }
 
       add(0.40, d.hrv == null || d.hrvBaselineN < minN ? null : nz(d.hrvZ));
+      // HRV son 14 günde hiç gelmediyse: cihaz paylaşmıyor demek.
+      d.kardiyakYedek = false;
+      if (d.hrv == null && d.hrvBaselineN == 0) {
+        final (cz, cn) = _z(days, i, (x) => x.cardiac > 0 ? x.cardiac.toDouble() : null);
+        if (d.cardiac > 0 && cn >= minN) {
+          add(kardiyakYedekAgirlik, nz(cz));
+          d.kardiyakYedek = true;
+        }
+      }
       add(0.25, d.rhr == null || d.rhrBaselineN < minN ? null : nz(-d.rhrZ));
       add(0.25, d.hasSleep ? d.sleepScore / 100 : null);
       final solunumVar = d.respiratory != null && respN >= minN;

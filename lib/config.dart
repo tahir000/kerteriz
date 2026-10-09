@@ -11,7 +11,7 @@
 class Config {
   /// Uygulama sürümü. pubspec.yaml ile aynı tutulmalı; Veri sekmesinde
   /// görünür ki telefonda hangi yapının çalıştığı tahmin edilmesin.
-  static const String version = '0.14.0';
+  static const String version = '0.15.0';
 
   /// Varsayılan yaş. Gerçek değer [Ayarlar.yas]; maksimum nabız tahmini
   /// oradan hesaplanıyor (Tanaka formülü: 208 - 0.7 * yaş).

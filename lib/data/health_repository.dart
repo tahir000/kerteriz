@@ -94,7 +94,51 @@ class HealthRepository {
   /// İsteğe bağlı tipler: istenir ama verilmezse uygulama yine açılır.
   /// Antrenmanlar yalnızca Yük sekmesindeki listeyi ve antrenman yükünü
   /// besliyor; skorların hiçbiri onlara bağlı değil.
-  static const List<HealthDataType> optionalTypes = [HealthDataType.WORKOUT];
+  static const List<HealthDataType> optionalTypes = [
+    HealthDataType.WORKOUT,
+    // Döngü: regl kayıtları (Flo, Clue, Samsung Health yazıyor). Hazırlığı
+    // döngünün evresine göre düzeltmek için.
+    HealthDataType.MENSTRUATION_FLOW,
+    // Beslenme: başka uygulamaların yazdığı öğünler (MyFitnessPal, FatSecret...).
+    // Kerteriz yemek kaydı tutmuyor, yalnızca okuyor.
+    HealthDataType.NUTRITION,
+  ];
+
+  /// Her veri tipini hangi uygulamaların yazdığı (tip adı -> kaynak adları).
+  /// Veri sekmesi gösteriyor; Samsung ve Garmin gibi HRV paylaşmayan
+  /// kaynaklar böyle tanınıyor.
+  Map<String, Set<String>> kaynaklar = {};
+
+  /// Bilinen paket adlarının okunur karşılığı. Health Connect kaynak adı
+  /// olarak çoğu zaman paket adını veriyor.
+  static const Map<String, String> bilinenKaynaklar = {
+    'com.sec.android.app.shealth': 'Samsung Health',
+    'com.garmin.android.apps.connectmobile': 'Garmin Connect',
+    'com.fitbit.FitbitMobile': 'Fitbit',
+    'com.google.android.apps.fitness': 'Google Fit',
+    'com.google.android.apps.healthdata': 'Health Connect',
+    'com.ouraring.oura': 'Oura',
+    'com.whoop.android': 'WHOOP',
+    'com.xiaomi.wearable': 'Mi Fitness',
+    'com.huawei.health': 'Huawei Health',
+    'com.withings.wiscale2': 'Withings',
+    'com.polar.polarflow': 'Polar Flow',
+    'com.ultrahuman.android': 'Ultrahuman',
+    'com.myfitnesspal.android': 'MyFitnessPal',
+    'com.fatsecret.android': 'FatSecret',
+    'org.iggymedia.periodtracker': 'Flo',
+    'com.clue.android': 'Clue',
+  };
+
+  static String kaynakAdi(HealthDataPoint p) {
+    final id = p.sourceId;
+    return bilinenKaynaklar[id] ??
+        bilinenKaynaklar[p.sourceName] ??
+        (p.sourceName.isNotEmpty ? p.sourceName : id);
+  }
+
+  void _kaynakEkle(HealthDataPoint p) =>
+      kaynaklar.putIfAbsent(p.type.name, () => <String>{}).add(kaynakAdi(p));
 
   /// İzin ekranında istenen tiplerin tamamı.
   static const List<HealthDataType> permissionTypes = [
@@ -217,11 +261,13 @@ class HealthRepository {
     // --- kapsama özeti: neyin geldiğini, neyin gelmediğini kaydet ---
     requestedDays = span;
     rawCounts = {};
+    kaynaklar = {};
     firstPoint = null;
     lastPoint = null;
     kapsamaZamani = DateTime.now();
     for (final p in points) {
       rawCounts[p.type] = (rawCounts[p.type] ?? 0) + 1;
+      _kaynakEkle(p);
       if (firstPoint == null || p.dateFrom.isBefore(firstPoint!)) firstPoint = p.dateFrom;
       if (lastPoint == null || p.dateTo.isAfter(lastPoint!)) lastPoint = p.dateTo;
     }
@@ -356,6 +402,10 @@ class HealthRepository {
                 endTime: pEnd,
               )
               .timeout(const Duration(seconds: 20));
+          if (parca.isNotEmpty) {
+            _kaynakEkle(parca.first);
+            _kaynakEkle(parca.last);
+          }
           for (final pnt in parca) {
             final v = _num(pnt);
             if (v == null) continue;
@@ -502,6 +552,9 @@ class HealthRepository {
           )
           .timeout(const Duration(seconds: 15));
       rawCounts[HealthDataType.WORKOUT] = kayitlar.length;
+      for (final p in kayitlar.take(50)) {
+        _kaynakEkle(p);
+      }
       for (final p in kayitlar) {
         final deger = p.value;
         if (deger is! WorkoutHealthValue) continue;
@@ -548,6 +601,56 @@ class HealthRepository {
       await Tani.iz('tip tamam: WORKOUT');
     } catch (e) {
       await Tani.iz('tip HATA: WORKOUT -> $e');
+    }
+
+    // --- döngü ve beslenme (isteğe bağlı izinler) ---
+    // Antrenmanlar gibi ayrı okunuyor: izin yoksa skorlar etkilenmesin.
+    Future<List<HealthDataPoint>> istegeBagli(HealthDataType t) async {
+      try {
+        await Tani.iz('tip okunuyor: ${t.name}');
+        final l = await _health
+            .getHealthDataFromTypes(types: [t], startTime: start, endTime: end)
+            .timeout(const Duration(seconds: 15));
+        rawCounts[t] = l.length;
+        for (final p in l.take(50)) {
+          _kaynakEkle(p);
+        }
+        await Tani.iz('tip tamam: ${t.name}');
+        return l;
+      } catch (e) {
+        await Tani.iz('tip HATA: ${t.name} -> $e');
+        return const [];
+      }
+    }
+
+    for (final p in await istegeBagli(HealthDataType.MENSTRUATION_FLOW)) {
+      final v = p.value;
+      if (v is! MenstruationFlowHealthValue) continue;
+      final rec = dayFor(p.dateFrom);
+      if (rec == null) continue;
+      if (v.flow != null && v.flow != MenstrualFlow.none) rec.regl = true;
+      if (v.isStartOfCycle == true) rec.donguBaslangici = true;
+    }
+
+    for (final p in await istegeBagli(HealthDataType.NUTRITION)) {
+      final v = p.value;
+      if (v is! NutritionHealthValue) continue;
+      final rec = dayFor(p.dateFrom);
+      if (rec == null) continue;
+      if (v.calories != null && v.calories! > 0) {
+        rec.kcalAlinan = (rec.kcalAlinan ?? 0) + v.calories!;
+        if (rec.sonOgun == null || p.dateFrom.isAfter(rec.sonOgun!)) {
+          rec.sonOgun = p.dateFrom;
+        }
+      }
+      if (v.caffeine != null && v.caffeine! > 0) {
+        // health paketi kafeini gram veriyor (Health Connect: inGrams).
+        final mg = v.caffeine! * 1000;
+        rec.kafeinMg = (rec.kafeinMg ?? 0) + mg;
+        if (rec.sonKafein == null || p.dateFrom.isAfter(rec.sonKafein!)) {
+          rec.sonKafein = p.dateFrom;
+        }
+      }
     }
 
     // --- adım ---
