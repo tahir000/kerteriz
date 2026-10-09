@@ -446,6 +446,59 @@ class S {
     'insights.kafein.b': 'Kafeini 14:00\'ten önce bitirdiğin günler',
     'insights.kafein.result': 'Fark {delta} puan.',
 
+    // döngü sekmesi ve cinsiyet
+    'tab.cycle': 'Döngü',
+    'unit.daysN': '{n} gün',
+    'cycle.screenTitle': 'Döngü',
+    'cycle.phaseNote.regl':
+        'Regl dönemi. Bu günlerde nabız ve HRV genelde döngünün başındaki seviyesine döner.',
+    'cycle.phaseNote.folikuler':
+        'Foliküler evre. Çoğu kişide dinlenme nabzı en düşük, HRV en yüksek bu dönemde olur.',
+    'cycle.phaseNote.luteal':
+        'Luteal evre. Dinlenme nabzı yükselir, HRV düşer; bu beklenen bir değişim, '
+            'toparlanamadığın anlamına gelmiyor.',
+    'cycle.thisCycle': 'Bu döngü',
+    'cycle.next': 'Sonraki regl',
+    'cycle.nextSub': 'Kendi ortalama döngü uzunluğuna göre kaba tahmin',
+    'cycle.inDays': '~{n} gün',
+    'cycle.anyDay': 'her an',
+    'cycle.length': 'Döngü uzunluğu',
+    'cycle.lengthSub': 'Son {n} döngünün medyanı; veri yoksa 28 gün',
+    'cycle.adjust': 'Bugün hazırlık düzeltildi mi',
+    'cycle.adjustOff': 'Döngü düzeltmesi ayarlardan kapatıldı.',
+    'cycle.yourShift': 'Luteal evredeki kayman',
+    'cycle.shiftSub': 'Luteal günlerin foliküler günlere göre ortalama farkı, senin verinden',
+    'cycle.rhrChart': 'Son 8 hafta dinlenme nabzı',
+    'cycle.calendar': 'Regl günleri',
+    'cycle.calendarNote':
+        'Günlere dokunarak regl olarak işaretle. İşaretler yalnızca telefonunda tutulur, '
+            'Health Connect\'e yazılmaz. Çerçeveli günler Health Connect\'ten (Flo, Clue, '
+            'Samsung Health gibi uygulamalardan) geliyor; onları o uygulamadan değiştir.',
+    'cycle.recent': 'Son döngüler',
+    'cycle.current': 'Devam ediyor',
+    'cycle.emptyTitle': 'Döngü henüz bilinmiyor',
+    'cycle.emptyBody':
+        'Aşağıdaki takvimden regl günlerini işaretleyebilir ya da Flo, Clue, Samsung Health '
+            'gibi bir uygulamanın Health Connect\'e yazdığı kayıtları okumama izin verebilirsin.',
+    'cycle.grant': 'Regl kayıtlarını okumaya izin ver',
+    'cycle.periodDay': 'regl günü',
+    'cycle.fromHc': 'Bu gün Health Connect\'ten geliyor; kaydı yazan uygulamadan değiştirebilirsin.',
+    'settings.sex': 'Cinsiyet',
+    'settings.sexFemale': 'Kadın',
+    'settings.sexMale': 'Erkek',
+    'settings.sexNone': 'Belirtme',
+    'settings.sexSub':
+        'Hiçbir skora girmiyor. Kadın seçilince Döngü sekmesi ve aşağıdaki döngü ayarları '
+            'açılıyor. Seçim yalnızca telefonunda tutulur.',
+    'settings.cycle': 'Döngü',
+    'settings.cyclePermission': 'Health Connect regl kayıtları',
+    'settings.cyclePermissionOn': 'Okunuyor',
+    'settings.cyclePermissionOff': 'İzin yok; dokun ve izin ver. Takvimden işaretleme izinsiz de çalışır.',
+    'settings.cycleAdjust': 'Hazırlığı döngüye göre düzelt',
+    'settings.cycleNote':
+        'Açıkken luteal evrede nabız ve HRV, kendi geçmiş döngülerinde ölçülen fark kadar '
+            'düzeltilerek hazırlık hesaplanır. Yeterli döngü verisi yoksa düzeltme yapılmaz.',
+
     // etiket günlüğü
     'tags.title': 'Bu akşam',
     'tags.sub': 'Tek dokunuş. Ertesi sabahki hazırlıkla karşılaştırılır.',
@@ -1087,6 +1140,59 @@ class S {
     'insights.kafein.a': 'Days with caffeine after 2 pm',
     'insights.kafein.b': 'Days caffeine ended before 2 pm',
     'insights.kafein.result': 'The gap is {delta} points.',
+
+    // cycle tab and sex
+    'tab.cycle': 'Cycle',
+    'unit.daysN': '{n} days',
+    'cycle.screenTitle': 'Cycle',
+    'cycle.phaseNote.regl':
+        'Period. Heart rate and HRV usually return to their early-cycle levels these days.',
+    'cycle.phaseNote.folikuler':
+        'Follicular phase. For most people resting heart rate is lowest and HRV highest now.',
+    'cycle.phaseNote.luteal':
+        'Luteal phase. Resting heart rate rises and HRV drops; this is an expected change, '
+            'not a sign that you are failing to recover.',
+    'cycle.thisCycle': 'This cycle',
+    'cycle.next': 'Next period',
+    'cycle.nextSub': 'Rough estimate from your own average cycle length',
+    'cycle.inDays': '~{n} days',
+    'cycle.anyDay': 'any day',
+    'cycle.length': 'Cycle length',
+    'cycle.lengthSub': 'Median of your last {n} cycles; 28 days without data',
+    'cycle.adjust': 'Readiness adjusted today',
+    'cycle.adjustOff': 'Cycle adjustment is turned off in settings.',
+    'cycle.yourShift': 'Your luteal shift',
+    'cycle.shiftSub': 'Average of luteal days vs follicular days, from your own data',
+    'cycle.rhrChart': 'Resting heart rate, last 8 weeks',
+    'cycle.calendar': 'Period days',
+    'cycle.calendarNote':
+        'Tap days to mark them as period days. Marks stay on your phone only and are not '
+            'written to Health Connect. Outlined days come from Health Connect (apps like Flo, '
+            'Clue, Samsung Health); change those in that app.',
+    'cycle.recent': 'Recent cycles',
+    'cycle.current': 'Ongoing',
+    'cycle.emptyTitle': 'Cycle not known yet',
+    'cycle.emptyBody':
+        'Mark your period days in the calendar below, or let me read the records an app like '
+            'Flo, Clue or Samsung Health writes to Health Connect.',
+    'cycle.grant': 'Allow reading period records',
+    'cycle.periodDay': 'period day',
+    'cycle.fromHc': 'This day comes from Health Connect; change it in the app that wrote it.',
+    'settings.sex': 'Sex',
+    'settings.sexFemale': 'Female',
+    'settings.sexMale': 'Male',
+    'settings.sexNone': 'Not set',
+    'settings.sexSub':
+        'It enters no score. Choosing female opens the Cycle tab and the cycle settings below. '
+            'The choice stays on your phone.',
+    'settings.cycle': 'Cycle',
+    'settings.cyclePermission': 'Health Connect period records',
+    'settings.cyclePermissionOn': 'Being read',
+    'settings.cyclePermissionOff': 'No access; tap to allow. Marking in the calendar works without it.',
+    'settings.cycleAdjust': 'Adjust readiness for the cycle',
+    'settings.cycleNote':
+        'When on, heart rate and HRV in the luteal phase are adjusted by the shift measured in '
+            'your own past cycles before readiness is computed. Without enough cycles, no adjustment.',
 
     // tag journal
     'tags.title': 'This evening',

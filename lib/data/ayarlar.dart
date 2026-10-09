@@ -48,6 +48,24 @@ class Ayarlar {
   /// Reddedilen izin her açılışta yeniden sorulmasın diye tutuluyor.
   static final Set<String> sorulanIzinler = {};
 
+  /// Cinsiyet: 'kadin', 'erkek' ya da null (belirtilmedi). Yalnızca arayüz
+  /// için: "kadin" seçilince Döngü sekmesi ve ayarlardaki döngü bölümü
+  /// açılıyor, regl izni isteniyor. Hiçbir hesaba girmiyor ve hiçbir yere
+  /// gönderilmiyor.
+  static String? cinsiyet;
+
+  /// Hazırlığı döngü evresine göre düzelt (yalnızca yeterli döngü verisi varsa).
+  static bool donguDuzeltme = true;
+
+  /// Veriyi Health Connect'ten yeniden okumadan motoru yeniden çalıştırma
+  /// isteği: regl günü işaretlendi ya da döngü düzeltmesi açılıp kapandı.
+  static final ValueNotifier<int> yenidenHesapla = ValueNotifier<int>(0);
+
+  /// Döngü arayüzü görünsün mü: kadın seçildiyse ya da cinsiyet
+  /// belirtilmemiş ama regl kaydı geliyorsa.
+  static bool donguGorunur({bool veriVar = false}) =>
+      cinsiyet == 'kadin' || (cinsiyet == null && veriVar);
+
   /// "Cihazın HRV paylaşmıyor" notu kapatıldı mı.
   static bool cihazNotuKapali = false;
 
@@ -116,6 +134,9 @@ class Ayarlar {
       kalkisDk = al('kalkis', kalkisDk);
       if (m['hatirlatma'] is bool) hatirlatma = m['hatirlatma'] as bool;
       if (m['sabah'] is bool) sabahBildirimi = m['sabah'] as bool;
+      final c = m['cinsiyet'];
+      if (c == 'kadin' || c == 'erkek') cinsiyet = c as String;
+      if (m['donguDuzeltme'] is bool) donguDuzeltme = m['donguDuzeltme'] as bool;
       if (m['cihazNotuKapali'] is bool) cihazNotuKapali = m['cihazNotuKapali'] as bool;
       final si = m['sorulanIzinler'];
       if (si is List) sorulanIzinler.addAll(si.whereType<String>());
@@ -176,6 +197,19 @@ class Ayarlar {
     await _kaydet();
   }
 
+  static Future<void> cinsiyetYaz(String? c) async {
+    cinsiyet = c;
+    degisti.value++;
+    await _kaydet();
+  }
+
+  static Future<void> donguDuzeltmeYaz(bool acik) async {
+    donguDuzeltme = acik;
+    degisti.value++;
+    yenidenHesapla.value++;
+    await _kaydet();
+  }
+
   static Future<void> cihazNotunuKapat() async {
     cihazNotuKapali = true;
     degisti.value++;
@@ -220,6 +254,8 @@ class Ayarlar {
         'sabah': sabahBildirimi,
         'sorulanIzinler': sorulanIzinler.toList()..sort(),
         'cihazNotuKapali': cihazNotuKapali,
+        'cinsiyet': cinsiyet,
+        'donguDuzeltme': donguDuzeltme,
       }));
     } catch (_) {
       // Yazılamadıysa seçim bu oturum boyunca geçerli kalır.

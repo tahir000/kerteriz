@@ -14,11 +14,13 @@ import '../data/hatirlatici.dart';
 import '../data/health_repository.dart';
 import '../data/onbellek.dart';
 import '../data/ozet_yazici.dart';
+import '../data/regl_kayitlari.dart';
 import '../data/tani.dart';
 import '../l10n.dart';
 import '../metrics/engine.dart';
 import '../theme.dart';
 import 'coverage_screen.dart';
+import 'dongu_ekrani.dart';
 import 'screens.dart';
 import 'widgets/marka.dart';
 
@@ -82,6 +84,8 @@ class _ShellState extends State<Shell> {
     Ayarlar.yenidenOku.removeListener(_ayarDegisti);
     Ayarlar.degisti.removeListener(_hedefDegisti);
     Hatirlatici.acilis.removeListener(_bildirimAcildi);
+    Ayarlar.yenidenHesapla.removeListener(_yenidenHesapla);
+    ReglKayitlari.degisti.removeListener(_yenidenHesapla);
     _ayarZaman?.cancel();
     _pc.dispose();
     super.dispose();
@@ -111,7 +115,29 @@ class _ShellState extends State<Shell> {
   /// Hedef değişti (su, adım, kalori, mesafe). Skorlar bundan etkilenmiyor,
   /// yeniden okumaya gerek yok; ama ana ekran widget'ları hedefi özet
   /// dosyasından okuyor, o dosyanın tazelenmesi lazım.
+  /// Döngü sekmesi görünüyor mu ve Veri sekmesinin sırası.
+  bool get _donguSekmesi => Ayarlar.donguGorunur(
+      veriVar: _allDays.any((d) => d.reglHc));
+  int get _veriSekmesi => _donguSekmesi ? 5 : 4;
+
+  /// Regl günü işaretlendi ya da döngü düzeltmesi değişti: Health Connect'i
+  /// yeniden okumadan motoru bellekteki günlerle yeniden çalıştır.
+  void _yenidenHesapla() {
+    if (_allDays.isEmpty) return;
+    ReglKayitlari.uygula(_allDays);
+    MetricsEngine.run(_allDays, donguDuzeltme: Ayarlar.donguDuzeltme);
+    OzetYazici.yaz(_days, allDays: _allDays).catchError((_) {});
+    if (mounted) setState(() {});
+  }
+
   void _hedefDegisti() {
+    // Cinsiyet değişmiş olabilir: sekmeler yeniden kurulsun.
+    if (mounted) {
+      setState(() {
+        final son = _veriSekmesi;
+        if (_tab > son) _tab = son;
+      });
+    }
     OzetYazici.yaz(_days, allDays: _allDays).catchError((_) {});
     // Kalkış saati ya da hatırlatma tercihi değişmiş olabilir.
     unawaited(Hatirlatici.planla(_days, allDays: _allDays));
@@ -170,6 +196,8 @@ class _ShellState extends State<Shell> {
     Ayarlar.yenidenOku.addListener(_ayarDegisti);
     Ayarlar.degisti.addListener(_hedefDegisti);
     Hatirlatici.acilis.addListener(_bildirimAcildi);
+    Ayarlar.yenidenHesapla.addListener(_yenidenHesapla);
+    ReglKayitlari.degisti.addListener(_yenidenHesapla);
     unawaited(Hatirlatici.baslat().then((_) => _bildirimAcildi()));
     if (Tani.cokmeIzi != null) {
       _guvenliMod = true;
@@ -280,7 +308,8 @@ class _ShellState extends State<Shell> {
       if (nesil != _nesil) return;
       if (o != null && o.gunler.isNotEmpty) {
         await Tani.iz('onbellek: ${o.gunler.length} gun, bosluk ${o.bosluk}');
-        MetricsEngine.run(o.gunler);
+        ReglKayitlari.uygula(o.gunler);
+        MetricsEngine.run(o.gunler, donguDuzeltme: Ayarlar.donguDuzeltme);
         final withData =
             o.gunler.where((d) => d.hasSleep || d.rhr != null).toList();
         _repo.kapsamaYukle(
@@ -369,7 +398,8 @@ class _ShellState extends State<Shell> {
       }
 
       final birlesik = _birlestir(o.gunler, yeni);
-      MetricsEngine.run(birlesik);
+      ReglKayitlari.uygula(birlesik);
+      MetricsEngine.run(birlesik, donguDuzeltme: Ayarlar.donguDuzeltme);
 
       // Kapsama tablosu son TAM okumadan geliyor: tazelemenin küçük
       // pencereli sayılarını yazmak "90 günde 12 kayıt" demek olurdu.
@@ -526,7 +556,8 @@ class _ShellState extends State<Shell> {
       final days =
           await _repo.load().timeout(const Duration(seconds: 180));
       await Tani.iz('motor basliyor, gun: ${days.length}');
-      MetricsEngine.run(days);
+      ReglKayitlari.uygula(days);
+      MetricsEngine.run(days, donguDuzeltme: Ayarlar.donguDuzeltme);
       await Tani.iz('motor bitti');
       final withData = days.where((d) => d.hasSleep || d.rhr != null).toList();
       // Ana ekran özet widget'ının okuyacağı dosya. Başarısız olursa
@@ -581,13 +612,13 @@ class _ShellState extends State<Shell> {
         // Veri henüz azken skor ekranlarını açmak yanıltıcı olur;
         // önce Health Connect'ten ne geldiğini göster. Sessiz okumada
         // sekmeyi değiştirmiyoruz: kullanıcı o sırada bir yere bakıyor.
-        if (thin && !sessiz) _tab = 4;
+        if (thin && !sessiz) _tab = _veriSekmesi;
       });
       // PageView henüz kurulmadığı için doğrudan atlayamıyoruz; ilk
       // çerçeveden sonra sayfa da doğru yere gidiyor.
       if (thin && !sessiz) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _pc.hasClients) _pc.jumpToPage(4);
+          if (mounted && _pc.hasClients) _pc.jumpToPage(_veriSekmesi);
         });
       }
       await Tani.bitti();
@@ -636,7 +667,7 @@ class _ShellState extends State<Shell> {
                   side: BorderSide(color: K.line),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(K.rDugme))),
-              onPressed: () => _gitSekme(4),
+              onPressed: () => _gitSekme(_veriSekmesi),
               child: Text(s.t('data.title')),
             ),
             const SizedBox(height: 8),
@@ -703,6 +734,7 @@ class _ShellState extends State<Shell> {
         _skorYok(s),
         _skorYok(s),
         _skorYok(s),
+        if (_donguSekmesi) _skorYok(s),
         CoverageScreen(
             repo: _repo, days: _allDays, onReload: () => _boot(tam: true)),
       ]);
@@ -720,6 +752,7 @@ class _ShellState extends State<Shell> {
         SleepScreen(_days),
         LoadScreen(_days),
         HeartScreen(_days),
+        if (_donguSekmesi) DonguEkrani(days: _allDays),
         // Tanı ekranı filtrelenmemiş listeyi görmeli: uyku ya da nabız
         // olmayan bir günde solunum veya SpO2 gelmiş olabilir.
         CoverageScreen(
@@ -737,13 +770,15 @@ class _ShellState extends State<Shell> {
                 ? 'hata'
                 : 'icerik';
 
-    final baslik = [
-      s.t('tab.today'),
-      s.t('tab.sleep'),
-      s.t('tab.load'),
-      s.t('tab.heart'),
-      s.t('tab.data'),
-    ][_tab.clamp(0, 4)];
+    final sekmeler = <(IconData, String)>[
+      (Icons.circle_outlined, s.t('tab.today')),
+      (Icons.nightlight_outlined, s.t('tab.sleep')),
+      (Icons.show_chart, s.t('tab.load')),
+      (Icons.favorite_outline, s.t('tab.heart')),
+      if (_donguSekmesi) (Icons.water_drop_outlined, s.t('tab.cycle')),
+      (Icons.storage_outlined, s.t('tab.data')),
+    ];
+    final baslik = sekmeler[_tab.clamp(0, sekmeler.length - 1)].$2;
 
     return Scaffold(
       backgroundColor: K.bg,
@@ -849,13 +884,7 @@ class _ShellState extends State<Shell> {
       bottomNavigationBar: _AltMenu(
         secili: _tab,
         onSec: _gitSekme,
-        ogeler: [
-          (Icons.circle_outlined, s.t('tab.today')),
-          (Icons.nightlight_outlined, s.t('tab.sleep')),
-          (Icons.show_chart, s.t('tab.load')),
-          (Icons.favorite_outline, s.t('tab.heart')),
-          (Icons.storage_outlined, s.t('tab.data')),
-        ],
+        ogeler: sekmeler,
       ),
     );
   }

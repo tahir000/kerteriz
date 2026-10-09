@@ -124,6 +124,10 @@ class DayRecord {
   /// O gün regl kaydı var mı (akış "yok" dışında herhangi bir değer).
   bool regl = false;
 
+  /// Health Connect'ten gelen regl bilgisi. [regl] buna uygulama içinden
+  /// işaretlenen günlerin eklenmesiyle oluşuyor (ReglKayitlari.uygula).
+  bool reglHc = false;
+
   /// Kayıt döngünün başlangıcı olarak işaretlenmiş mi.
   bool donguBaslangici = false;
 
@@ -234,7 +238,8 @@ class DayRecord {
         'nightHr':
             geceNabzi ? nightHr.map((s) => s.toJson()).toList() : const [],
         'antrenmanlar': antrenmanlar.map((a) => a.toJson()).toList(),
-        'regl': regl,
+        // Yalnızca Health Connect'ten gelen; yerel işaretler ayrı dosyada.
+        'regl': reglHc,
         'donguBaslangici': donguBaslangici,
         'kcalAlinan': kcalAlinan,
         'sonOgun': sonOgun?.toIso8601String(),
@@ -307,7 +312,7 @@ class DayRecord {
           nh.map((e) => HrSample.fromJson(e as Map<String, dynamic>)).toList();
     }
 
-    d.regl = j['regl'] == true;
+    d.reglHc = d.regl = j['regl'] == true;
     d.donguBaslangici = j['donguBaslangici'] == true;
     d.kcalAlinan = say('kcalAlinan');
     d.kafeinMg = say('kafeinMg');

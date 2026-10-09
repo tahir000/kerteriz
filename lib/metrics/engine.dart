@@ -114,12 +114,14 @@ class MetricsEngine {
   /// Bugün ekranı bunun yapıldığını açıkça söylüyor.
   static const double kardiyakYedekAgirlik = 0.20;
 
-  static void run(List<DayRecord> days) {
+  /// [donguDuzeltme] false ise döngü evresi yine işaretlenir ama hazırlık
+  /// düzeltilmez (ayarlardan kapatılabiliyor).
+  static void run(List<DayRecord> days, {bool donguDuzeltme = true}) {
     // Döngü: evreyi işaretle ve kişinin kendi luteal-foliküler farkını ölç.
     // Luteal günlerde nabız ve HRV bu fark kadar düzeltilip taban çizgiyle
     // karşılaştırılıyor; düzeltmesiz değerler kayıtta aynen kalıyor.
     Dongu.isaretle(days);
-    final dongu = Dongu.farklar(days);
+    final dongu = donguDuzeltme ? Dongu.farklar(days) : null;
     bool luteal(DayRecord x) => dongu != null && x.donguEvresi == 'luteal';
     double? rhrDuz(DayRecord x) =>
         x.rhr == null ? null : x.rhr! - (luteal(x) ? dongu!.rhr : 0);

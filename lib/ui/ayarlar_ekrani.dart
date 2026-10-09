@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config.dart';
 import '../data/ayarlar.dart';
 import '../data/hatirlatici.dart';
+import '../data/health_repository.dart';
 import '../l10n.dart';
 import '../metrics/insights.dart';
 import '../theme.dart';
@@ -39,6 +40,20 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
       return;
     }
     await _yaz(() => Ayarlar.hatirlatmaYaz(acik));
+  }
+
+  /// Kadın seçilince regl izni istenir ve veri yeniden okunur; izin
+  /// verilmese de seçim kaydedilir (takvimden işaretleme yine çalışır).
+  Future<void> _cinsiyet(String? c) async {
+    final onceki = Ayarlar.cinsiyet;
+    await _yaz(() => Ayarlar.cinsiyetYaz(c));
+    if (c == 'kadin' && onceki != 'kadin') await _donguIzni();
+  }
+
+  Future<void> _donguIzni() async {
+    final verildi = await HealthRepository.donguIzniIste();
+    if (verildi) Ayarlar.yenidenOku.value++;
+    if (mounted) setState(() {});
   }
 
   Future<void> _sabah(BuildContext context, bool acik) async {
@@ -109,6 +124,63 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
             onChanged: (v) => _yaz(() => Ayarlar.guncelle(yas: v)),
           ),
           NoteBlock(s.t('settings.ageNote')),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 2, 12, K.gutter, 4),
+            child: Text(s.t('settings.sex'), style: K.rowTitle),
+          ),
+          SegmentliSecici(
+            etiketler: [
+              s.t('settings.sexFemale'),
+              s.t('settings.sexMale'),
+              s.t('settings.sexNone'),
+            ],
+            secili: switch (Ayarlar.cinsiyet) {
+              'kadin' => 0,
+              'erkek' => 1,
+              _ => 2,
+            },
+            onChanged: (i) => _cinsiyet(i == 0 ? 'kadin' : (i == 1 ? 'erkek' : null)),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 2, 8, K.gutter, 2),
+            child: Text(s.t('settings.sexSub'), style: K.note),
+          ),
+          // Kadın seçilince döngü bölümü açılıyor.
+          AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: Ayarlar.cinsiyet != 'kadin'
+                ? const SizedBox(width: double.infinity)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SectionLabel(s.t('settings.cycle')),
+                      FutureBuilder<bool>(
+                        future: HealthRepository.donguIzniVar(),
+                        builder: (context, snap) => MetricRow(
+                          title: s.t('settings.cyclePermission'),
+                          subtitle: snap.data == true
+                              ? s.t('settings.cyclePermissionOn')
+                              : s.t('settings.cyclePermissionOff'),
+                          value: snap.data == true ? s.t('common.yes') : s.t('common.no'),
+                          onTap: snap.data == true ? null : _donguIzni,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(K.gutter + 2, 12, K.gutter, 4),
+                        child: Text(s.t('settings.cycleAdjust'), style: K.rowTitle),
+                      ),
+                      SegmentliSecici(
+                        etiketler: [s.t('settings.reminderOff'), s.t('settings.reminderOn')],
+                        secili: Ayarlar.donguDuzeltme ? 1 : 0,
+                        onChanged: (i) =>
+                            _yaz(() => Ayarlar.donguDuzeltmeYaz(i == 1)),
+                      ),
+                      NoteBlock(s.t('settings.cycleNote')),
+                    ],
+                  ),
+          ),
           SayiSatiri(
             title: s.t('settings.wake'),
             subtitle: s.t('settings.wakeSub'),

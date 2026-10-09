@@ -42,8 +42,8 @@ Veriler yalnızca cihazınızda işlenir. Uygulama bunlardan hazırlık skoru,
 uyku skoru, uyku borcu, günlük yük, akut/kronik yük oranı, sirkadiyen düzenlilik
 ve kardiyak toparlanma gibi türetilmiş ölçüler hesaplar ve ekranda gösterir.
 
-Uygulamanın kendi ayarları (tema tercihi, yaş, günlük hedefler, kalkış saati,
-bildirim tercihleri), etiket günlüğünüz (örneğin "alkol", "geç kafein") ve sabah
+Uygulamanın kendi ayarları (tema tercihi, yaş, cinsiyet, günlük hedefler, kalkış
+saati, bildirim tercihleri), uygulamada işaretlediğiniz regl günleri, etiket günlüğünüz (örneğin "alkol", "geç kafein") ve sabah
 değerlendirmeniz ("bugün nasıl hissediyorsun") da yalnızca cihazdaki özel
 uygulama alanında küçük dosyalarda tutulur. Yaş yalnızca maksimum nabız tahmini
 için kullanılır. Bunların hiçbiri hiçbir yere gönderilmez.

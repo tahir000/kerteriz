@@ -12,7 +12,11 @@ import 'tani.dart';
 /// Health Connect'ten okuyup günlük kayıtlara çeviren katman.
 /// Hiçbir yere veri göndermez; her şey cihazda kalır.
 class HealthRepository {
-  final Health _health = Health();
+  /// Paylaşılan tek örnek: `Health()` her çağrıda yeni nesne üretiyor ve
+  /// yapılandırma (Health Connect durumu) örnekte tutuluyor. Ayarlardan
+  /// istenen izinler de açılışta yapılandırılmış bu örneği kullanmalı.
+  static final Health _ortak = Health();
+  final Health _health = _ortak;
 
   /// Yanıt vermeyen tipler. Health Connect bazen bir tipte hiç dönmüyor;
   /// zaman aşımına uğrayanları burada tutuyoruz ki okuma sonsuza kadar
@@ -186,7 +190,11 @@ class HealthRepository {
   Future<void> yeniIzinleriSor() async {
     final sorulmamis = [
       for (final t in optionalTypes)
-        if (!Ayarlar.sorulanIzinler.contains(t.name)) t
+        if (!Ayarlar.sorulanIzinler.contains(t.name) &&
+            // Regl izni herkese sorulmuyor: ayarlarda "Kadın" seçilince
+            // [donguIzniIste] ile isteniyor.
+            (t != HealthDataType.MENSTRUATION_FLOW || Ayarlar.cinsiyet == 'kadin'))
+          t
     ];
     if (sorulmamis.isEmpty) return;
     try {
@@ -201,6 +209,33 @@ class HealthRepository {
       // Desteklenmiyorsa ya da reddedildiyse uygulama yine çalışır.
     }
     await Ayarlar.izinSoruldu(sorulmamis.map((t) => t.name));
+  }
+
+  /// Regl okuma izni: ayarlarda "Kadın" seçilince ya da Döngü sekmesinden.
+  /// Health paketi tek örnek (singleton); yapılandırması açılışta yapıldı.
+  static Future<bool> donguIzniIste() async {
+    const t = [HealthDataType.MENSTRUATION_FLOW];
+    const izin = [HealthDataAccess.READ];
+    final h = _ortak;
+    try {
+      if (await h.hasPermissions(t, permissions: izin) == true) return true;
+      await h.requestAuthorization(t, permissions: izin);
+      await Ayarlar.izinSoruldu(t.map((x) => x.name));
+      return await h.hasPermissions(t, permissions: izin) == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> donguIzniVar() async {
+    try {
+      return await _ortak.hasPermissions(
+              const [HealthDataType.MENSTRUATION_FLOW],
+              permissions: const [HealthDataAccess.READ]) ==
+          true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Her tip için erişim seviyesi: su READ_WRITE, diğerleri READ.
@@ -628,7 +663,9 @@ class HealthRepository {
       if (v is! MenstruationFlowHealthValue) continue;
       final rec = dayFor(p.dateFrom);
       if (rec == null) continue;
-      if (v.flow != null && v.flow != MenstrualFlow.none) rec.regl = true;
+      if (v.flow != null && v.flow != MenstrualFlow.none) {
+        rec.regl = rec.reglHc = true;
+      }
       if (v.isStartOfCycle == true) rec.donguBaslangici = true;
     }
 

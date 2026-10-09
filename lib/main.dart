@@ -9,6 +9,7 @@ import 'data/ayarlar.dart';
 import 'data/day_record.dart';
 import 'data/etiketler.dart';
 import 'data/hisler.dart';
+import 'data/regl_kayitlari.dart';
 import 'data/tani.dart';
 import 'l10n.dart';
 import 'theme.dart';
@@ -37,6 +38,7 @@ Future<void> main() async {
     await Ayarlar.oku();
     await Etiketler.oku();
     await Hisler.oku();
+    await ReglKayitlari.oku();
     await Tani.iz('ayarlar');
     runApp(const KerterizApp());
   }, (e, s) {

@@ -147,7 +147,7 @@ class TodayScreen extends StatelessWidget {
       ...flags.map((w) => FadeUp(index: 1, child: w)),
 
       SectionLabel(s.t('today.forToday')),
-      if (d.donguGunu != null)
+      if (d.donguGunu != null && Ayarlar.donguGorunur(veriVar: true))
         MetricRow(
           title: s.t('cycle.title'),
           subtitle: s.t('cycle.phase.${d.donguEvresi}'),

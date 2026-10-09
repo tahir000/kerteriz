@@ -1,5 +1,20 @@
 # Değişiklik günlüğü
 
+## 0.16.0 — Ekim 2026
+
+- **Cinsiyet ayarı:** Kadın / Erkek / Belirtme. Hiçbir skora girmiyor; yalnızca
+  telefonda tutuluyor
+- **Kadın seçilince:** ayarlarda döngü bölümü (regl kayıtları izni, "hazırlığı
+  döngüye göre düzelt" anahtarı) ve alt menüde **Döngü** sekmesi açılıyor
+- **Döngü sekmesi:** döngü günü ve evre, tahmini sonraki regl, döngü uzunluğu,
+  luteal evredeki kendi kayman, son 8 hafta dinlenme nabzı, son döngüler
+- **Regl takvimi:** ayrı bir regl uygulaması kullanmayanlar için regl günleri
+  uygulamanın içinden işaretlenebiliyor. İşaretler yalnızca telefonda tutuluyor,
+  Health Connect'e yazılmıyor; Health Connect'ten gelen günlerle birleşiyor
+- Regl izni artık herkese sorulmuyor, yalnızca Kadın seçilince isteniyor
+- İşaret değişince veri yeniden okunmadan skorlar anında yeniden hesaplanıyor
+- 96 test
+
 ## 0.15.0 — Ekim 2026
 
 **Samsung ve Garmin**

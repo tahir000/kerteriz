@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kerteriz/data/ayarlar.dart';
 import 'package:kerteriz/data/day_record.dart';
+import 'package:kerteriz/data/regl_kayitlari.dart';
 import 'package:kerteriz/metrics/dongu.dart';
 import 'package:kerteriz/metrics/engine.dart';
 import 'package:kerteriz/metrics/insights.dart';
@@ -124,6 +126,42 @@ void main() {
       final days = gunler(20);
       MetricsEngine.run(days);
       expect(Deneyler.beslenme(days), isEmpty);
+    });
+  });
+
+  group('yerel regl ve ayarlar', () {
+    tearDown(() {
+      ReglKayitlari.gunler.clear();
+      Ayarlar.cinsiyet = null;
+    });
+
+    test('yerel işaret eklenir, kaldırılınca Health Connect haline döner', () {
+      final days = gunler(3);
+      days[0].reglHc = true;
+      ReglKayitlari.gunler.add(gunAnahtari(days[1].date));
+      ReglKayitlari.uygula(days);
+      expect([for (final d in days) d.regl], [true, true, false]);
+      ReglKayitlari.gunler.clear();
+      ReglKayitlari.uygula(days);
+      expect([for (final d in days) d.regl], [true, false, false]);
+    });
+
+    test('döngü düzeltmesi kapatılabilir', () {
+      final days = donguluGunler();
+      MetricsEngine.run(days, donguDuzeltme: false);
+      expect(days.any((d) => d.donguDuzeltildi), isFalse);
+      // Evre yine işaretleniyor.
+      expect(days[20].donguEvresi, 'luteal');
+    });
+
+    test('döngü arayüzü görünürlüğü', () {
+      Ayarlar.cinsiyet = 'kadin';
+      expect(Ayarlar.donguGorunur(), isTrue);
+      Ayarlar.cinsiyet = 'erkek';
+      expect(Ayarlar.donguGorunur(veriVar: true), isFalse);
+      Ayarlar.cinsiyet = null;
+      expect(Ayarlar.donguGorunur(), isFalse);
+      expect(Ayarlar.donguGorunur(veriVar: true), isTrue);
     });
   });
 }

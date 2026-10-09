@@ -209,6 +209,7 @@ lib/
   data/
     ayarlar.dart              tema, yaş, kalkış saati, günlük hedefler (küçük JSON dosyası)
     etiketler.dart            etiket günlüğü: akşam başına etiketler (küçük JSON dosyası)
+    regl_kayitlari.dart       uygulamada işaretlenen regl günleri (HC'ye yazılmaz)
     hisler.dart               sabah değerlendirmesi (1-5), küçük JSON dosyası
     hatirlatici.dart          akşam ve sabah bildirimi (flutter_local_notifications), her açılışta yeniden kurulur
     onbellek.dart             gün önbelleği: açılışta diskten, tazeleme arkada
@@ -236,6 +237,7 @@ tool/
     ayarlar_ekrani.dart       görünüm, yaş, günlük hedefler, sürüm
     screens.dart              Bugün / Uyku / Yük / Kalp
     coverage_screen.dart      Veri — Health Connect tanı ekranı
+    dongu_ekrani.dart         Döngü sekmesi (yalnızca cinsiyet "kadın" iken; Veri sekmesi 5. olur)
     gun_ici_ekrani.dart       gün içi ayrıntı: enerji eğrisi, saatlik stres
     verin_ekrani.dart         "Senin verin ne diyor": etiket, su ve otomatik karşılaştırmalar
     widgets/kit.dart          satır, bölgeli ölçek, rozet, bölmeli seçici
@@ -415,7 +417,14 @@ Ham değerler kayıtta aynen kalır. HRV son 14 günde hiç gelmediyse
 katılır (`kardiyakYedekAgirlik`); bu bir tercih, veriden çıkan bir katsayı değil.
 Veri kaynakları `HealthRepository.kaynaklar` (tip adı -> kaynak adları).
 
-**Testler:** `flutter test` (87 test). Formüllere dokunan her değişiklikten
+**Döngü sekmesi (0.16.0):** sekme sayısı değişken; Veri sekmesinin sırası
+`_veriSekmesi` (4 ya da 5), sabit 4 kullanılmamalı. Regl: `DayRecord.reglHc`
+Health Connect'ten gelen, `regl` buna yerel işaretlerin eklenmiş hali
+(`ReglKayitlari.uygula`); önbelleğe yalnızca `reglHc` yazılıyor. Yerel işaret
+ya da düzeltme anahtarı değişince `Ayarlar.yenidenHesapla` motoru Health
+Connect'i okumadan yeniden çalıştırıyor.
+
+**Testler:** `flutter test` (96 test). Formüllere dokunan her değişiklikten
 sonra çalıştırılmalı.
 
 **Sıradaki adımlar:**

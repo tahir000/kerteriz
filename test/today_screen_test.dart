@@ -5,6 +5,9 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:kerteriz/data/day_record.dart';
 import 'package:kerteriz/l10n.dart';
 import 'package:kerteriz/metrics/engine.dart';
+import 'package:kerteriz/data/ayarlar.dart';
+import 'package:kerteriz/ui/ayarlar_ekrani.dart';
+import 'package:kerteriz/ui/dongu_ekrani.dart';
 import 'package:kerteriz/ui/gun_ici_ekrani.dart';
 import 'package:kerteriz/ui/screens.dart';
 import 'package:kerteriz/ui/verin_ekrani.dart';
@@ -161,6 +164,41 @@ void main() {
       await tester.tap(dongu);
       await tester.pumpAndSettle();
       expect(find.textContaining(s.t('cycle.note').substring(0, 20)), findsOneWidget);
+    });
+
+    testWidgets('döngü sekmesi çiziliyor ($dil)', (tester) async {
+      final n = DateTime.now();
+      final d = gunler(70, son: DateTime(n.year, n.month, n.day), f: (date, i) {
+        final g = gun(date, rhr: 56 + (i % 3).toDouble());
+        g.reglHc = g.regl = i % 28 < 4;
+        return g;
+      });
+      MetricsEngine.run(d);
+      await ciz(tester, DonguEkrani(days: d), dil);
+      final s = S.forCode(dil);
+      expect(find.text(s.t('cycle.next')), findsOneWidget);
+      final takvim = find.text(s.t('cycle.calendar').toUpperCase());
+      await tester.scrollUntilVisible(takvim, 300,
+          scrollable: find.byType(Scrollable).first);
+      expect(takvim, findsOneWidget);
+    });
+
+    testWidgets('döngü sekmesi veri yokken boş durum ($dil)', (tester) async {
+      final d = gunler(10);
+      MetricsEngine.run(d);
+      await ciz(tester, DonguEkrani(days: d), dil);
+      expect(find.text(S.forCode(dil).t('cycle.emptyTitle')), findsOneWidget);
+    });
+
+    testWidgets('ayarlar: kadın seçiliyken döngü bölümü ($dil)', (tester) async {
+      Ayarlar.cinsiyet = 'kadin';
+      addTearDown(() => Ayarlar.cinsiyet = null);
+      await ciz(tester, const AyarlarEkrani(), dil);
+      final s = S.forCode(dil);
+      final bolum = find.text(s.t('settings.cycleAdjust'));
+      await tester.scrollUntilVisible(bolum, 300,
+          scrollable: find.byType(Scrollable).first);
+      expect(bolum, findsOneWidget);
     });
 
     testWidgets('antrenman listesi ve ayrıntısı çiziliyor ($dil)', (tester) async {
