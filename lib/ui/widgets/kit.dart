@@ -62,7 +62,7 @@ class Eyebrow extends StatelessWidget {
   const Eyebrow(this.text, {super.key});
   @override
   Widget build(BuildContext context) =>
-      Text(text.toUpperCase(), style: K.eyebrow);
+      Text(buyukHarf(text), style: K.eyebrow);
 }
 
 class ScreenHead extends StatelessWidget {
@@ -116,7 +116,7 @@ class StatusChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
         decoration: BoxDecoration(
             color: level.tint, borderRadius: BorderRadius.circular(K.kapsul)),
-        child: Text(text.toUpperCase(),
+        child: Text(buyukHarf(text),
             style: TextStyle(
                 fontSize: 10.5,
                 fontWeight: FontWeight.w600,

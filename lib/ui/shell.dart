@@ -219,7 +219,7 @@ class _ShellState extends State<Shell> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(K.gutter, 40, K.gutter, 40),
       children: [
-        Text(s.t('crash.eyebrow').toUpperCase(), style: K.eyebrow),
+        Text(buyukHarf(s.t('crash.eyebrow')), style: K.eyebrow),
         const SizedBox(height: 10),
         Text(s.t('crash.title'), style: K.title),
         const SizedBox(height: 14),

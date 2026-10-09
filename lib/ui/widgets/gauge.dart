@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n.dart';
+
 import '../../theme.dart';
 
 /// Hero değerler için yay göstergesi.
@@ -21,6 +23,10 @@ class ArcGauge extends StatelessWidget {
   final String? label; // yayın altındaki küçük etiket
   final double size;
 
+  /// Seviye anlamı olmayan göstergeler için dolgu rengi (döngü günü gibi).
+  /// Verilmezse seviyenin rengi, o da yoksa nötr gri.
+  final Color? renk;
+
   /// true ise ortadaki sayı da yayla birlikte sıfırdan sayarak dolar.
   /// Tam sayı olmayan gösterimlerde (0.9 gibi) kapatılmalı.
   final bool sayiyor;
@@ -35,12 +41,13 @@ class ArcGauge extends StatelessWidget {
     this.label,
     this.size = 168,
     this.sayiyor = false,
+    this.renk,
   });
 
   @override
   Widget build(BuildContext context) {
     final t = (value / max).clamp(0.0, 1.0);
-    final isaret = level?.mark ?? K.ink4;
+    final isaret = renk ?? level?.mark ?? K.ink4;
     final murekkep = level?.ink ?? K.ink;
     return SizedBox(
       width: size,
@@ -72,12 +79,20 @@ class ArcGauge extends StatelessWidget {
                 ),
                 if (label != null) ...[
                   const SizedBox(height: 4),
-                  Text(label!.toUpperCase(),
-                      style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.8,
-                          color: murekkep)),
+                  // Yayın iç genişliğini aşmasın: uzun etiket yayın çizgisinin
+                  // üstüne biniyordu.
+                  SizedBox(
+                    width: size * 0.6,
+                    child: Text(buyukHarf(label!),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.8,
+                            color: murekkep)),
+                  ),
                 ],
               ],
             ),

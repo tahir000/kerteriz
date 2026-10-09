@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../data/ayarlar.dart';
 import '../data/day_record.dart';
@@ -32,6 +33,7 @@ class DonguEkrani extends StatelessWidget {
     final uzun = Dongu.uzunluk(bas);
     final d = days.isEmpty ? null : days.last;
     final fark = Ayarlar.donguDuzeltme ? Dongu.farklar(days) : null;
+    final ilerleme = Dongu.ilerleme(days);
     final gun = d?.donguGunu;
 
     // Son döngüler: başlangıç ve bir sonrakine kadar geçen gün.
@@ -49,7 +51,7 @@ class DonguEkrani extends StatelessWidget {
     final son56 = days.length <= 56 ? days : days.sublist(days.length - 56);
     final nabiz = [for (final x in son56) if (x.rhr != null) x.rhr!];
 
-    return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
       ScreenHead(d?.label ?? '', s.t('cycle.screenTitle')),
       if (gun == null)
         _BosDurum()
@@ -59,7 +61,7 @@ class DonguEkrani extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
             margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 10),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(s.t('cycle.title').toUpperCase(), style: K.eyebrow),
+              Text(buyukHarf(s.t('cycle.title')), style: K.eyebrow),
               const SizedBox(height: 12),
               Center(
                 child: ArcGauge(
@@ -67,7 +69,9 @@ class DonguEkrani extends StatelessWidget {
                   max: uzun.toDouble(),
                   display: '$gun',
                   unit: '/$uzun',
-                  label: s.t('cycle.phase.${d!.donguEvresi}'),
+                  // Kısa ad: uzun açıklama yayın çizgisine biniyordu.
+                  label: s.t('cycle.phaseShort.${d!.donguEvresi}'),
+                  renk: K.accent,
                 ),
               ),
               const SizedBox(height: 16),
@@ -85,7 +89,9 @@ class DonguEkrani extends StatelessWidget {
         ),
         MetricRow(
           title: s.t('cycle.length'),
-          subtitle: s.t2('cycle.lengthSub', {'n': '${(bas.length - 1).clamp(0, 99)}'}),
+          subtitle: bas.length < 2
+              ? s.t2('cycle.lengthNone', {'n': '${Dongu.varsayilanDongu}'})
+              : s.t2('cycle.lengthSub', {'n': '${bas.length - 1}'}),
           value: s.t2('unit.daysN', {'n': '$uzun'}),
         ),
         MetricRow(
@@ -93,7 +99,7 @@ class DonguEkrani extends StatelessWidget {
           subtitle: !Ayarlar.donguDuzeltme
               ? s.t('cycle.adjustOff')
               : (fark == null
-                  ? s.t('cycle.noAdjust')
+                  ? s.t('cycle.adjustWaiting')
                   : (d.donguDuzeltildi
                       ? s.t('cycle.adjustedToday')
                       : s.t('cycle.notLuteal'))),
@@ -102,11 +108,23 @@ class DonguEkrani extends StatelessWidget {
       ],
 
       SectionLabel(s.t('cycle.yourShift')),
-      if (fark == null)
-        NoteBlock(Ayarlar.donguDuzeltme
-            ? s.t('cycle.noAdjust')
-            : s.t('cycle.adjustOff'))
-      else ...[
+      if (fark == null && !Ayarlar.donguDuzeltme)
+        NoteBlock(s.t('cycle.adjustOff'))
+      else if (fark == null) ...[
+        // Ne kadar veri birikti: aynı uyarıyı tekrar etmek yerine ilerleme.
+        for (final r in [
+          ('cycle.progressStarts', ilerleme.baslangic, 2),
+          ('cycle.progressLuteal', ilerleme.luteal, Dongu.enAzGun),
+          ('cycle.progressFollicular', ilerleme.folikuler, Dongu.enAzGun),
+        ])
+          MetricRow(
+            title: s.t(r.$1),
+            value: '${r.$2.clamp(0, r.$3)}/${r.$3}',
+            level: r.$2 >= r.$3 ? Level.good : null,
+            levelText: r.$2 >= r.$3 ? s.t('cycle.progressDone') : null,
+          ),
+        NoteBlock(s.t('cycle.progressNote')),
+      ] else ...[
         MetricRow(
           title: s.t('today.rhr'),
           subtitle: s.t('cycle.shiftSub'),
@@ -210,7 +228,21 @@ class _Takvim extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
         child: LayoutBuilder(builder: (context, c) {
           final h = (c.maxWidth - 6 * 6) / 7;
+          // Pazartesiden başlayan gün adları (o dilde, kısa).
+          final gunAdlari = [
+            for (var i = 0; i < 7; i++)
+              DateFormat.E(S.aktifDil).format(DateTime(2024, 1, 1 + i))
+          ];
           final hucreler = <Widget>[
+            for (final ad in gunAdlari)
+              SizedBox(
+                width: h,
+                child: Text(ad,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.clip,
+                    style: K.axis),
+              ),
             for (var i = 0; i < bosluk; i++) SizedBox(width: h, height: h),
             for (var i = 0; i < gunSayisi; i++)
               _hucre(context, s, DateTime(ilk.year, ilk.month, ilk.day + i),
@@ -253,12 +285,19 @@ class _Takvim extends StatelessWidget {
                 ? Border.all(color: K.ink, width: 1.5)
                 : (saglik ? Border.all(color: K.badMark, width: 1) : null),
           ),
-          child: Text('${g.day}',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: dolu ? FontWeight.w700 : FontWeight.w500,
-                color: dolu ? K.bad : K.ink2,
-              )),
+          // Ayın ilk günü ay adını da taşıyor: ızgara iki aya yayılıyor.
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            if (g.day == 1)
+              Text(DateFormat.MMM(S.aktifDil).format(g),
+                  style: TextStyle(fontSize: 9, height: 1, color: dolu ? K.bad : K.ink3)),
+            Text('${g.day}',
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.1,
+                  fontWeight: dolu ? FontWeight.w700 : FontWeight.w500,
+                  color: dolu ? K.bad : K.ink2,
+                )),
+          ]),
         ),
       ),
     );

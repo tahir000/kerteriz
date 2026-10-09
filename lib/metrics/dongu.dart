@@ -89,6 +89,19 @@ class Dongu {
     }
   }
 
+  /// Düzeltme için ne kadar veri birikti: döngü başlangıcı ve her evrede
+  /// dinlenme nabzı olan gün sayısı. Ekran "2/2, 5/8, 8/8" gibi gösteriyor.
+  static ({int baslangic, int luteal, int folikuler}) ilerleme(
+      List<DayRecord> days) {
+    var l = 0, f = 0;
+    for (final d in days) {
+      if (d.rhr == null) continue;
+      if (d.donguEvresi == 'luteal') l++;
+      if (d.donguEvresi == 'folikuler') f++;
+    }
+    return (baslangic: baslangiclar(days).length, luteal: l, folikuler: f);
+  }
+
   /// Luteal günlerin foliküler günlere göre ortalama farkı (kişinin kendi
   /// verisinden). Yeterli veri yoksa null.
   static DonguFarki? farklar(List<DayRecord> days) {

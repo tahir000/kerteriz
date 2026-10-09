@@ -120,6 +120,7 @@ class _KerterizAppState extends State<KerterizApp> with WidgetsBindingObserver {
           orElse: () => const Locale('en'),
         );
         DayRecord.locale = match.languageCode;
+        S.aktifDil = match.languageCode;
         return match;
       },
       home: const Shell(),

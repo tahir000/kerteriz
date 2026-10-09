@@ -105,14 +105,14 @@ class CoverageScreen extends StatelessWidget {
     final sleepLevel =
         withSleep >= 14 ? Level.good : (withSleep >= 3 ? Level.warn : Level.bad);
 
-    return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
       ScreenHead(s.t('data.source'), s.t('data.title')),
       FadeUp(
         child: Kart(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
           margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 10),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(s.t('data.nightsWithSleep').toUpperCase(), style: K.eyebrow),
+            Text(buyukHarf(s.t('data.nightsWithSleep')), style: K.eyebrow),
             const SizedBox(height: 14),
             Center(
               child: ArcGauge(

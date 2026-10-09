@@ -44,7 +44,7 @@ Widget _hero({
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
         margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 10),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(tag.toUpperCase(), style: K.eyebrow),
+          Text(buyukHarf(tag), style: K.eyebrow),
           const SizedBox(height: 12),
           Center(
             child: ArcGauge(
@@ -117,7 +117,7 @@ class TodayScreen extends StatelessWidget {
     // Pazartesi haftalık özet açık gelir; öteki günler tek satır.
     final pazartesi = DateTime.now().weekday == DateTime.monday;
 
-    return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
       ScreenHead('${d.label} · ${s.t('today.today')}', s.t('today.title')),
       // Sabah sorusu: cevaplanana kadar en üstte.
       const _SabahSorusu(),
@@ -725,7 +725,7 @@ class SleepScreen extends StatelessWidget {
     ];
     final weights = [35, 20, 25, 10, 10];
 
-    return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
       ScreenHead(
           '${s.t('sleep.lastNight')} · ${fmtClock(d.bedStart)}–${fmtClock(d.wakeEnd)}',
           s.t('sleep.title')),
@@ -851,7 +851,7 @@ class LoadScreen extends StatelessWidget {
         for (final a in x.antrenmanlar.reversed) MapEntry(x, a)
     ];
 
-    return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
       ScreenHead(d.label, s.t('load.title')),
       _hero(
         tag: s.t('load.daily'),
@@ -1061,14 +1061,14 @@ class HeartScreen extends StatelessWidget {
     }
     final rhrDays = days.where((x) => x.rhr != null).toList();
 
-    return ListView(padding: const EdgeInsets.only(bottom: 48), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
       ScreenHead(s.t('heart.last45'), s.t('heart.title')),
       FadeUp(
         child: Kart(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
           margin: const EdgeInsets.fromLTRB(K.gutter, 2, K.gutter, 10),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(s.t('heart.hrvTag').toUpperCase(), style: K.eyebrow),
+            Text(buyukHarf(s.t('heart.hrvTag')), style: K.eyebrow),
             const SizedBox(height: 10),
             Row(crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic, children: [

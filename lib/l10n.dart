@@ -5,6 +5,17 @@ import 'package:flutter/widgets.dart';
 /// Kod üretimi ya da ARB dosyaları yok: tek bir sınıf, iki harita.
 /// Yeni dil eklemek için `_en` gibi bir harita daha yazıp `_all`'a koymak yeterli.
 /// Bilinmeyen bir dil gelirse İngilizceye düşer.
+/// Dile duyarlı büyük harf. Dart'ın `toUpperCase()` dili bilmiyor: Türkçe'de
+/// "i" harfini "I" yapıyor ("İÇİN" yerine "IÇIN", "YÜKSELİR" yerine
+/// "YÜKSELIR"). Başlıklar ve rozetler bunu kullanmalı.
+String buyukHarf(String s, [String? dil]) {
+  final d = dil ?? S.aktifDil;
+  if (d == 'tr' || d == 'az') {
+    return s.replaceAll('i', 'İ').replaceAll('ı', 'I').toUpperCase();
+  }
+  return s.toUpperCase();
+}
+
 class S {
   final Map<String, String> _m;
   final String code;
@@ -33,6 +44,9 @@ class S {
   }
 
   bool get isTr => code == 'tr';
+
+  /// Uygulamanın etkin dili; açılışta cihaz diline göre ayarlanıyor.
+  static String aktifDil = 'en';
 
   // ---------------------------------------------------------------
   static const Map<String, String> _tr = {
@@ -396,8 +410,8 @@ class S {
     'cycle.phase.folikuler': 'Foliküler evre',
     'cycle.phase.luteal': 'Luteal evre: nabız yükselir, HRV düşer',
     'cycle.note':
-        'Döngü günü Health Connect\'teki regl kayıtlarından (Flo, Clue, Samsung Health '
-            'gibi uygulamalar yazıyor) hesaplanıyor. Evre kaba bir tahmin: yumurtlama '
+        'Döngü günü, takvimde işaretlediğin günlerden ve Health Connect\'teki regl '
+            'kayıtlarından (Flo, Clue, Samsung Health gibi uygulamalar yazıyor) hesaplanıyor. Evre kaba bir tahmin: yumurtlama '
             'döngü sonundan yaklaşık 14 gün önce varsayılıyor. Kerteriz döngü ya da '
             'doğurganlık takibi yapmıyor.',
     'cycle.noAdjust':
@@ -498,6 +512,20 @@ class S {
     'settings.cycleNote':
         'Açıkken luteal evrede nabız ve HRV, kendi geçmiş döngülerinde ölçülen fark kadar '
             'düzeltilerek hazırlık hesaplanır. Yeterli döngü verisi yoksa düzeltme yapılmaz.',
+
+    'cycle.phaseShort.regl': 'Regl',
+    'cycle.phaseShort.folikuler': 'Foliküler',
+    'cycle.phaseShort.luteal': 'Luteal',
+    'cycle.lengthNone': 'Henüz tam bir döngü yok; {n} gün varsayıldı',
+    'cycle.adjustWaiting': 'Henüz değil: kendi kaymanı ölçecek kadar döngü verisi yok',
+    'cycle.progressStarts': 'Döngü başlangıcı',
+    'cycle.progressLuteal': 'Luteal evrede ölçülen gün',
+    'cycle.progressFollicular': 'Foliküler evrede ölçülen gün',
+    'cycle.progressDone': 'tamam',
+    'cycle.progressNote':
+        'Üçü de dolunca luteal evredeki nabız ve HRV kayman senin verinden ölçülür ve '
+            'hazırlık ona göre düzeltilir. Regl günlerini takvimden işaretlemek döngü '
+            'başlangıçlarını sayar.',
 
     // etiket günlüğü
     'tags.title': 'Bu akşam',
@@ -1092,8 +1120,8 @@ class S {
     'cycle.phase.folikuler': 'Follicular phase',
     'cycle.phase.luteal': 'Luteal phase: heart rate rises, HRV drops',
     'cycle.note':
-        'Cycle day comes from period records in Health Connect (written by apps like Flo, '
-            'Clue or Samsung Health). The phase is a rough estimate: ovulation is assumed '
+        'Cycle day comes from the days you mark in the calendar and from period records in '
+            'Health Connect (written by apps like Flo, Clue or Samsung Health). The phase is a rough estimate: ovulation is assumed '
             'about 14 days before the cycle ends. Kerteriz does not do cycle or fertility tracking.',
     'cycle.noAdjust':
         'Readiness is not adjusted for the cycle yet: measuring your own shift needs at '
@@ -1193,6 +1221,20 @@ class S {
     'settings.cycleNote':
         'When on, heart rate and HRV in the luteal phase are adjusted by the shift measured in '
             'your own past cycles before readiness is computed. Without enough cycles, no adjustment.',
+
+    'cycle.phaseShort.regl': 'Period',
+    'cycle.phaseShort.folikuler': 'Follicular',
+    'cycle.phaseShort.luteal': 'Luteal',
+    'cycle.lengthNone': 'No full cycle yet; {n} days assumed',
+    'cycle.adjustWaiting': 'Not yet: not enough cycle data to measure your own shift',
+    'cycle.progressStarts': 'Cycle starts',
+    'cycle.progressLuteal': 'Measured days in the luteal phase',
+    'cycle.progressFollicular': 'Measured days in the follicular phase',
+    'cycle.progressDone': 'done',
+    'cycle.progressNote':
+        'Once all three fill up, your luteal shift in heart rate and HRV is measured from '
+            'your own data and readiness is adjusted for it. Marking period days in the '
+            'calendar counts cycle starts.',
 
     // tag journal
     'tags.title': 'This evening',
