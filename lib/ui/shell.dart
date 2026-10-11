@@ -149,8 +149,8 @@ class _ShellState extends State<Shell> {
 
   void _bildirimAcildi() {
     final yuk = Hatirlatici.acilis.value;
-    if (yuk == Hatirlatici.sabahYuku) {
-      // Sabah bildirimi: Bugün'e dön; sabah sorusu en üstte bekliyor.
+    if (yuk == Hatirlatici.sabahYuku || yuk == Hatirlatici.suYuku) {
+      // Sabah ya da su bildirimi: Bugün'e dön; sabah sorusu ve su kartı orada.
       Hatirlatici.acilis.value = null;
       _gitSekme(0);
       return;

@@ -67,6 +67,26 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
     await _yaz(() => Ayarlar.sabahYaz(acik));
   }
 
+  /// "45 dk", "1 sa", "1 sa 30 dk": aralık için saat:dakika okunmuyor.
+  static String _aralik(S s, int v) {
+    final sa = v ~/ 60, dk = v % 60;
+    return [
+      if (sa > 0) s.t2('settings.everyHour', {'n': '$sa'}),
+      if (dk > 0 || sa == 0) s.t2('settings.everyMin', {'n': '$dk'}),
+    ].join(' ');
+  }
+
+  Future<void> _su(BuildContext context, bool acik) async {
+    if (acik == Ayarlar.suHatirlatma) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final s = S.of(context);
+    if (acik && !await Hatirlatici.izinIste()) {
+      messenger.showSnackBar(SnackBar(content: Text(s.t('notif.denied'))));
+      return;
+    }
+    await _yaz(() => Ayarlar.suHatirlatmaYaz(acik: acik));
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
@@ -216,6 +236,37 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
           Padding(
             padding: const EdgeInsets.fromLTRB(K.gutter + 2, 8, K.gutter, 2),
             child: Text(s.t('settings.morningSub'), style: K.note),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 2, 12, K.gutter, 4),
+            child: Text(s.t('settings.water'), style: K.rowTitle),
+          ),
+          SegmentliSecici(
+            etiketler: [s.t('settings.reminderOff'), s.t('settings.reminderOn')],
+            secili: Ayarlar.suHatirlatma ? 1 : 0,
+            onChanged: (i) => _su(context, i == 1),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: Ayarlar.suHatirlatma
+                ? SayiSatiri(
+                    title: s.t('settings.waterEvery'),
+                    subtitle: s.t('settings.waterEverySub'),
+                    deger: Ayarlar.suAraligiDk,
+                    adim: 15,
+                    enAz: Ayarlar.sinirlar['suAraligi']![0],
+                    enCok: Ayarlar.sinirlar['suAraligi']![1],
+                    bicim: (v) => _aralik(s, v),
+                    onChanged: (v) =>
+                        _yaz(() => Ayarlar.suHatirlatmaYaz(aralikDk: v)),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(K.gutter + 2, 8, K.gutter, 2),
+            child: Text(s.t('settings.waterSub'), style: K.note),
           ),
 
           // ---- hedefler ----

@@ -23,6 +23,15 @@ class Hatirlatici {
   static const int _sabahId = 2;
   static const String etiketYuku = 'etiket';
   static const String sabahYuku = 'sabah';
+  static const String suYuku = 'su';
+
+  /// Su hatırlatmaları bu kimlikten başlıyor; en çok [suEnCok] tane.
+  static const int _suIlkId = 100;
+  static const int suEnCok = 64;
+
+  /// Yatmadan bu kadar dakika önce su hatırlatması kesilsin: gece tuvalete
+  /// kalkmak uykuyu bölüyor.
+  static const int suYatisPayi = 60;
 
   /// Sabah bildirimi kalkış saatinden kaç dakika sonra gelsin. Bileklik
   /// gecenin verisini birkaç dakikada eşitliyor; yarım saat yeterli pay.
@@ -78,6 +87,22 @@ class Hatirlatici {
     return t;
   }
 
+  /// Su hatırlatmalarının saatleri (gece yarısından dakika, 0..1439).
+  /// Kalkıştan [aralik] sonra başlar, yatıştan [suYatisPayi] önce biter.
+  /// Yatış gece yarısını geçiyorsa (ör. 00:30) ertesi güne taşınarak sayılır.
+  static List<int> suSaatleri(int kalkis, int yatis, int aralik) {
+    if (aralik <= 0) return const [];
+    var son = yatis - suYatisPayi;
+    while (son <= kalkis) {
+      son += 1440;
+    }
+    final sonuc = <int>[];
+    for (var t = kalkis + aralik; t <= son && sonuc.length < suEnCok; t += aralik) {
+      sonuc.add(t % 1440);
+    }
+    return sonuc;
+  }
+
   static Future<void> _kur({
     required int id,
     required int dakika,
@@ -122,11 +147,14 @@ class Hatirlatici {
     try {
       await _eklenti.cancel(id: _id);
       await _eklenti.cancel(id: _sabahId);
+      for (var i = 0; i < suEnCok; i++) {
+        await _eklenti.cancel(id: _suIlkId + i);
+      }
       final s = S.forCode(DayRecord.locale);
+      final plan = Gunluk.planFor(days,
+          allDays: allDays, wakeMinute: Ayarlar.kalkisDk);
 
       if (Ayarlar.hatirlatma) {
-        final plan = Gunluk.planFor(days,
-            allDays: allDays, wakeMinute: Ayarlar.kalkisDk);
         await _kur(
           id: _id,
           dakika: plan.bedMinute - onceDk,
@@ -153,6 +181,25 @@ class Hatirlatici {
           govde: s.t('notif.morningBody'),
           yuk: sabahYuku,
         );
+      }
+
+      // Su: her saat ayrı bir günlük bildirim. Tek bir "her saat tekrarla"
+      // gece de çalardı; böylece yalnızca uyanık saatlerde geliyor.
+      if (Ayarlar.suHatirlatma) {
+        final saatler = suSaatleri(
+            Ayarlar.kalkisDk, plan.bedMinute, Ayarlar.suAraligiDk);
+        for (var i = 0; i < saatler.length; i++) {
+          await _kur(
+            id: _suIlkId + i,
+            dakika: saatler[i],
+            kanal: 'su',
+            kanalAdi: s.t('notif.waterChannel'),
+            kanalAciklama: s.t('notif.waterChannelSub'),
+            baslik: s.t('notif.waterTitle'),
+            govde: s.t2('notif.waterBody', {'ml': '${Ayarlar.suPorsiyonMl}'}),
+            yuk: suYuku,
+          );
+        }
       }
     } catch (_) {
       // Zamanlanamadıysa uygulama yine çalışır; ayarlar ekranı tercihi tutar.

@@ -373,6 +373,18 @@ class S {
     'notif.morningChannelSub': 'Kalkış saatinden yarım saat sonra, günde bir kez',
     'notif.morningTitle': 'Günaydın, gecen hazır',
     'notif.morningBody': 'Hazırlığını gör ve bugün nasıl hissettiğini tek dokunuşla işaretle.',
+    'notif.waterChannel': 'Su hatırlatması',
+    'notif.waterChannelSub': 'Uyanık saatlerde, seçtiğin aralıkla',
+    'notif.waterTitle': 'Su vakti',
+    'notif.waterBody': 'Bir bardak ({ml} ml) iç; widget\'tan tek dokunuşla ekleyebilirsin.',
+    'settings.water': 'Su hatırlatması',
+    'settings.waterEvery': 'Ne sıklıkla',
+    'settings.waterEverySub': 'İki hatırlatma arası',
+    'settings.everyHour': '{n} sa',
+    'settings.everyMin': '{n} dk',
+    'settings.waterSub':
+        'Kalkış saatinden sonra başlar, yatmadan bir saat önce biter; gece rahatsız etmez. '
+            'Hedefe ulaşsan da o gün çalmaya devam eder.',
     'settings.morning': 'Sabah bildirimi',
     'settings.morningSub':
         'Kalkış saatinden yarım saat sonra tek bildirim. Skoru içermiyor: o saatte gecenin '
@@ -1083,6 +1095,18 @@ class S {
     'notif.morningChannelSub': 'Half an hour after your wake time, once a day',
     'notif.morningTitle': 'Good morning, your night is in',
     'notif.morningBody': 'See your readiness and tap how you feel today.',
+    'notif.waterChannel': 'Water reminder',
+    'notif.waterChannelSub': 'During waking hours, at the interval you choose',
+    'notif.waterTitle': 'Time for water',
+    'notif.waterBody': 'Have a glass ({ml} ml); add it with one tap from the widget.',
+    'settings.water': 'Water reminder',
+    'settings.waterEvery': 'How often',
+    'settings.waterEverySub': 'Time between reminders',
+    'settings.everyHour': '{n} h',
+    'settings.everyMin': '{n} min',
+    'settings.waterSub':
+        'Starts after your wake time and stops an hour before bed, so it never wakes you. '
+            'It keeps going even after you reach your goal that day.',
     'settings.morning': 'Morning notification',
     'settings.morningSub':
         'A single notification half an hour after your wake time. It carries no score: '

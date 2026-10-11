@@ -1,5 +1,12 @@
 # Değişiklik günlüğü
 
+## 0.17.0 — Ekim 2026
+
+- **Su hatırlatması:** ayarlardan açılıp kapatılıyor; varsayılan saat başı,
+  aralık 15 dakika ile 4 saat arasında seçilebiliyor. Yalnızca uyanık
+  saatlerde: kalkıştan sonra başlıyor, yatmadan bir saat önce bitiyor.
+  Bildirime dokununca Bugün ekranı açılıyor
+
 ## 0.16.0 — Ekim 2026
 
 - **Cinsiyet ayarı:** Kadın / Erkek / Belirtme. Hiçbir skora girmiyor; yalnızca

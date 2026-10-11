@@ -44,6 +44,13 @@ class Ayarlar {
   /// sorusuna davet. Varsayılan kapalı.
   static bool sabahBildirimi = false;
 
+  /// Su hatırlatması: uyanık saatlerde belirli aralıkla bildirim.
+  /// Varsayılan kapalı; açarken bildirim izni isteniyor.
+  static bool suHatirlatma = false;
+
+  /// Su hatırlatmaları arası dakika.
+  static int suAraligiDk = 60;
+
   /// Bir kez sorulmuş isteğe bağlı Health Connect izinleri (tip adları).
   /// Reddedilen izin her açılışta yeniden sorulmasın diye tutuluyor.
   static final Set<String> sorulanIzinler = {};
@@ -90,6 +97,7 @@ class Ayarlar {
     'kaloriAktif': [100, 4000],
     'mesafeOndaKm': [5, 600],
     'kalkis': [240, 720],
+    'suAraligi': [15, 240],
   };
 
   static int _kis(String alan, int deger) {
@@ -134,6 +142,8 @@ class Ayarlar {
       kalkisDk = al('kalkis', kalkisDk);
       if (m['hatirlatma'] is bool) hatirlatma = m['hatirlatma'] as bool;
       if (m['sabah'] is bool) sabahBildirimi = m['sabah'] as bool;
+      if (m['suHatirlatma'] is bool) suHatirlatma = m['suHatirlatma'] as bool;
+      suAraligiDk = al('suAraligi', suAraligiDk);
       final c = m['cinsiyet'];
       if (c == 'kadin' || c == 'erkek') cinsiyet = c as String;
       if (m['donguDuzeltme'] is bool) donguDuzeltme = m['donguDuzeltme'] as bool;
@@ -227,6 +237,13 @@ class Ayarlar {
     await _kaydet();
   }
 
+  static Future<void> suHatirlatmaYaz({bool? acik, int? aralikDk}) async {
+    if (acik != null) suHatirlatma = acik;
+    if (aralikDk != null) suAraligiDk = _kis('suAraligi', aralikDk);
+    degisti.value++;
+    await _kaydet();
+  }
+
   /// Yazma sırası. Her basış bir dosya yazımı başlatıyor; iki yazım aynı
   /// anda çalışırsa ikisi de dosyayı baştan kırpıp yazar ve uzun olan sonra
   /// bitince dosyanın kuyruğunda artık baytlar kalır. Bozuk JSON'u [oku]
@@ -252,6 +269,8 @@ class Ayarlar {
         'kalkis': kalkisDk,
         'hatirlatma': hatirlatma,
         'sabah': sabahBildirimi,
+        'suHatirlatma': suHatirlatma,
+        'suAraligi': suAraligiDk,
         'sorulanIzinler': sorulanIzinler.toList()..sort(),
         'cihazNotuKapali': cihazNotuKapali,
         'cinsiyet': cinsiyet,
