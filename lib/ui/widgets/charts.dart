@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/day_record.dart';
+import '../../l10n.dart';
 import '../../theme.dart';
 import 'kit.dart';
 
@@ -373,6 +374,13 @@ class SleepRaster extends StatelessWidget {
   Widget build(BuildContext context) => Kart(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (days.isNotEmpty) ...[
+            Text(
+                S.of(context).t2('sleep.rasterRange',
+                    {'a': days.first.label, 'b': days.last.label}),
+                style: K.axis),
+            const SizedBox(height: 8),
+          ],
           // Kırpıcı bir güvenlik ağı: bant hesabı tuvalin dışına taşsa bile
           // boya kartın kenarını aşmıyor.
           ClipRect(
@@ -383,10 +391,10 @@ class SleepRaster extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
+          // Dört saatte bir: tuvaldeki dikey çizgilerle aynı yerde.
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('20:00', style: K.axis),
-            Text('04:00', style: K.axis),
-            Text('12:00', style: K.axis),
+            for (final t in const ['20:00', '00:00', '04:00', '08:00', '12:00'])
+              Text(t, style: K.axis),
           ]),
         ]),
       );
@@ -425,6 +433,16 @@ class _RasterPainter extends CustomPainter {
             Rect.fromLTWH(x, y, w, rh), const Radius.circular(1)),
         p,
       );
+    }
+    // Saat çizgileri (00:00, 04:00, 08:00): bantların hangi saatte
+    // başladığı gözle okunabilsin.
+    final cizgi = Paint()
+      ..color = K.ink3.withValues(alpha: 0.35)
+      ..strokeWidth = 0.6;
+    final h = days.length * (rh + gap);
+    for (var dk = 240.0; dk < span; dk += 240) {
+      final x = dk / span * size.width;
+      canvas.drawLine(Offset(x, 0), Offset(x, h), cizgi);
     }
   }
 

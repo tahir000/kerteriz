@@ -191,6 +191,25 @@ class Levels {
   static String zKey(num v) =>
       v >= -0.5 ? 'lvl.normal' : (v >= -1.5 ? 'lvl.below' : 'lvl.wellBelow');
 
+  /// HRV: yüksek olması iyi. "altında" yerine düz sözcük.
+  static String hrvKey(num z) =>
+      z >= -0.5 ? 'lvl.normal' : (z >= -1.5 ? 'lvl.slightlyLow' : 'lvl.low');
+
+  /// Dinlenme nabzı (ya da solunum/sıcaklık): yüksek olması kötü. [z]
+  /// ham sapma, işaret çevrilmemiş: normalinden yüksekse pozitif.
+  /// Eskiden ters çevrilmiş z ile [zKey] kullanılıyordu ve normalinden
+  /// yüksek nabız "altında" yazıyordu.
+  static String rhrKey(num z) =>
+      z <= 0.5 ? 'lvl.normal' : (z <= 1.5 ? 'lvl.slightlyHigh' : 'lvl.high');
+
+  /// Kişinin kendi normaline göre sapmanın düz cümlesi. [z] işaretli:
+  /// pozitif normalinden yüksek demek. Ekranda "−1.0 z" yerine bu yazıyor.
+  static String sapmaKey(num z) {
+    if (z.abs() < 0.5) return 'dev.normal';
+    if (z < 0) return z > -1.5 ? 'dev.slightlyLow' : 'dev.low';
+    return z < 1.5 ? 'dev.slightlyHigh' : 'dev.high';
+  }
+
   static Level acwr(num v) => (v >= 0.8 && v <= 1.3)
       ? Level.good
       : ((v >= 0.6 && v <= 1.5) ? Level.warn : Level.bad);
@@ -226,9 +245,17 @@ class Levels {
       absZ < 1 ? 'lvl.steady' : (absZ < 2 ? 'lvl.drifting' : 'lvl.deviation');
 }
 
-String fmtDur(num minutes, {String h = 's', String m = 'd'}) {
+/// "3 sa 05 dk" yerine "3 sa 5 dk"; bir saatin altında yalnızca "45 dk".
+/// Türkçede "3s 33d" saniye gibi okunuyordu. Birim boşlukla başlıyorsa
+/// (" sa") dakika doldurulmuyor; "3h 05m" gibi bitişik biçimde dolduruluyor.
+String fmtDur(num minutes, {String h = ' sa', String m = ' dk'}) {
   final t = minutes.round();
-  return '${t ~/ 60}$h ${(t % 60).toString().padLeft(2, '0')}$m';
+  if (t.abs() < 60) return '$t$m';
+  final dk = t.abs() % 60;
+  final sa = '${t ~/ 60}$h';
+  if (dk == 0) return sa;
+  final d = m.startsWith(' ') ? '$dk' : dk.toString().padLeft(2, '0');
+  return '$sa $d$m';
 }
 
 String fmtClock(DateTime? d) => d == null

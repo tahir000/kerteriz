@@ -16,11 +16,15 @@ class CoverageScreen extends StatelessWidget {
   final List<DayRecord> days;
   final VoidCallback onReload;
 
+  /// Veriyi dışa aktar (paylaşım menüsü). Veri yoksa düğme görünmüyor.
+  final VoidCallback? onExport;
+
   const CoverageScreen({
     super.key,
     required this.repo,
     required this.days,
     required this.onReload,
+    this.onExport,
   });
 
   static const _typeKeys = <HealthDataType, String>{
@@ -105,7 +109,7 @@ class CoverageScreen extends StatelessWidget {
     final sleepLevel =
         withSleep >= 14 ? Level.good : (withSleep >= 3 ? Level.warn : Level.bad);
 
-    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 40), children: [
       ScreenHead(s.t('data.source'), s.t('data.title')),
       FadeUp(
         child: Kart(
@@ -265,6 +269,24 @@ class CoverageScreen extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w500)),
         ),
       ),
+      if (onExport != null && days.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(K.gutter, 10, K.gutter, 0),
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+                foregroundColor: K.ink,
+                side: BorderSide(color: K.line),
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(K.rDugme))),
+            onPressed: onExport,
+            icon: const Icon(Icons.ios_share, size: 18),
+            label: Text(s.t('data.export'),
+                style: const TextStyle(fontWeight: FontWeight.w500)),
+          ),
+        ),
+      if (onExport != null && days.isNotEmpty)
+        NoteBlock(s.t('data.exportNote')),
     ]);
   }
 }

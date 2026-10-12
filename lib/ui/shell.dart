@@ -191,6 +191,20 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
     );
   }
 
+  /// Veriyi JSON olarak paylaşım menüsüne verir. Eskiden her ekranda
+  /// yüzen bir düğmeydi; seyrek kullanılan bir iş için içeriği kapatıyordu.
+  Future<void> _disaAktar() async {
+    final s = S.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await Exporter.share(_days.isEmpty ? _allDays : _days,
+          subject: s.t('data.exportSubject'));
+    } catch (e) {
+      messenger.showSnackBar(
+          SnackBar(content: Text('${s.t('data.exportFailed')}: $e')));
+    }
+  }
+
   /// Alt menüden ya da ekran içindeki bir düğmeden sekme değiştirme.
   /// Sayfa kaydırmayla geldiği için geçişin yönü kendiliğinden doğru.
   void _gitSekme(int i) {
@@ -757,7 +771,10 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
         _skorYok(s),
         if (_donguSekmesi) _skorYok(s),
         CoverageScreen(
-            repo: _repo, days: _allDays, onReload: () => _boot(tam: true)),
+            repo: _repo,
+            days: _allDays,
+            onReload: () => _boot(tam: true),
+            onExport: _disaAktar),
       ]);
     } else {
       if (_bekleyenEtiket) {
@@ -777,7 +794,10 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
         // Tanı ekranı filtrelenmemiş listeyi görmeli: uyku ya da nabız
         // olmayan bir günde solunum veya SpO2 gelmiş olabilir.
         CoverageScreen(
-            repo: _repo, days: _allDays, onReload: () => _boot(tam: true)),
+            repo: _repo,
+            days: _allDays,
+            onReload: () => _boot(tam: true),
+            onExport: _disaAktar),
       ]);
     }
 
@@ -880,28 +900,6 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
             ),
         ]),
       ),
-      floatingActionButton: _allDays.isEmpty
-          ? null
-          : FloatingActionButton.small(
-              backgroundColor: K.ink,
-              // Koyu temada K.ink neredeyse beyaz: simge rengi de zeminle
-              // birlikte dönmeli, yoksa beyaz üstünde beyaz kalıyor.
-              foregroundColor: K.card,
-              elevation: 2,
-              tooltip: s.t('data.export'),
-              onPressed: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final failed = s.t('data.exportFailed');
-                try {
-                  await Exporter.share(_days.isEmpty ? _allDays : _days,
-                      subject: s.t('data.exportSubject'));
-                } catch (e) {
-                  messenger.showSnackBar(
-                      SnackBar(content: Text('$failed: $e')));
-                }
-              },
-              child: const Icon(Icons.ios_share, size: 18),
-            ),
       bottomNavigationBar: _AltMenu(
         secili: _tab,
         onSec: _gitSekme,

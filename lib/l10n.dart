@@ -75,13 +75,20 @@ class S {
     'common.yes': 'evet',
     'common.no': 'hayır',
     'common.none': 'yok',
-    'common.hourShort': 's',
-    'common.minShort': 'd',
+    'common.hourShort': ' sa',
+    'common.minShort': ' dk',
 
     // seviyeler
     'lvl.good': 'iyi',
     'lvl.watch': 'izlenmeli',
     'lvl.low': 'düşük',
+    'lvl.slightlyLow': 'biraz düşük',
+    'lvl.slightlyHigh': 'biraz yüksek',
+    'dev.normal': 'Normal aralığında',
+    'dev.slightlyLow': 'Normalinden biraz düşük',
+    'dev.low': 'Normalinden belirgin düşük',
+    'dev.slightlyHigh': 'Normalinden biraz yüksek',
+    'dev.high': 'Normalinden belirgin yüksek',
     'lvl.ready': 'hazır',
     'lvl.medium': 'orta',
     'lvl.normal': 'normal',
@@ -146,6 +153,7 @@ class S {
     'today.rhrSub': 'Düşük olması iyi; işaret ters çevrilmiş',
     'today.respTemp': 'Solunum + cilt sıcaklığı',
     'today.respTempSub': 'Hastalık için en erken iki sinyal',
+    'today.respTempNone': 'Bu cihaz solunum ve sıcaklık göndermiyor',
     'today.calibrating': 'Taban çizgin oluşuyor',
     'today.calibratingEarly':
         'Hazırlık şimdilik yalnızca uykudan hesaplanıyor. HRV ve dinlenme nabzı '
@@ -160,17 +168,17 @@ class S {
             'ayrıntı Veri sekmesinde',
     'today.rhrNone': 'Dün gece için dinlenme nabzı yok',
     'today.sleepScore': 'Uyku skoru',
-    'today.weight25': 'Ağırlığı %25',
+    'today.weight25': 'Dün gecenin uyku skoru',
+    'today.sleepScoreSub': 'Dün gecenin uyku skoru',
     'today.forToday': 'Bugün için',
     'today.suggestedLoad': 'Önerilen yük',
     'today.suggestedLoadSub': 'Hazırlığa göre hedef bant',
     'today.debt': 'Uyku borcu',
     'today.debtSub': 'Son 14 gün, sönümlenerek',
     'today.loadRatio': 'Yük oranı',
-    'today.loadRatioSub': 'Akut / kronik',
+    'today.loadRatioSub': 'Son 7 günün son 28 güne oranı',
     'today.last30': 'Son 30 gün hazırlık',
-    'today.caption':
-        'Dün gece {sleep} uyudun (ihtiyaç {need}). HRV {hrv} ms, dinlenme nabzı {rhr} atım.',
+    'today.caption': 'Uyku ihtiyacın {need}. HRV {hrv} ms, dinlenme nabzı {rhr} atım.',
     'today.captionNoSleep':
         'Dün geceye ait uyku kaydı bulunamadı; hazırlık yalnızca kalp verisinden hesaplandı.',
     'today.chartNote':
@@ -205,8 +213,8 @@ class S {
     // bu gece
     'today.tonight': 'Bu gece',
     'today.bedtime': 'Yatma saati önerisi',
-    'today.bedtimeSub':
-        '{wake} kalkış için · {need} ihtiyaç + {payback} borç payı · verim %{eff}',
+    'today.bedtimeSub': 'İhtiyacın {need}; buna borcunun payı olarak {payback} ekleniyor. Uyku verimin %{eff}.',
+    'today.bedtimeShort': '{wake} kalkış için',
     'today.bedtimeNote':
         'İhtiyaç bugünkü yüke göre hesaplanıyor; borcun dörtte biri (en çok bir '
             'saat) ekleniyor, çünkü borç tek gecede kapanmaz. Yatakta geçecek süre '
@@ -362,7 +370,7 @@ class S {
     'workout.kcal': 'Kalori',
     'workout.distance': 'Mesafe',
     'workout.nextMorning': 'Ertesi sabah hazırlık',
-    'workout.nextHrv': 'HRV {z} z',
+    'workout.nextHrv': 'HRV: {durum}',
     'workout.note':
         'Antrenman yükü günlük yükle aynı formülle, o saatlerin dakikalık nabzından '
             'hesaplanıyor; 0-21 ölçeği de aynı. Kalori ve mesafe antrenmanı kaydeden '
@@ -601,22 +609,19 @@ class S {
     'sleep.cardiacSub': 'Nabzın ne kadar ve ne kadar erken düştüğü',
     'sleep.eff': 'Uyku verimi',
     'sleep.effSub': 'Yatakta geçen sürenin uykuya dönen kısmı',
-    'sleep.rasterNote':
-        'Her satır bir gece, bant uykuda geçtiğin süre; rengi o gecenin uyku skoru. '
-            'Bantların üst üste binmesi — saatlerin değil — sirkadiyen düzenliliğin ölçüsüdür.',
+    'sleep.rasterNote': 'Her satır bir gece, bant uykuda geçtiğin süre; rengi o gecenin uyku skoru. Bantlar ne kadar üst üste biniyorsa uyku saatlerin o kadar düzenli.',
+    'sleep.rasterRange': '{a} – {b}, eskiden yeniye',
 
     // yük
     'load.title': 'Yük',
     'load.daily': 'Günlük yük',
-    'load.caption':
-        'Bölge ağırlıklı nabız dakikalarından hesaplanır; ölçek logaritmiktir. '
-            'Bugün {min} dakikan bölge 1 üstünde geçti.',
+    'load.caption': 'Nabzının yükseldiği dakikalardan hesaplanır, 0 ile 21 arası. Bugün {min} dakikan hafif tempo üstünde geçti.',
     'load.balance': 'Yük dengesi',
     'load.acute': 'Akut yük',
     'load.acuteSub': 'Son 7 gün ortalaması',
     'load.chronic': 'Kronik yük',
     'load.chronicSub': 'Son 28 gün ortalaması',
-    'load.ratio': 'Akut / kronik oranı',
+    'load.ratio': 'Yük oranı',
     'load.ratioSub': '0.80–1.30 arası sürdürülebilir bant',
     'load.ratioWaiting':
         '28 günlük kronik pencere henüz dolmadı; oran olduğundan büyük çıkar',
@@ -625,17 +630,19 @@ class S {
     'load.zones': 'Bugünün nabız bölgeleri',
     'load.zone': 'Bölge {n}',
     'load.steps': 'Adım',
-    'load.zoneNote':
-        'Sütunun rengi o günün akut/kronik oranını gösterir: yeşil, vücudunun alıştığı '
-            'tempo; turuncu sınır; kırmızı, yükü alıştığından hızlı artırdığın günler.',
+    'load.zoneNote': 'Sütunun rengi o günün yük oranını gösterir: yeşil, vücudunun alıştığı tempo; turuncu sınırda; kırmızı, yükü alıştığından hızlı artırdığın günler.',
+    'load.zoneSub1': 'Hafif · nabız aralığının %50–60’ı',
+    'load.zoneSub2': 'Orta · %60–70',
+    'load.zoneSub3': 'Yoğun · %70–85',
+    'load.zoneSub4': 'Çok yoğun · %85 üstü',
+    'load.zonesNone': 'Bugün nabzın henüz hafif tempo üstüne çıkmadı.',
 
     // kalp
     'heart.title': 'Kalp ve solunum',
     'heart.last45': 'Son 45 gün',
     'heart.hrvTag': 'Gece HRV (RMSSD)',
-    'heart.hrvCaption':
-        'Gri şerit, 14 günlük taban çizginin ±1 standart sapması. Önemli olan tek '
-            'gecenin değeri değil, serideki konumun.',
+    'heart.hrvCaption': 'Gri şerit senin normal aralığın (son 14 gece). Önemli olan tek gecenin değeri değil, şeridin neresinde durduğun.',
+    'heart.notSent': '{list}: bu cihaz göndermiyor. Gelmeye başlarsa burada görünür.',
     'heart.hrvMissing':
         'Health Connect bu cihazda HRV yazmıyor görünüyor. Hazırlık skoru, kalan '
             'girdilerin ağırlıkları yeniden dağıtılarak hesaplandı.',
@@ -726,7 +733,7 @@ class S {
     'data.capReadinessSub': 'Gelen girdilerin ağırlıkları yeniden dağıtılır',
     'data.capSleep': 'Uyku skoru ve borcu',
     'data.capSleepSub': 'Yalnızca uyku evrelerine bağlı',
-    'data.capLoad': 'Günlük yük ve ACWR',
+    'data.capLoad': 'Günlük yük ve yük oranı',
     'data.capLoadSub': 'Nabız bölgeleri ve adımdan',
     'data.capIllness': 'Hastalık erken uyarısı',
     'data.capIllnessSub': 'Solunum hızı ve cilt sıcaklığı gerekiyor',
@@ -755,6 +762,7 @@ class S {
     'data.export': 'Veriyi dışa aktar',
     'data.exportFailed': 'Dışa aktarılamadı',
     'data.exportSubject': 'Kerteriz veri dışa aktarımı',
+    'data.exportNote': 'Tüm günlerin JSON dosyası olarak paylaşım menüsüne gider; nereye gideceğine sen karar verirsin. Dosya bir saat içinde telefondan silinir.',
 
     // veri tipleri
     'type.deepSleep': 'Derin uyku',
@@ -808,6 +816,13 @@ class S {
     'lvl.good': 'good',
     'lvl.watch': 'watch',
     'lvl.low': 'low',
+    'lvl.slightlyLow': 'slightly low',
+    'lvl.slightlyHigh': 'slightly high',
+    'dev.normal': 'Within your normal range',
+    'dev.slightlyLow': 'A little below your normal',
+    'dev.low': 'Clearly below your normal',
+    'dev.slightlyHigh': 'A little above your normal',
+    'dev.high': 'Clearly above your normal',
     'lvl.ready': 'ready',
     'lvl.medium': 'moderate',
     'lvl.normal': 'normal',
@@ -870,6 +885,7 @@ class S {
     'today.rhrSub': 'Lower is better; the sign is inverted',
     'today.respTemp': 'Respiration + skin temperature',
     'today.respTempSub': 'The two earliest signals of illness',
+    'today.respTempNone': 'This device does not send breathing or temperature',
     'today.calibrating': 'Building your baseline',
     'today.calibratingEarly':
         'For now readiness comes from sleep alone. HRV and resting heart rate join '
@@ -884,17 +900,17 @@ class S {
             'sleep; details in the Data tab',
     'today.rhrNone': 'No resting heart rate for last night',
     'today.sleepScore': 'Sleep score',
-    'today.weight25': 'Weighted 25%',
+    'today.weight25': 'Last night\'s sleep score',
+    'today.sleepScoreSub': 'Last night\'s sleep score',
     'today.forToday': 'For today',
     'today.suggestedLoad': 'Suggested load',
     'today.suggestedLoadSub': 'Target band based on readiness',
     'today.debt': 'Sleep debt',
     'today.debtSub': 'Last 14 days, decayed',
     'today.loadRatio': 'Load ratio',
-    'today.loadRatioSub': 'Acute / chronic',
+    'today.loadRatioSub': 'Last 7 days against the last 28',
     'today.last30': 'Readiness · last 30 days',
-    'today.caption':
-        'You slept {sleep} last night (need {need}). HRV {hrv} ms, resting heart rate {rhr} bpm.',
+    'today.caption': 'Your sleep need is {need}. HRV {hrv} ms, resting heart rate {rhr} bpm.',
     'today.captionNoSleep':
         'No sleep record for last night; readiness was computed from heart data alone.',
     'today.chartNote':
@@ -928,8 +944,8 @@ class S {
     // tonight
     'today.tonight': 'Tonight',
     'today.bedtime': 'Suggested bedtime',
-    'today.bedtimeSub':
-        'To wake at {wake} · {need} need + {payback} debt share · efficiency {eff}%',
+    'today.bedtimeSub': 'Your need is {need}, plus {payback} toward your sleep debt. Your sleep efficiency is {eff}%.',
+    'today.bedtimeShort': 'To wake at {wake}',
     'today.bedtimeNote':
         'Need follows today\'s load; a quarter of your sleep debt (at most an hour) '
             'is added, since debt is not repaid in one night. Time in bed is stretched '
@@ -1084,7 +1100,7 @@ class S {
     'workout.kcal': 'Calories',
     'workout.distance': 'Distance',
     'workout.nextMorning': 'Next-morning readiness',
-    'workout.nextHrv': 'HRV {z} z',
+    'workout.nextHrv': 'HRV: {durum}',
     'workout.note':
         'Workout load uses the same formula as daily load, from minute-level heart rate '
             'during the session, on the same 0-21 scale. Calories and distance come from '
@@ -1321,21 +1337,18 @@ class S {
     'sleep.cardiacSub': 'How far and how early your heart rate dropped',
     'sleep.eff': 'Sleep efficiency',
     'sleep.effSub': 'The share of time in bed spent asleep',
-    'sleep.rasterNote':
-        'Each row is a night, the band is time asleep, its color that night\'s sleep '
-            'score. The overlap of the bands — not the hours — is what regularity measures.',
+    'sleep.rasterNote': 'Each row is a night and the band is your time asleep, coloured by that night\'s sleep score. The more the bands line up, the more regular your sleep.',
+    'sleep.rasterRange': '{a} – {b}, oldest first',
 
     'load.title': 'Load',
     'load.daily': 'Daily load',
-    'load.caption':
-        'Computed from zone-weighted heart rate minutes; the scale is logarithmic. '
-            'Today {min} minutes were spent above zone 1.',
+    'load.caption': 'Computed from the minutes your heart rate was raised, on a 0–21 scale. Today you spent {min} minutes above an easy pace.',
     'load.balance': 'Load balance',
     'load.acute': 'Acute load',
     'load.acuteSub': 'Last 7 days, average',
     'load.chronic': 'Chronic load',
     'load.chronicSub': 'Last 28 days, average',
-    'load.ratio': 'Acute / chronic ratio',
+    'load.ratio': 'Load ratio',
     'load.ratioSub': '0.80–1.30 is the sustainable band',
     'load.ratioWaiting':
         'The 28-day chronic window is not full yet; the ratio would read too high',
@@ -1344,17 +1357,18 @@ class S {
     'load.zones': 'Heart rate zones today',
     'load.zone': 'Zone {n}',
     'load.steps': 'Steps',
-    'load.zoneNote':
-        'Bar color shows that day\'s acute-to-chronic ratio: green is the tempo your '
-            'body is used to; orange is the edge; red marks days you raised load faster '
-            'than you had adapted to.',
+    'load.zoneNote': 'Bar colour shows that day\'s load ratio: green is the pace your body is used to, orange is the edge, red marks days you raised load faster than you are used to.',
+    'load.zoneSub1': 'Light · 50–60% of heart rate reserve',
+    'load.zoneSub2': 'Moderate · 60–70%',
+    'load.zoneSub3': 'Hard · 70–85%',
+    'load.zoneSub4': 'Very hard · above 85%',
+    'load.zonesNone': 'Your heart rate hasn\'t gone above an easy pace yet today.',
 
     'heart.title': 'Heart and respiration',
     'heart.last45': 'Last 45 days',
     'heart.hrvTag': 'Nightly HRV (RMSSD)',
-    'heart.hrvCaption':
-        'The grey ribbon is ±1 standard deviation of the 14-day baseline. What matters '
-            'is not one night\'s value but where it sits in the series.',
+    'heart.hrvCaption': 'The grey band is your normal range over the last 14 nights. What matters is not one night\'s value but where it sits in the band.',
+    'heart.notSent': '{list}: not sent by this device. They show up here if they start arriving.',
     'heart.hrvMissing':
         'Health Connect does not appear to write HRV on this device. Readiness was '
             'computed by redistributing the weights of the remaining inputs.',
@@ -1445,7 +1459,7 @@ class S {
     'data.capReadinessSub': 'Weights of the available inputs are redistributed',
     'data.capSleep': 'Sleep score and debt',
     'data.capSleepSub': 'Depends only on sleep stages',
-    'data.capLoad': 'Daily load and ACWR',
+    'data.capLoad': 'Daily load and load ratio',
     'data.capLoadSub': 'From heart rate zones and steps',
     'data.capIllness': 'Early illness signal',
     'data.capIllnessSub': 'Needs respiratory rate and skin temperature',
@@ -1474,6 +1488,7 @@ class S {
     'data.export': 'Export data',
     'data.exportFailed': 'Export failed',
     'data.exportSubject': 'Kerteriz data export',
+    'data.exportNote': 'All your days go to the share sheet as a JSON file; you decide where it goes. The file is deleted from the phone within an hour.',
 
     'type.deepSleep': 'Deep sleep',
     'type.lightSleep': 'Light sleep',

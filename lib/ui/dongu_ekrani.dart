@@ -51,7 +51,7 @@ class DonguEkrani extends StatelessWidget {
     final son56 = days.length <= 56 ? days : days.sublist(days.length - 56);
     final nabiz = [for (final x in son56) if (x.rhr != null) x.rhr!];
 
-    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 40), children: [
       ScreenHead(d?.label ?? '', s.t('cycle.screenTitle')),
       if (gun == null)
         _BosDurum()

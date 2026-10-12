@@ -88,6 +88,8 @@ void main() {
 
       await tester.scrollUntilVisible(find.text(s.t('today.bedtime')), 300,
           scrollable: kaydir);
+      await tester.scrollUntilVisible(find.text(s.t('tags.title')), 200,
+          scrollable: kaydir);
       expect(find.text(s.t('tags.title')), findsOneWidget);
 
       // Haftalık özet pazartesi dışında kapalı; dokununca açılıyor.

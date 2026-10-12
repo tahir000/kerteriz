@@ -117,7 +117,7 @@ class TodayScreen extends StatelessWidget {
     // Pazartesi haftalık özet açık gelir; öteki günler tek satır.
     final pazartesi = DateTime.now().weekday == DateTime.monday;
 
-    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 40), children: [
       ScreenHead('${d.label} · ${s.t('today.today')}', s.t('today.title')),
       // Sabah sorusu: cevaplanana kadar en üstte.
       const _SabahSorusu(),
@@ -179,30 +179,6 @@ class TodayScreen extends StatelessWidget {
             title: s.t('today.loadRatio'),
             subtitle: s.t('load.ratioWaiting'),
             value: '--'),
-
-      if (gunIci != null) ...[
-        SectionLabel(s.t('intraday.section')),
-        _GunIciSatirlari(gunIci, bugunKayit!, days: hydDays),
-      ],
-
-      SectionLabel(s.t('today.tonight')),
-      MetricRow(
-        title: s.t('today.bedtime'),
-        subtitle: s.t2('today.bedtimeSub', {
-          'wake': saatDakika(plan.wakeMinute),
-          'need': _dur(s, plan.needMinutes),
-          'payback': _dur(s, plan.paybackMinutes),
-          'eff': (plan.efficiency * 100).round().toString(),
-        }),
-        value: saatDakika(plan.bedMinute),
-        onTap: () => _bilgi(
-            context,
-            s.t('today.bedtime'),
-            plan.efficiencyFromData
-                ? s.t('today.bedtimeNote')
-                : s.t('today.bedtimeNoteDefault')),
-      ),
-      EtiketKarti(hydDays),
       MetricRow(
         title: s.t('today.water'),
         subtitle: s.t2('today.waterGoal', {'goal': '${Ayarlar.suHedefiMl}'}),
@@ -216,6 +192,27 @@ class TodayScreen extends StatelessWidget {
         trend: [for (final x in _tail(hydDays, 14)) x.hydrationMl.toDouble()],
       ),
 
+      if (gunIci != null) ...[
+        SectionLabel(s.t('intraday.section')),
+        _GunIciSatirlari(gunIci, bugunKayit!, days: hydDays),
+      ],
+
+      SectionLabel(s.t('today.tonight')),
+      MetricRow(
+        title: s.t('today.bedtime'),
+        subtitle: s.t2('today.bedtimeShort', {'wake': saatDakika(plan.wakeMinute)}),
+        value: saatDakika(plan.bedMinute),
+        onTap: () => _bilgi(
+            context,
+            s.t('today.bedtime'),
+            '${s.t2('today.bedtimeSub', {
+                  'need': _dur(s, plan.needMinutes),
+                  'payback': _dur(s, plan.paybackMinutes),
+                  'eff': (plan.efficiency * 100).round().toString(),
+                })}\n\n${plan.efficiencyFromData ? s.t('today.bedtimeNote') : s.t('today.bedtimeNoteDefault')}'),
+      ),
+      EtiketKarti(hydDays),
+
       SectionLabel(s.t('insights.section')),
       _VerinGirisi(days: days, allDays: hydDays),
 
@@ -223,17 +220,17 @@ class TodayScreen extends StatelessWidget {
         anahtar: 'girdiler',
         baslik: s.t('today.inputs'),
         ozet: d.hrv != null && d.hrvBaselineN >= Config.minBaselineNights
-            ? 'HRV ${sgn(d.hrvZ, digits: 1)} z'
+            ? 'HRV ${s.t(Levels.hrvKey(d.hrvZ))}'
             : null,
         children: [
           if (d.hrv != null && d.hrvBaselineN >= Config.minBaselineNights)
             MetricRow(
               title: s.t('today.hrv'),
-              subtitle: s.t('today.hrvSub'),
-              value: sgn(d.hrvZ),
-              unit: s.t('unit.z'),
+              subtitle: s.t(Levels.sapmaKey(d.hrvZ)),
+              value: d.hrv!.toStringAsFixed(0),
+              unit: s.t('unit.ms'),
               level: Levels.z(d.hrvZ),
-              levelText: s.t(Levels.zKey(d.hrvZ)),
+              levelText: s.t(Levels.hrvKey(d.hrvZ)),
               extra: ZoneMeter.zScore(d.hrvZ),
             )
           else
@@ -250,11 +247,11 @@ class TodayScreen extends StatelessWidget {
           if (d.rhr != null && d.rhrBaselineN >= Config.minBaselineNights)
             MetricRow(
               title: s.t('today.rhr'),
-              subtitle: s.t('today.rhrSub'),
-              value: sgn(-d.rhrZ),
-              unit: s.t('unit.z'),
+              subtitle: s.t(Levels.sapmaKey(d.rhrZ)),
+              value: d.rhr!.toStringAsFixed(0),
+              unit: s.t('unit.bpm'),
               level: Levels.z(-d.rhrZ),
-              levelText: s.t(Levels.zKey(-d.rhrZ)),
+              levelText: s.t(Levels.rhrKey(d.rhrZ)),
               extra: ZoneMeter.zScore(-d.rhrZ),
             )
           else
@@ -270,16 +267,24 @@ class TodayScreen extends StatelessWidget {
             ),
           MetricRow(
             title: s.t('today.respTemp'),
-            subtitle: s.t('today.respTempSub'),
-            value: sgn(-(d.respZ + d.tempZ) / 2),
-            unit: s.t('unit.z'),
-            level: Levels.z(-(d.respZ + d.tempZ) / 2),
-            levelText: s.t(Levels.zKey(-(d.respZ + d.tempZ) / 2)),
-            extra: ZoneMeter.zScore(-(d.respZ + d.tempZ) / 2),
+            subtitle: d.respiratory == null && d.skinTempDelta == null
+                ? s.t('today.respTempNone')
+                : s.t(Levels.sapmaKey((d.respZ + d.tempZ) / 2)),
+            value: d.respiratory?.toStringAsFixed(1) ?? '--',
+            unit: d.respiratory == null ? null : s.t('unit.perMin'),
+            level: d.respiratory == null && d.skinTempDelta == null
+                ? null
+                : Levels.z(-(d.respZ + d.tempZ) / 2),
+            levelText: d.respiratory == null && d.skinTempDelta == null
+                ? null
+                : s.t(Levels.rhrKey((d.respZ + d.tempZ) / 2)),
+            extra: d.respiratory == null && d.skinTempDelta == null
+                ? null
+                : ZoneMeter.zScore(-(d.respZ + d.tempZ) / 2),
           ),
           MetricRow(
             title: s.t('today.sleepScore'),
-            subtitle: s.t('today.weight25'),
+            subtitle: s.t('today.sleepScoreSub'),
             value: '${d.sleepScore}',
             unit: s.t('unit.of100'),
             level: Levels.score(d.sleepScore),
@@ -359,7 +364,6 @@ class TodayScreen extends StatelessWidget {
         rightLabel: days.last.label,
       ),
       const LevelScale(),
-      NoteBlock(s.t('today.chartNote')),
     ]);
   }
 }
@@ -723,9 +727,8 @@ class SleepScreen extends StatelessWidget {
       s.t('sleep.continuity'),
       s.t('sleep.timing'),
     ];
-    final weights = [35, 20, 25, 10, 10];
 
-    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 40), children: [
       ScreenHead(
           '${s.t('sleep.lastNight')} · ${fmtClock(d.bedStart)}–${fmtClock(d.wakeEnd)}',
           s.t('sleep.title')),
@@ -773,16 +776,10 @@ class SleepScreen extends StatelessWidget {
         ]),
       ),
       SectionLabel(s.t('sleep.components')),
-      for (var i = 0; i < d.sleepParts.length && i < partNames.length; i++)
-        MetricRow(
-          title: partNames[i],
-          subtitle: s.t2('sleep.weight', {'w': '${weights[i]}'}),
-          value: d.sleepParts.values.elementAt(i).round().toString(),
-          unit: s.t('unit.of100'),
-          level: Levels.score(d.sleepParts.values.elementAt(i)),
-          levelText: s.t(Levels.scoreKey(d.sleepParts.values.elementAt(i))),
-          extra: ZoneMeter.score(d.sleepParts.values.elementAt(i)),
-        ),
+      _Bilesenler([
+        for (var i = 0; i < d.sleepParts.length && i < partNames.length; i++)
+          (partNames[i], d.sleepParts.values.elementAt(i).toDouble()),
+      ]),
       SectionLabel(s.t('sleep.deeper')),
       MetricRow(
           title: s.t('sleep.debt'),
@@ -806,11 +803,6 @@ class SleepScreen extends StatelessWidget {
           level: Levels.score(d.cardiac),
           levelText: s.t(Levels.scoreKey(d.cardiac)),
           trend: [for (final x in last14) x.cardiac.toDouble()]),
-      MetricRow(
-          title: s.t('sleep.eff'),
-          subtitle: s.t('sleep.effSub'),
-          value: '${(d.asleep / d.timeInBed * 100).round()}',
-          unit: '%'),
       SectionLabel(s.t('sleep.last14')),
       BarSeriesChart(
         bars: [
@@ -833,6 +825,58 @@ class SleepScreen extends StatelessWidget {
   }
 }
 
+/// Uyku skorunun beş bileşeni tek kartta: ad, ince çubuk, puan. Eskiden
+/// her biri ayrı bir kart ve kendi 0–100 ölçeğiydi; ekranın yarısını alıyordu.
+class _Bilesenler extends StatelessWidget {
+  final List<(String, double)> satirlar;
+  const _Bilesenler(this.satirlar);
+
+  @override
+  Widget build(BuildContext context) => Kart(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+        child: Column(children: [
+          for (final (ad, v) in satirlar)
+            Semantics(
+              label: '$ad ${v.round()}',
+              excludeSemantics: true,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(children: [
+                  Expanded(
+                    flex: 4,
+                    child: Text(ad,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: K.rowTitle),
+                  ),
+                  Expanded(
+                    flex: 5,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: LinearProgressIndicator(
+                        value: (v / 100).clamp(0.0, 1.0),
+                        minHeight: 6,
+                        backgroundColor: K.fill,
+                        color: Levels.score(v).mark,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 44,
+                    child: Text('${v.round()}',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Levels.score(v).ink)),
+                  ),
+                ]),
+              ),
+            ),
+        ]),
+      );
+}
+
 // =====================================================================
 class LoadScreen extends StatelessWidget {
   final List<DayRecord> days;
@@ -844,14 +888,13 @@ class LoadScreen extends StatelessWidget {
     final d = days.last;
     final zoneTotal = d.zoneMinutes.sublist(1).fold<double>(0, (a, x) => a + x);
     final last28 = _tail(days, 28);
-    final zoneRanges = ['50–60% HRR', '60–70% HRR', '70–85% HRR', '85%+ HRR'];
     // Son 14 günün antrenmanları, yeniden eskiye.
     final antrenmanlar = [
       for (final x in _tail(days, 14).reversed)
         for (final a in x.antrenmanlar.reversed) MapEntry(x, a)
     ];
 
-    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 40), children: [
       ScreenHead(d.label, s.t('load.title')),
       _hero(
         tag: s.t('load.daily'),
@@ -922,18 +965,23 @@ class LoadScreen extends StatelessWidget {
       const LevelScale(),
       NoteBlock(s.t('load.zoneNote')),
       SectionLabel(s.t('load.zones')),
-      StackBar([
-        MapEntry(K.stageWake, d.zoneMinutes[1]),
-        MapEntry(K.stageRem, d.zoneMinutes[2]),
-        MapEntry(K.stageLight, d.zoneMinutes[3]),
-        MapEntry(K.stageDeep, d.zoneMinutes[4]),
-      ]),
-      for (var k = 1; k <= 4; k++)
-        MetricRow(
-            title: s.t2('load.zone', {'n': '$k'}),
-            subtitle: zoneRanges[k - 1],
-            value: d.zoneMinutes[k].round().toString(),
-            unit: s.t('unit.min')),
+      // Hiç bölge dakikası yoksa dört tane "0 dk" satırı yerine tek cümle.
+      if (zoneTotal <= 0)
+        NoteBlock(s.t('load.zonesNone'))
+      else ...[
+        StackBar([
+          MapEntry(K.stageWake, d.zoneMinutes[1]),
+          MapEntry(K.stageRem, d.zoneMinutes[2]),
+          MapEntry(K.stageLight, d.zoneMinutes[3]),
+          MapEntry(K.stageDeep, d.zoneMinutes[4]),
+        ]),
+        for (var k = 1; k <= 4; k++)
+          MetricRow(
+              title: s.t2('load.zone', {'n': '$k'}),
+              subtitle: s.t('load.zoneSub$k'),
+              value: d.zoneMinutes[k].round().toString(),
+              unit: s.t('unit.min')),
+      ],
       MetricRow(title: s.t('load.steps'), value: d.steps.toString()),
     ]);
   }
@@ -960,7 +1008,6 @@ void _antrenmanAyrinti(
     final fark = (x.date.difference(gun.date).inHours / 24).round();
     if (fark == 1) ertesi = x;
   }
-  final zoneRanges = ['50–60%', '60–70%', '70–85%', '85%+'];
   showModalBottomSheet<void>(
     context: context,
     backgroundColor: K.bg,
@@ -1013,7 +1060,7 @@ void _antrenmanAyrinti(
               if (a.bolge[k] > 0)
                 MetricRow(
                     title: s.t2('load.zone', {'n': '$k'}),
-                    subtitle: zoneRanges[k - 1],
+                    subtitle: s.t('load.zoneSub$k'),
                     value: a.bolge[k].round().toString(),
                     unit: s.t('unit.min')),
           ],
@@ -1022,7 +1069,8 @@ void _antrenmanAyrinti(
               title: s.t('workout.nextMorning'),
               subtitle: ertesi.hrv != null &&
                       ertesi.hrvBaselineN >= Config.minBaselineNights
-                  ? s.t2('workout.nextHrv', {'z': sgn(ertesi.hrvZ, digits: 1)})
+                  ? s.t2('workout.nextHrv',
+                      {'durum': s.t(Levels.sapmaKey(ertesi.hrvZ))})
                   : null,
               value: '${ertesi.readiness}',
               unit: s.t('unit.of100'),
@@ -1060,8 +1108,14 @@ class HeartScreen extends StatelessWidget {
       }
     }
     final rhrDays = days.where((x) => x.rhr != null).toList();
+    // Bu gece gelmeyen ölçümler: boş "--" satırları yerine tek not.
+    final gelmeyen = [
+      if (d.spo2Avg == null) s.t('heart.spo2'),
+      if (d.respiratory == null) s.t('heart.resp'),
+      if (d.skinTempDelta == null) s.t('heart.temp'),
+    ];
 
-    return ListView(padding: const EdgeInsets.only(bottom: 112), children: [
+    return ListView(padding: const EdgeInsets.only(bottom: 40), children: [
       ScreenHead(s.t('heart.last45'), s.t('heart.title')),
       FadeUp(
         child: Kart(
@@ -1080,7 +1134,7 @@ class HeartScreen extends StatelessWidget {
               Text(s.t('unit.ms'), style: K.heroUnit),
               if (d.hrv != null) ...[
                 const SizedBox(width: 10),
-                StatusChip(Levels.z(d.hrvZ), s.t(Levels.zKey(d.hrvZ))),
+                StatusChip(Levels.z(d.hrvZ), s.t(Levels.hrvKey(d.hrvZ))),
               ],
             ]),
             const SizedBox(height: 14),
@@ -1103,11 +1157,11 @@ class HeartScreen extends StatelessWidget {
           title: s.t('heart.hrv'),
           subtitle: d.hrv == null
               ? s.t('heart.noValue')
-              : s.t2('heart.hrvSub', {'z': sgn(d.hrvZ)}),
+              : s.t(Levels.sapmaKey(d.hrvZ)),
           value: d.hrv?.toStringAsFixed(0) ?? '--',
           unit: s.t('unit.ms'),
           level: d.hrv == null ? null : Levels.z(d.hrvZ),
-          levelText: d.hrv == null ? null : s.t(Levels.zKey(d.hrvZ)),
+          levelText: d.hrv == null ? null : s.t(Levels.hrvKey(d.hrvZ)),
           trend: hrvVals.length > 1 ? hrvVals : null),
       MetricRow(
           title: s.t('heart.rhr'),
@@ -1117,8 +1171,9 @@ class HeartScreen extends StatelessWidget {
           value: d.rhr?.toStringAsFixed(0) ?? '--',
           unit: s.t('unit.bpm'),
           level: d.rhr == null ? null : Levels.z(-d.rhrZ),
-          levelText: d.rhr == null ? null : s.t(Levels.zKey(-d.rhrZ)),
+          levelText: d.rhr == null ? null : s.t(Levels.rhrKey(d.rhrZ)),
           trend: [for (final x in rhrDays) x.rhr!]),
+      if (d.spo2Avg != null)
       MetricRow(
           title: s.t('heart.spo2'),
           subtitle: s.t2(
@@ -1135,6 +1190,7 @@ class HeartScreen extends StatelessWidget {
               : s.t(d.spo2Avg! >= 95
                   ? 'lvl.normal'
                   : (d.spo2Avg! >= 92 ? 'lvl.watch' : 'lvl.low'))),
+      if (d.respiratory != null)
       MetricRow(
           title: s.t('heart.resp'),
           subtitle: s.t('heart.respSub'),
@@ -1144,6 +1200,7 @@ class HeartScreen extends StatelessWidget {
           levelText: d.respiratory == null
               ? null
               : s.t(Levels.devKey(d.respZ.abs()))),
+      if (d.skinTempDelta != null)
       MetricRow(
           title: s.t('heart.temp'),
           subtitle: s.t('heart.tempSub'),
@@ -1153,6 +1210,8 @@ class HeartScreen extends StatelessWidget {
           levelText: d.skinTempDelta == null
               ? null
               : s.t(Levels.devKey(d.tempZ.abs()))),
+      if (gelmeyen.isNotEmpty)
+        NoteBlock(s.t2('heart.notSent', {'list': gelmeyen.join(', ')})),
       if (rhrDays.length >= 2) ...[
         SectionLabel(s.t('heart.rhrHistory')),
         LineSeriesChart(

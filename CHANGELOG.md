@@ -1,5 +1,26 @@
 # Değişiklik günlüğü
 
+## 0.18.0 — Ekim 2026
+
+Arayüz toparlaması:
+- **Dinlenme nabzı** normalinden yüksekken "altında" yazıyordu; artık "biraz
+  yüksek / yüksek". HRV için "biraz düşük / düşük"
+- **Süreler** "3s 33d" yerine "3 sa 33 dk" (saniyeyle karışıyordu)
+- **Uzmanlık terimleri sade dile çevrildi:** "−1.0 z" yerine "Normalinden biraz
+  düşük"; "HRR" yerine "Hafif / Orta / Yoğun / Çok yoğun"; "ACWR" ve "akut /
+  kronik" yerine "yük oranı"; uyku bileşenlerindeki "Ağırlık %35" kaldırıldı
+- **Paylaş düğmesi** artık içeriğin üstünde yüzmüyor; Veri ekranında "Veriyi
+  dışa aktar" düğmesi
+- **Uyku bileşenleri** beş ayrı kart yerine tek kartta
+- **Boş satırlar gizlendi:** gelmeyen SpO2 / solunum / sıcaklık tek bir notta;
+  bölge dakikası yoksa dört "0 dk" satırı yerine tek cümle
+- **Tekrarlar kaldırıldı:** hazırlık açıklaması uyku süresini ikinci kez
+  yazmıyor; "Uyku verimi" satırı bileşenlerdeki verimle çakışıyordu
+- **Su** "Bu gece" yerine "Bugün için" bölümünde
+- **Yatma saati** satırı kısaldı; hesabın ayrıntısı dokununca açılıyor
+- **Uyku haritası** dört saatte bir saat çizgisi ve tarih aralığı gösteriyor
+- Grafik altındaki tasarım notu kaldırıldı
+
 ## 0.17.2 — Ekim 2026
 
 - **Düzeltme:** okuma sürerken telefon kilitlenir ya da başka uygulamaya

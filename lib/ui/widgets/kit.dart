@@ -150,8 +150,10 @@ class ZoneMeter extends StatelessWidget {
           MapEntry(-0.5, Level.warn),
           MapEntry(2.5, Level.good),
         ],
-        leftLabel: '-2.5 z',
-        rightLabel: '+2.5 z',
+        // Uç etiketleri yok: "−2.5 z" kullanıcıya bir şey söylemiyordu;
+        // ne demek olduğu satırın alt metninde düz cümleyle yazıyor.
+        leftLabel: '',
+        rightLabel: '',
       );
 
   factory ZoneMeter.score(double v) => ZoneMeter(
