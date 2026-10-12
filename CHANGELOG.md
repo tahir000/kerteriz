@@ -1,5 +1,12 @@
 # Değişiklik günlüğü
 
+## 0.17.2 — Ekim 2026
+
+- **Düzeltme:** okuma sürerken telefon kilitlenir ya da başka uygulamaya
+  geçilirse Health Connect okumayı reddediyor; uygulama bu boş sonucu "nabız
+  ve adım yok" diye önbelleğe yazıyordu ve Yük sekmesi sıfır kalıyordu. Artık
+  reddedilen okuma kaydedilmiyor, uygulama öne gelince yeniden okunuyor
+
 ## 0.17.1 — Ekim 2026
 
 - **Gizlilik:** uygulama verileri artık Google Drive yedeğine gitmiyor. Yeni

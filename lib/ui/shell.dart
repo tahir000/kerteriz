@@ -30,7 +30,19 @@ class Shell extends StatefulWidget {
   State<Shell> createState() => _ShellState();
 }
 
-class _ShellState extends State<Shell> {
+class _ShellState extends State<Shell> with WidgetsBindingObserver {
+  /// Son okuma arka planda reddedildi; uygulama öne gelince yeniden oku.
+  bool _onPlandaOku = false;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed || !_onPlandaOku) return;
+    if (_okumaSuruyor) return;
+    _onPlandaOku = false;
+    unawaited(Tani.iz('one gelindi, reddedilen okuma yineleniyor'));
+    unawaited(_tamOkuma(sessiz: _days.isNotEmpty));
+  }
+
   final _repo = HealthRepository();
   int _tab = 0;
   bool _loading = true;
@@ -81,6 +93,7 @@ class _ShellState extends State<Shell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     Ayarlar.yenidenOku.removeListener(_ayarDegisti);
     Ayarlar.degisti.removeListener(_hedefDegisti);
     Hatirlatici.acilis.removeListener(_bildirimAcildi);
@@ -193,6 +206,7 @@ class _ShellState extends State<Shell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     Ayarlar.yenidenOku.addListener(_ayarDegisti);
     Ayarlar.degisti.addListener(_hedefDegisti);
     Hatirlatici.acilis.addListener(_bildirimAcildi);
@@ -383,7 +397,10 @@ class _ShellState extends State<Shell> {
       // Okuma sağlam mı: bir tip zaman aşımına uğradıysa o pencerenin
       // günleri boş iskelet olarak dönüyor. Onları önbellekteki dolu
       // günlerin üstüne yazmak veriyi silmek olur.
-      final saglam = _repo.timedOut.isEmpty && _repo.rawCounts.isNotEmpty;
+      final saglam = _repo.timedOut.isEmpty &&
+          _repo.rawCounts.isNotEmpty &&
+          !_repo.onPlanReddi;
+      if (_repo.onPlanReddi) _onPlandaOku = true;
       final sonKayit = _repo.lastPoint;
       if (!saglam) {
         await Tani.iz('tazeleme eksik dondu, onbellek korunuyor');
@@ -576,7 +593,11 @@ class _ShellState extends State<Shell> {
       // Zaman aşımına uğramış tipe takılmıyoruz: bazı cihazlarda bir tip
       // her seferinde zaman aşımına uğruyor ve o yüzden önbelleği hiç
       // yazmamak, hızlanmadan tamamen vazgeçmek demek olurdu.
-      final saglam = _repo.rawCounts.isNotEmpty;
+      // Arka planda reddedilen okuma da yazılmıyor: gelmeyen nabız ve adım
+      // "sıfır" olarak kaydedilir ve bir sonraki tam okumaya kadar yük
+      // ekranı boş kalırdı. Uygulama öne gelince yeniden okunuyor.
+      final saglam = _repo.rawCounts.isNotEmpty && !_repo.onPlanReddi;
+      if (_repo.onPlanReddi) _onPlandaOku = true;
       if (nesil != _nesil) return;
       if (saglam) {
         await Onbellek.yaz(OnbellekIcerik(

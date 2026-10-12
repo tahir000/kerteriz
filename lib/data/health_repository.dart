@@ -23,6 +23,19 @@ class HealthRepository {
   /// beklemesin ve sebebi görünür olsun.
   final List<HealthDataType> timedOut = [];
 
+  /// Health Connect okumayı reddetti çünkü uygulama ön planda değildi
+  /// (okuma sürerken telefon kilitlendi ya da başka uygulamaya geçildi).
+  /// O okumada gelmeyen tipler "veri yok" değil "okunamadı" demek; sonuç
+  /// önbelleğe yazılmamalı, uygulama öne gelince yeniden okunmalı.
+  bool onPlanReddi = false;
+
+  void _hataNotu(Object e) {
+    final m = e.toString();
+    if (m.contains('foreground') || m.contains('SecurityException')) {
+      onPlanReddi = true;
+    }
+  }
+
   /// Son okumada Health Connect'in tip tip kaç kayıt döndürdüğü.
   /// Boş dönen bir tip, izin verilmiş olsa bile o verinin hiç yazılmadığını gösterir.
   Map<HealthDataType, int> rawCounts = {};
@@ -257,6 +270,7 @@ class HealthRepository {
 
     const wanted = types;
     timedOut.clear();
+    onPlanReddi = false;
     // final DEĞİL: aşağıda removeDuplicates sonucuyla yeniden atanıyor.
     List<HealthDataPoint> points = [];
 
@@ -287,6 +301,7 @@ class HealthRepository {
         timedOut.add(t);
         await Tani.iz('tip ZAMAN ASIMI: ${t.name}');
       } catch (e) {
+        _hataNotu(e);
         await Tani.iz('tip HATA: ${t.name} -> $e');
       }
     }
@@ -463,6 +478,7 @@ class HealthRepository {
           }
           await Tani.iz('nabiz penceresi ZAMAN ASIMI: ${_key(pStart)}');
         } catch (e) {
+          _hataNotu(e);
           await Tani.iz('nabiz penceresi HATA: $e');
         }
       }
@@ -696,7 +712,8 @@ class HealthRepository {
         final s = await _health.getTotalStepsInInterval(rec.date,
             DateTime(rec.date.year, rec.date.month, rec.date.day + 1));
         rec.steps = s ?? 0;
-      } catch (_) {
+      } catch (e) {
+        _hataNotu(e);
         rec.steps = 0;
       }
     }
