@@ -1,6 +1,6 @@
 # Kerteriz — Gizlilik Politikası
 
-**Yürürlük tarihi:** 26 Eylül 2026
+**Yürürlük tarihi:** 12 Ekim 2026
 
 Bu belgenin yayınlanabilir hali `docs/index.html` dosyasıdır: iki dilli, tek
 dosya, dış bağımlılığı yok. GitHub Pages ile yayınlanıyor (bkz. `YAYIN.md`
@@ -56,7 +56,8 @@ Uygulama analiz (analytics), çökme raporlama ya da reklam kitaplığı içerme
 Tek istisna, sizin başlattığınız **dışa aktarma** işlemidir: paylaş düğmesine
 bastığınızda cihazınızda bir JSON dosyası oluşturulur ve Android'in paylaşım
 menüsü açılır. O dosyanın nereye gideceğine yalnızca siz karar verirsiniz.
-Dosya oluşturulmadığı sürece hiçbir yere gitmez.
+Dosya oluşturulmadığı sürece hiçbir yere gitmez. Dosya geçici klasöre
+yazılır ve bir saat içinde, en geç bir sonraki açılışta silinir.
 
 ## 4. Reklam ve satış
 
@@ -65,6 +66,11 @@ Health Connect'ten gelen veriler reklam göstermek, reklam kişiselleştirmek,
 **kullanılmaz**. Uygulamada reklam yoktur.
 
 ## 5. Saklama ve silme
+
+Uygulama verileri Android'in bulut yedeğine (Google Drive) **dahil edilmez**.
+Yeni bir telefona doğrudan aktarım (kablo ya da yakın cihaz aktarımı) yaptığınızda
+etiketleriniz, sabah değerlendirmeleriniz, regl işaretleriniz ve ayarlarınız yeni
+telefona taşınır; sağlık verisi önbelleği taşınmaz, Health Connect'ten yeniden okunur.
 
 Veriler uygulamanın kendi alanında geçici olarak işlenir. Uygulamayı
 kaldırdığınızda bu alan Android tarafından tamamen silinir.

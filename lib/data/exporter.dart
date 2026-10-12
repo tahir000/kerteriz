@@ -40,11 +40,52 @@ class Exporter {
       'days': days.map((d) => d.toJson()).toList(),
     };
 
-    final dir = await getApplicationDocumentsDirectory();
+    // Önbellek klasörü: Android yedeğine girmiyor ve sistem gerektiğinde
+    // kendisi temizliyor. Her yeni dışa aktarım öncekileri siliyor; tam
+    // sağlık dökümü telefonda birikmesin.
+    final dir = await _klasor();
+    await _eskileriSil(dir);
     final stamp = DateTime.now().toIso8601String().substring(0, 10);
     final file = File('${dir.path}/kerteriz-$stamp.json');
     await file.writeAsString(const JsonEncoder.withIndent('  ').convert(payload));
     return file;
+  }
+
+  static Future<Directory> _klasor() async {
+    final d = Directory('${(await getTemporaryDirectory()).path}/disa_aktarim');
+    if (!await d.exists()) await d.create(recursive: true);
+    return d;
+  }
+
+  static Future<void> _eskileriSil(Directory d) async {
+    await for (final f in d.list()) {
+      if (f is File) await f.delete().catchError((_) => f);
+    }
+  }
+
+  /// Açılışta çağrılır. Bir saatten eski dışa aktarımları ve 0.17'ye kadar
+  /// kalıcı klasöre yazılmış eski dosyaları siler. Paylaşım hemen
+  /// silinmiyor: alıcı uygulama (Drive, e-posta) dosyayı okumayı paylaşım
+  /// ekranı kapandıktan sonra da sürdürebiliyor.
+  static Future<void> temizle() async {
+    try {
+      final eski = await getApplicationDocumentsDirectory();
+      await for (final f in eski.list()) {
+        final ad = f.uri.pathSegments.last;
+        if (f is File && ad.startsWith('kerteriz-') && ad.endsWith('.json')) {
+          await f.delete();
+        }
+      }
+      final d = await _klasor();
+      final sinir = DateTime.now().subtract(const Duration(hours: 1));
+      await for (final f in d.list()) {
+        if (f is File && (await f.lastModified()).isBefore(sinir)) {
+          await f.delete();
+        }
+      }
+    } catch (_) {
+      // Temizlenemezse bir sonraki açılışta yeniden denenir.
+    }
   }
 
   static Future<void> share(List<DayRecord> days,

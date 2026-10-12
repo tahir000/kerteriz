@@ -12,6 +12,7 @@ import 'data/hisler.dart';
 import 'data/regl_kayitlari.dart';
 import 'data/tani.dart';
 import 'l10n.dart';
+import 'data/exporter.dart';
 import 'theme.dart';
 import 'ui/shell.dart';
 
@@ -40,6 +41,7 @@ Future<void> main() async {
     await Hisler.oku();
     await ReglKayitlari.oku();
     await Tani.iz('ayarlar');
+    unawaited(Exporter.temizle());
     runApp(const KerterizApp());
   }, (e, s) {
     Tani.iz('YAKALANMAYAN HATA: $e');

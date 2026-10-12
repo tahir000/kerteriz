@@ -221,6 +221,18 @@ def main(path):
     if eklenecek:
         src = src.replace("</application>", eklenecek + "\n    </application>", 1)
 
+    # 3a) yedekleme: sağlık verisi Google Drive yedeğine gitmesin.
+    # allowBackup=false Android 11 ve öncesinde her yedeği kapatıyor; 12+
+    # sürümlerde bulut yedeğini kapatıyor ama yeni telefona doğrudan aktarım
+    # (kablo / yakın cihaz) sürüyor, kurallar dosyası da bulutu ayrıca dışlıyor.
+    for nitelik, deger in (
+        ("android:allowBackup", "false"),
+        ("android:fullBackupContent", "false"),
+        ("android:dataExtractionRules", "@xml/data_extraction_rules"),
+    ):
+        if nitelik + "=" not in src:
+            src = src.replace("<application", '<application\n        %s="%s"' % (nitelik, deger), 1)
+
     # 4) uygulama adı
     if 'android:label="Kerteriz"' not in src:
         src = re.sub(r'android:label="[^"]*"', 'android:label="Kerteriz"', src, count=1)

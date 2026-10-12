@@ -1,5 +1,14 @@
 # Değişiklik günlüğü
 
+## 0.17.1 — Ekim 2026
+
+- **Gizlilik:** uygulama verileri artık Google Drive yedeğine gitmiyor. Yeni
+  telefona doğrudan aktarımda etiketler, hisler, regl işaretleri ve ayarlar
+  taşınıyor; sağlık önbelleği taşınmıyor
+- **Dışa aktarma:** dosya geçici klasöre yazılıyor ve bir saat içinde siliniyor.
+  Eski sürümlerin bıraktığı dışa aktarma dosyaları ilk açılışta temizleniyor
+- `pubspec.lock` depoya eklendi: her derleme aynı paket sürümlerini kullanıyor
+
 ## 0.17.0 — Ekim 2026
 
 - **Su hatırlatması:** ayarlardan açılıp kapatılıyor; varsayılan saat başı,
