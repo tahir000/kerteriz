@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:health/health.dart';
 
 import '../config.dart';
+import '../l10n.dart';
 import 'ayarlar.dart';
 import 'day_record.dart';
 import 'uyku_bloklari.dart';
@@ -149,6 +150,12 @@ class HealthRepository {
 
   static String kaynakAdi(HealthDataPoint p) {
     final id = p.sourceId;
+    // Telefonun kendi adım sayacı Health Connect'e cihaza özgü bir son ekle
+    // yazıyor ("com.android.healthconnect.phone.jc17f5…"); ham kimlik
+    // ekranda anlamsız görünüyordu.
+    for (final k in [p.sourceName, id]) {
+      if (k.startsWith('com.android.healthconnect.phone')) return S.forCode(DayRecord.locale).t('source.phone');
+    }
     return bilinenKaynaklar[id] ??
         bilinenKaynaklar[p.sourceName] ??
         (p.sourceName.isNotEmpty ? p.sourceName : id);

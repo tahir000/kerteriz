@@ -75,8 +75,8 @@ class S {
     'common.yes': 'evet',
     'common.no': 'hayır',
     'common.none': 'yok',
-    'common.hourShort': ' sa',
-    'common.minShort': ' dk',
+    'common.hourShort': '\u00A0sa',
+    'common.minShort': '\u00A0dk',
 
     // seviyeler
     'lvl.good': 'iyi',
@@ -642,7 +642,9 @@ class S {
     'heart.last45': 'Son 45 gün',
     'heart.hrvTag': 'Gece HRV (RMSSD)',
     'heart.hrvCaption': 'Gri şerit senin normal aralığın (son 14 gece). Önemli olan tek gecenin değeri değil, şeridin neresinde durduğun.',
-    'heart.notSent': '{list}: bu cihaz göndermiyor. Gelmeye başlarsa burada görünür.',
+    'heart.notSent': '{list}: dün geceye ait kayıt yok.',
+    'workout.light': 'hafif',
+    'source.phone': 'Telefon',
     'heart.hrvMissing':
         'Health Connect bu cihazda HRV yazmıyor görünüyor. Hazırlık skoru, kalan '
             'girdilerin ağırlıkları yeniden dağıtılarak hesaplandı.',
@@ -1368,7 +1370,9 @@ class S {
     'heart.last45': 'Last 45 days',
     'heart.hrvTag': 'Nightly HRV (RMSSD)',
     'heart.hrvCaption': 'The grey band is your normal range over the last 14 nights. What matters is not one night\'s value but where it sits in the band.',
-    'heart.notSent': '{list}: not sent by this device. They show up here if they start arriving.',
+    'heart.notSent': '{list}: no reading for last night.',
+    'workout.light': 'light',
+    'source.phone': 'Phone',
     'heart.hrvMissing':
         'Health Connect does not appear to write HRV on this device. Readiness was '
             'computed by redistributing the weights of the remaining inputs.',

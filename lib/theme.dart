@@ -248,13 +248,16 @@ class Levels {
 /// "3 sa 05 dk" yerine "3 sa 5 dk"; bir saatin altında yalnızca "45 dk".
 /// Türkçede "3s 33d" saniye gibi okunuyordu. Birim boşlukla başlıyorsa
 /// (" sa") dakika doldurulmuyor; "3h 05m" gibi bitişik biçimde dolduruluyor.
-String fmtDur(num minutes, {String h = ' sa', String m = ' dk'}) {
+String fmtDur(num minutes, {String h = '\u00A0sa', String m = '\u00A0dk'}) {
   final t = minutes.round();
   if (t.abs() < 60) return '$t$m';
   final dk = t.abs() % 60;
   final sa = '${t ~/ 60}$h';
   if (dk == 0) return sa;
-  final d = m.startsWith(' ') ? '$dk' : dk.toString().padLeft(2, '0');
+  final bosluklu = m.startsWith(' ') || m.startsWith('\u00A0');
+  final d = bosluklu ? '$dk' : dk.toString().padLeft(2, '0');
+  // Sayı ile birimi arasındaki boşluk bölünmez (\u00A0): satır sonu
+  // "3" ile "sa"yı ayırmasın. Saat ile dakika arası olağan boşluk.
   return '$sa $d$m';
 }
 

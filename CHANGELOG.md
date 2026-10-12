@@ -20,6 +20,9 @@ Arayüz toparlaması:
 - **Yatma saati** satırı kısaldı; hesabın ayrıntısı dokununca açılıyor
 - **Uyku haritası** dört saatte bir saat çizgisi ve tarih aralığı gösteriyor
 - Grafik altındaki tasarım notu kaldırıldı
+- Süre ile birimi aynı satırda kalıyor ("3" ile "sa" bölünmüyor)
+- Nabzı hafif tempo altında kalan antrenmanlar "0.0/21" yerine "hafif"
+- Telefonun kendi adım sayacı kaynak listesinde ham kimlik yerine "Telefon"
 
 ## 0.17.2 — Ekim 2026
 

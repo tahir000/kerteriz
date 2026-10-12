@@ -921,8 +921,12 @@ class LoadScreen extends StatelessWidget {
               'dur': _dur(s, e.value.dakika),
               'hr': e.value.ortNabiz?.toStringAsFixed(0) ?? '--',
             }),
-            value: e.value.yuk.toStringAsFixed(1),
-            unit: s.t('unit.of21'),
+            // Nabzı hafif bölgenin altında kalan yürüyüş "0.0/21" görünüyor
+            // ve bozuk gibi duruyordu.
+            value: e.value.yuk < 0.05
+                ? s.t('workout.light')
+                : e.value.yuk.toStringAsFixed(1),
+            unit: e.value.yuk < 0.05 ? null : s.t('unit.of21'),
             onTap: () => _antrenmanAyrinti(context, e.key, e.value, days),
           ),
       SectionLabel(s.t('load.balance')),

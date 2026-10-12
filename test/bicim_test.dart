@@ -3,10 +3,10 @@ import 'package:kerteriz/theme.dart';
 
 void main() {
   test('süre: Türkçe boşluklu, saniyeyle karışmıyor', () {
-    expect(fmtDur(213), '3 sa 33 dk');
-    expect(fmtDur(185), '3 sa 5 dk');
-    expect(fmtDur(120), '2 sa');
-    expect(fmtDur(45), '45 dk');
+    expect(fmtDur(213), '3\u00A0sa 33\u00A0dk');
+    expect(fmtDur(185), '3\u00A0sa 5\u00A0dk');
+    expect(fmtDur(120), '2\u00A0sa');
+    expect(fmtDur(45), '45\u00A0dk');
   });
 
   test('süre: İngilizce bitişik', () {
