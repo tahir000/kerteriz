@@ -1,5 +1,16 @@
 # Değişiklik günlüğü
 
+## 0.19.0 — Ekim 2026
+
+- **Grafiklere dokunma:** dokunulan grafik kartı hafifçe büyüyor, parmağın
+  altındaki sütun / nokta / evre öne çıkıyor ve küçük bir balonda tarihi
+  (ya da saati) ve değeri gösteriyor. Seçim açıkken parmak kaydırılarak
+  öğeler arasında geziliyor; basılı tutup kaydırmak da işe yarıyor. Aynı
+  öğeye yeniden dokunmak ya da 4 saniye beklemek seçimi kapatıyor
+- Gecenin evreleri: evrenin adı, saat aralığı ve süresi; uyku haritası:
+  gecenin tarihi, yatış–kalkış ve uyku süresi; evre ve bölge şeritleri:
+  parçanın adı, süresi ve payı
+
 ## 0.18.0 — Ekim 2026
 
 Arayüz toparlaması:

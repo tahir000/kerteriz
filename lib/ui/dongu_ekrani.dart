@@ -141,6 +141,11 @@ class DonguEkrani extends StatelessWidget {
         SectionLabel(s.t('cycle.rhrChart')),
         LineSeriesChart(
           values: nabiz,
+          labels: [
+            for (final x in son56)
+              if (x.rhr != null) x.label
+          ],
+          unit: s.t('unit.bpm'),
           leftLabel: son56.first.label,
           rightLabel: son56.last.label,
         ),

@@ -360,6 +360,7 @@ class TodayScreen extends StatelessWidget {
           for (final x in recent)
             Bar(x.readiness.toDouble(), level: Levels.readiness(x.readiness))
         ],
+        labels: [for (final x in recent) x.label],
         leftLabel: recent.first.label,
         rightLabel: days.last.label,
       ),
@@ -753,6 +754,11 @@ class SleepScreen extends StatelessWidget {
         MapEntry(K.stageRem, d.rem.toDouble()),
         MapEntry(K.stageLight, d.light.toDouble()),
         MapEntry(K.stageWake, d.awakeMinutes.toDouble()),
+      ], names: [
+        s.t('sleep.deep'),
+        s.t('sleep.rem'),
+        s.t('sleep.light'),
+        s.t('sleep.awake'),
       ]),
       Padding(
         padding: const EdgeInsets.fromLTRB(K.gutter, 12, K.gutter, 0),
@@ -814,6 +820,8 @@ class SleepScreen extends StatelessWidget {
         ],
         rule: d.need / 60,
         ruleLabel: s.t('sleep.need'),
+        labels: [for (final x in last14) x.label],
+        format: (v) => _dur(s, v * 60),
         leftLabel: last14.first.label,
         rightLabel: days.last.label,
       ),
@@ -963,6 +971,8 @@ class LoadScreen extends StatelessWidget {
         ],
         rule: d.chronic,
         ruleLabel: s.t('load.avg28'),
+        labels: [for (final x in last28) x.label],
+        format: (v) => v.toStringAsFixed(1),
         leftLabel: last28.first.label,
         rightLabel: days.last.label,
       ),
@@ -978,6 +988,8 @@ class LoadScreen extends StatelessWidget {
           MapEntry(K.stageRem, d.zoneMinutes[2]),
           MapEntry(K.stageLight, d.zoneMinutes[3]),
           MapEntry(K.stageDeep, d.zoneMinutes[4]),
+        ], names: [
+          for (var k = 1; k <= 4; k++) s.t2('load.zone', {'n': '$k'})
         ]),
         for (var k = 1; k <= 4; k++)
           MetricRow(
@@ -1059,6 +1071,8 @@ void _antrenmanAyrinti(
               MapEntry(K.stageRem, a.bolge[2]),
               MapEntry(K.stageLight, a.bolge[3]),
               MapEntry(K.stageDeep, a.bolge[4]),
+            ], names: [
+              for (var k = 1; k <= 4; k++) s.t2('load.zone', {'n': '$k'})
             ]),
             for (var k = 1; k <= 4; k++)
               if (a.bolge[k] > 0)
@@ -1153,6 +1167,8 @@ class HeartScreen extends StatelessWidget {
           bandLow: low,
           bandHigh: high,
           endLevel: Levels.z(d.hrvZ),
+          labels: [for (final x in win) x.label],
+          unit: s.t('unit.ms'),
           leftLabel: win.first.label,
           rightLabel: win.last.label,
         ),
@@ -1221,6 +1237,8 @@ class HeartScreen extends StatelessWidget {
         LineSeriesChart(
           values: <double>[for (final x in rhrDays) x.rhr!],
           endLevel: Levels.z(-d.rhrZ),
+          labels: [for (final x in rhrDays) x.label],
+          unit: s.t('unit.bpm'),
           leftLabel: rhrDays.first.label,
           rightLabel: rhrDays.last.label,
         ),

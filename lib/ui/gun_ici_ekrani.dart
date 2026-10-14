@@ -25,6 +25,7 @@ class GunIciEkrani extends StatelessWidget {
 
     // Saatlik stres: dört dilimin ortalaması, ölçülebilen dilim yoksa boş.
     final saatlik = <Bar>[];
+    final saatler = <String>[];
     var ilkSaat = 24, sonSaat = -1;
     if (o != null) {
       for (var h = 0; h <= o.sonVeriDilimi ~/ 4; h++) {
@@ -37,6 +38,7 @@ class GunIciEkrani extends StatelessWidget {
         sonSaat = h;
         final v = d.reduce((a, b) => a + b) / d.length;
         saatlik.add(Bar(v * 100, level: Levels.stres(v)));
+        saatler.add('${h.toString().padLeft(2, '0')}:00');
       }
     }
 
@@ -66,6 +68,11 @@ class GunIciEkrani extends StatelessWidget {
               LineSeriesChart(
                 values: o.enerji!.degerler,
                 endLevel: Levels.readiness(o.enerji!.simdi.round()),
+                // Her değer dilimin sonundaki enerji.
+                labels: [
+                  for (var i = 0; i < o.enerji!.degerler.length; i++)
+                    GunIci.dilimSaati(o.enerji!.ilkDilim + i + 1)
+                ],
                 leftLabel: GunIci.dilimSaati(o.enerji!.ilkDilim),
                 rightLabel: GunIci.dilimSaati(o.sonVeriDilimi + 1),
               ),
@@ -94,6 +101,7 @@ class GunIciEkrani extends StatelessWidget {
             else
               BarSeriesChart(
                 bars: saatlik,
+                labels: saatler,
                 leftLabel: '${ilkSaat.toString().padLeft(2, '0')}:00',
                 rightLabel: '${sonSaat.toString().padLeft(2, '0')}:00',
               ),
