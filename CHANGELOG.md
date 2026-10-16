@@ -1,5 +1,15 @@
 # Değişiklik günlüğü
 
+## 0.20.0 — Ekim 2026
+
+- **Özet ekranı:** uygulama artık Bugün yerine Özet'le açılıyor. Hesaplanan
+  skorlar (hazırlık, uyku skoru, günlük yük, uyku borcu, kardiyak toparlanma,
+  yük oranı) ve önemli ölçümler (HRV, dinlenme nabzı, uyku süresi, SpO2,
+  solunum, cilt sıcaklığı, adım) yuvarlak halkalarda
+- Halkaya dokununca alt sayfa açılıyor: ölçümlerde son kaydın günü, değeri,
+  normalin ve önceki ölçüm; skorlarda hangi verilerden ve hangi ağırlıklarla
+  hesaplandığı, katılmayan girdinin nedeni
+
 ## 0.19.0 — Ekim 2026
 
 - **Grafiklere dokunma:** dokunulan grafik kartı hafifçe büyüyor, parmağın

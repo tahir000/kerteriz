@@ -21,6 +21,7 @@ import '../metrics/engine.dart';
 import '../theme.dart';
 import 'coverage_screen.dart';
 import 'dongu_ekrani.dart';
+import 'ozet_ekrani.dart';
 import 'screens.dart';
 import 'widgets/marka.dart';
 
@@ -131,7 +132,10 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
   /// Döngü sekmesi görünüyor mu ve Veri sekmesinin sırası.
   bool get _donguSekmesi => Ayarlar.donguGorunur(
       veriVar: _allDays.any((d) => d.reglHc));
-  int get _veriSekmesi => _donguSekmesi ? 5 : 4;
+  int get _veriSekmesi => _donguSekmesi ? 6 : 5;
+
+  /// Bugün sekmesinin sırası; açılışta önce Özet geliyor.
+  static const _bugunSekmesi = 1;
 
   /// Regl günü işaretlendi ya da döngü düzeltmesi değişti: Health Connect'i
   /// yeniden okumadan motoru bellekteki günlerle yeniden çalıştır.
@@ -165,7 +169,7 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
     if (yuk == Hatirlatici.sabahYuku || yuk == Hatirlatici.suYuku) {
       // Sabah ya da su bildirimi: Bugün'e dön; sabah sorusu ve su kartı orada.
       Hatirlatici.acilis.value = null;
-      _gitSekme(0);
+      _gitSekme(_bugunSekmesi);
       return;
     }
     if (yuk != Hatirlatici.etiketYuku) return;
@@ -175,7 +179,7 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
   }
 
   void _etiketSayfasi() {
-    _gitSekme(0);
+    _gitSekme(_bugunSekmesi);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: K.bg,
@@ -769,6 +773,7 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
         _skorYok(s),
         _skorYok(s),
         _skorYok(s),
+        _skorYok(s),
         if (_donguSekmesi) _skorYok(s),
         CoverageScreen(
             repo: _repo,
@@ -784,6 +789,7 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
         });
       }
       body = _sayfalar([
+        OzetEkrani(_days, allDays: _allDays),
         TodayScreen(_days,
             allDays: _allDays,
             kalpKaynagi: _repo.kaynaklar['HEART_RATE']?.firstOrNull),
@@ -812,6 +818,7 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
                 : 'icerik';
 
     final sekmeler = <(IconData, String)>[
+      (Icons.donut_large_outlined, s.t('tab.summary')),
       (Icons.circle_outlined, s.t('tab.today')),
       (Icons.nightlight_outlined, s.t('tab.sleep')),
       (Icons.show_chart, s.t('tab.load')),
