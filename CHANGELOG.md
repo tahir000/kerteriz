@@ -1,5 +1,10 @@
 # Değişiklik günlüğü
 
+## 0.20.1 — Ekim 2026
+
+- **Uyku penceresi haritası** 20:00–12:00 yerine 24 saati gösteriyor
+  (20:00'dan ertesi 20:00'a); öğleden sonraya uzayan uykular artık kesilmiyor
+
 ## 0.20.0 — Ekim 2026
 
 - **Özet ekranı:** uygulama artık Bugün yerine Özet'le açılıyor. Hesaplanan

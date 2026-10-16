@@ -861,7 +861,9 @@ class SleepRaster extends StatelessWidget {
       alt: (_, _) => Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          for (final t in const ['20:00', '00:00', '04:00', '08:00', '12:00'])
+          for (final t in const [
+            '20:00', '00:00', '04:00', '08:00', '12:00', '16:00', '20:00'
+          ])
             Text(t, style: K.axis),
         ]),
       ),
@@ -875,7 +877,7 @@ class _RasterPainter extends CustomPainter {
   final double odak;
   _RasterPainter(this.days, [this.secili, this.odak = 0]);
 
-  static const rh = 6.0, gap = 1.6, span = 960.0; // 20:00 -> 12:00
+  static const rh = 6.0, gap = 1.6, span = 1440.0; // 20:00 -> 20:00, 24 saat
 
   /// Gecenin bandı (x, genişlik); yatış bilinmiyorsa null.
   static (double, double)? bant(DayRecord d, double width) {
@@ -915,7 +917,7 @@ class _RasterPainter extends CustomPainter {
         p,
       );
     }
-    // Saat çizgileri (00:00, 04:00, 08:00): bantların hangi saatte
+    // Saat çizgileri (00:00, 04:00 ... 16:00): bantların hangi saatte
     // başladığı gözle okunabilsin.
     final cizgi = Paint()
       ..color = K.ink3.withValues(alpha: 0.35)
